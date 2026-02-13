@@ -1,0 +1,3391 @@
+var PerDetScrId = 'PerDet__PersonalDetails__';
+var paintKYCId = 'PerDet__IPaintKYCDetails__o__PerDet__IPaintKYCDetails_Res__';
+var MaritalStatus = 'S';
+var dummy, dummy1;
+var kycID = -1,
+    PerID = -1,
+    CusVerID = -1;
+var stateVal = [],
+    stateDesc = [];
+var cityVal = [],
+    cityDesc = [];
+var temp, panVerifybutton, panEnabledorDisabled, panMandatory;
+var PerSelectedFlag = '#PerDet__PersonalDetails__regnFlag_li .selected-flag';
+var SelectedFlag = '#PerDet__PersonalDetails__regnFlag_li .selected-flag .iti-flag';
+var DialCode = '[data-dial-code= ';
+var CountryCode = "data-country-code";
+var coAppCustomerName = 'PerDet__IPaintKYCDetails__o__PerDet__IPaintKYCDetails_Res__';
+var PleaseSelect = ApzCOB.getDescfromLitCode("LIT_COMM_MSG_PLEASE_SELECT");
+var CountryList = '.country-list';
+var ResGender = '#PerDet__IPaintKYCDetails__o__PerDet__IPaintKYCDetails_Res__gender';
+var PerDetAddPermanentToggle = '#PerDet__PersonalDetails__AddPermanentToggle';
+var ResDOB = "#PerDet__IPaintKYCDetails__o__PerDet__IPaintKYCDetails_Res__dob";
+var SelectedItiFlag = '#PerDet__PersonalDetails__altregnFlag_li .selected-flag .iti-flag';
+var ExistingLoansDiv = '#PerDet__PersonalDetails__gr_row_12';
+var NoLoansDiv = '#PerDet__PersonalDetails__noLoansDiv';
+var persDtlsDiv = '#PerDet__PersonalDetails__personDetailsFieldsForm';
+var resDtlsDiv = '#PerDet__PersonalDetails__addressFieldsForm';
+var earningMemberDiv = '#PerDet__PersonalDetails__gr_row_23';
+var personalDetailsParentDiv = "#PerDet__PersonalDetails__gr_row_4";
+var spouseNameInputTag = $('#' + PerDetScrId + 'spouseName');
+var fatherNameInputTag = $('#' + PerDetScrId + 'fatherName');
+var secondaryKycTypeTagId = PerDetScrId + 'secKYC';
+var secondaryKycIdTag = PerDetScrId + 'secVoterId';
+var altVoterIdTag = PerDetScrId + 'altVoterId';
+var panNumberTag = PerDetScrId + 'panNumberInp';
+var exisLoanFlag = false;
+var perDetFLag = false;
+var appAddrFlag = false;
+var earningLoanFlag = false;
+var perDetobj = {};
+var mobileNum = "";
+var spouseFlag = false;
+//window.fullAddress;
+window.populatedropdownScrID = PerDetScrId;
+temp = ApzCOB.GetCommonCodes("CUSTOMERDETAILS").CUSTOMERDETAILS;
+apz.data.scrdata.PerDet__IPaintLoanDetails_Res = [];
+window.houseTypechoose = '';
+window.commAddr = '';
+window.loc_CordFor = '';
+window.currcutApp = '';
+var residentialAddressFields = [PerDetScrId + "addressLine1", PerDetScrId + "addressLine2", PerDetScrId + "addressLine3", PerDetScrId + "pin",
+    PerDetScrId + "city", PerDetScrId + "district", PerDetScrId + "state", PerDetScrId + "country", `${PerDetScrId}presArea`, `${PerDetScrId}presLandmark`
+];
+var permanentAddressFields = [PerDetScrId + 'permanentAddres1', PerDetScrId + 'permanentAddres2', PerDetScrId + 'permanentAddres3', PerDetScrId +
+    'permanentPincode', PerDetScrId + 'permanentcity', PerDetScrId + 'permanentDist', PerDetScrId + 'permanentState', PerDetScrId +
+    'permanentCountry', `${PerDetScrId}permArea`, `${PerDetScrId}permLandmark`
+]
+var permanentAddressDropdowns = [`${PerDetScrId}permanentcity`, `${PerDetScrId}permanentDist`, `${PerDetScrId}permanentState`,
+    `${PerDetScrId}permanentCountry`
+];
+var communicationAddressFields = [PerDetScrId + 'commAddress1', PerDetScrId + 'commAddress2', PerDetScrId + 'commAddress3', PerDetScrId +
+    'commPincode', PerDetScrId + 'commCity', PerDetScrId + 'commDist', PerDetScrId + 'commState', PerDetScrId + 'commCountry', `${PerDetScrId}commArea`, `${PerDetScrId}commLandmark`
+]
+var presentAddressFields = [PerDetScrId + "addressLine1", PerDetScrId + "addressLine2", PerDetScrId + "addressLine3", PerDetScrId + "pin",
+    PerDetScrId + "city", PerDetScrId + "district", PerDetScrId + "state", PerDetScrId + "country", `${PerDetScrId}presArea`,`${PerDetScrId}presLandmark`, PerDetScrId + "ownership",
+    PerDetScrId + "cityYears", PerDetScrId + "resYears", PerDetScrId + "currResProof", PerDetScrId + "addressLine1", PerDetScrId +
+    'el_rdo_1_option_HouType1', PerDetScrId + 'el_rdo_1_option_HouType2', PerDetScrId + 'el_rdo_1_option_HouType3'
+]
+var pinCodeFieldsDropdowns = [`${PerDetScrId}city`, `${PerDetScrId}district`, `${PerDetScrId}state`, `${PerDetScrId}country`, `${PerDetScrId}permanentcity`, `${PerDetScrId}permanentDist`, `${PerDetScrId}permanentState`, `${PerDetScrId}permanentCountry`, `${PerDetScrId}commCity`, `${PerDetScrId}commDist`, `${PerDetScrId}commState`, `${PerDetScrId}commCountry`
+];
+var coOrdinateInputTag = "PerDet__PersonalDetails__el_inp_6";
+IS_SERVICE_CALLBACK = false;
+window.CURRENT_APPLICANT_DETAILS_INDEX = gApzCOB.currentApplicant - 1;
+//onload function
+apz.app.onLoad_PersonalDetails = function() {
+    apz.app.BaseScreens.contactus();
+    apz.app.BaseScreens.hideNshowbackIcon();
+    if (!apz.isNull(gStates)) {
+        ApzCOB.citydropDown(PerDetScrId, "state", "city");
+    }
+    apz.app.PersonalDetails.clearForm();
+    $('#APZCBO__BaseScreens__continue').attr('disabled', true);
+    apz.app.PersonalDetails.paintData();
+    apz.populateDropdown(document.getElementById(PerDetScrId + 'maritalSts'), ApzCOB.formatDropDownforArray(maritalStatus));
+    apz.populateDropdown(document.getElementById(secondaryKycTypeTagId), ApzCOB.formatDropDownforArray(secondaryKyc));
+    apz.populateDropdown(document.getElementById(PerDetScrId + 'ownership'), ApzCOB.formatDropDownforArray(resOwnership));
+    apz.populateDropdown(document.getElementById(PerDetScrId + 'resYears'), ApzCOB.formatDropDownforArray(resYr));
+    apz.populateDropdown(document.getElementById(PerDetScrId + 'cityYears'), ApzCOB.formatDropDownforArray(resYr));
+    apz.populateDropdown(document.getElementById(PerDetScrId + 'currResProof'), ApzCOB.formatDropDownforArray(currentresidenceproof));
+    apz.populateDropdown(document.getElementById(PerDetScrId + 'occupations'), ApzCOB.formatDropDownforArray(occupations));
+    apz.populateDropdown(document.getElementById(paintKYCId + 'title'), ApzCOB.formatDropDownforArray(nameTitle));
+    apz.populateDropdown(document.getElementById(PerDetScrId + 'religion'), ApzCOB.formatDropDownforArray(religion));
+    apz.populateDropdown(document.getElementById(PerDetScrId + 'caste'), ApzCOB.formatDropDownforArray(caste));
+    apz.populateDropdown(document.getElementById(PerDetScrId + 'education'), ApzCOB.formatDropDownforArray(education));
+    apz.populateDropdown(document.getElementById(PerDetScrId + 'relationwithApp'), ApzCOB.formatDropDownforArray(ApzCOB.filterRelns(relations)));
+    apz.populateDropdown(document.getElementById(paintKYCId + 'gender'), ApzCOB.formatDropDownforArray(gender));
+    apz.populateDropdown(document.getElementById(PerDetScrId + 'state'), ApzCOB.formatDropDownforArray(states));
+    apz.app.PersonalDetails.hideHeader();
+    kycID = -1;
+    PerID = -1;
+    CusVerID = -1;
+    STAGES.forEach(function(el) {
+        if (el.split('~')[0] === "KYCVERIFICATION") {
+            kycID = parseInt(el.split('~')[1]);
+            return;
+        } else if (el.split('~')[0] === "CUSTOMERDETAILS") {
+            PerID = parseInt(el.split('~')[1]);
+            return;
+        } else if (el.split('~')[0] === "CUSTVERIFICATION") {
+            CusVerID = parseInt(el.split('~')[1]);
+            return;
+        }
+    })
+    if (Ocr_Required && kycID > 0 && PerID > kycID) {
+        window.ocrVerified = true;
+    } else {
+        window.ocrVerified = false;
+    }
+    apz.app.PersonalDetails.displaydefaultData();
+    apz.app.PersonalDetails.onLoadCollapseAll();
+}
+//on shown function
+apz.app.onShown_PersonalDetails = function() {
+    let maritalStatus = '';
+    if (!apz.isObjectEmpty(inSessionStore)) {
+        let custData = ApzCOB.getApplicantCustData();
+        if (custData.length > 0) {
+            maritalStatus = custData[0].payload.maritalStatus;
+        }
+    } else {
+        maritalStatus = gApzCOB.selLeadDtls.maritalStatus;
+    }
+    let allowedValues = [];
+    if (maritalStatus === "Married") {
+        allowedValues = ["Spouse", "Son", "Daughter-in-law"];
+    } else if (["Widow", "Separated"].includes(maritalStatus)) {
+        allowedValues = ["Father", "Mother", "Son", "Daughter-in-law"];
+    } else {
+        allowedValues = ["Father", "Mother"];
+    }
+    $("#PerDet__PersonalDetails__relationwithApp_div li").each(function() {
+        const value = $(this).attr("data-value");
+        if (!allowedValues.includes(value)) {
+            $(this).remove();
+        }
+    });
+    ApzCOB.AddOrRemoveDisableFields([`${BaseScrId}backIcon`], false);
+    if(!apz.isNull(gApzCOB.userDetails.applicationId)) {
+        $(`#${BaseScrId}RefNumDiv`).removeClass('sno');
+        $(`#${BaseScrId}RefNum`).text(ApzCOB.getDescfromLitCode("LIT_COMM_TXT_REF_NUM") + gApzCOB.userDetails.applicationId);
+        if (gApzCOB.currentApplicant <= 1) {
+            ApzCOB.AddOrRemoveDisableFields([`${BaseScrId}backIcon`], true);
+        }
+    } else {
+        $(`#${BaseScrId}RefNumDiv`).addClass('sno');
+    }
+    window.IS_APP_PRIMARY_CHECK_FAILED = false;
+    window.IS_APP_ALTERNATE_CHECK_FAILED = false;
+    window.IS_COAPP_PRIMARY_CHECK_FAILED = false;
+    window.IS_COAPP_ALTERNATE_CHECK_FAILED = false;
+    if (gApzCOB.currentApplicant <= 1) {
+        $('#' + PerDetScrId + 'custTypeLabel').text(ApzCOB.getDescfromLitCode("LIT_MEMBER_TYPE"))
+        $('#' + PerDetScrId + 'idLabel').text(ApzCOB.getDescfromLitCode("LIT_MEMBER_ID"))
+        $('#' + PerDetScrId + 'nameLabel').text(ApzCOB.getDescfromLitCode("LIT_MEMBER_NAME"))
+    } else {
+        $('#' + PerDetScrId + 'custTypeLabel').text(ApzCOB.getDescfromLitCode("LIT_CUSTOMER_TYPE"))
+        $('#' + PerDetScrId + 'idLabel').text(ApzCOB.getDescfromLitCode("LIT_CUSTOMER_ID"))
+        $('#' + PerDetScrId + 'nameLabel').text(ApzCOB.getDescfromLitCode("LIT_CUSTOMER_NAME"))
+    }
+    if (gApzCOB.currentApplicant <= 1) {
+        ApzCOB.showSubHeader("LIT_CUSTOMER_DETAILS_APPLICANT_HEADER");
+    } else {
+        ApzCOB.showSubHeader("LIT_CUSTOMER_DETAILS_HEADER_CO_APP");
+    }
+    if (window.COUNTRYCODE === 'N') {
+        $('#' + PerDetScrId + 'countryFlagCol').addClass('sno');
+        $('#' + PerDetScrId + 'AlterCountryFlagCol').addClass('sno');
+    }
+    $("#btn_icon_icon-Back-Arrow").removeClass('sno');
+    $("input").attr("autocomplete", "off");
+    if ($('#' + BaseScrId + 'backIcon').hasClass('sno')) {
+        $('#' + PerDetScrId + 'subHeaderRow').addClass('var1')
+    }
+    $('#' + paintKYCId + 'dob').datepicker("option", "maxDate", Date.parse(DATE_TODAY));
+    $('#' + paintKYCId + 'dob').datepicker("option", "yearRange", "-100:+0");
+    $('#' + paintKYCId + 'name').trigger('onblur');
+    ApzCOB.showCountrycodeFlag(PerDetScrId, "regnFlag");
+    ApzCOB.showCountrycodeFlag(PerDetScrId, "SecRegnFlag");
+    if (Ocr_Required) {
+        $('#' + PerDetScrId + 'perAddHeaderRow').addClass('sno');
+        $('#' + PerDetScrId + 'parmanentAddressRow').addClass('sno');
+        $('#' + PerDetScrId + 'CommAddSameAsPerAddDiv').addClass('sno');
+    } else {
+        $('#' + PerDetScrId + 'perAddHeaderRow').removeClass('sno');
+        $('#' + PerDetScrId + 'parmanentAddressRow').removeClass('sno');
+        $('#' + PerDetScrId + 'CommAddSameAsPerAddDiv').removeClass('sno');
+    }
+    apz.app.PersonalDetails.configureFields();
+    apz.app.BaseScreens.HeaderFooterData();
+    ApzCOB.setMinMaxLength([{
+        'fieldName': 'Name',
+        'fieldId': paintKYCId + 'firstname'
+    }, {
+        'fieldName': 'Name',
+        'fieldId': paintKYCId + 'midname'
+    }, {
+        'fieldName': 'Name',
+        'fieldId': paintKYCId + 'lastname'
+    }, {
+        'fieldName': 'CustomerType',
+        'fieldId': PerDetScrId + 'custType'
+    }, {
+        'fieldName': 'CustomerId',
+        'fieldId': PerDetScrId + 'custId'
+    }, {
+        'fieldName': 'Name',
+        'fieldId': paintKYCId + 'name'
+    }, {
+        'fieldName': 'Title',
+        'fieldId': paintKYCId + 'title'
+    }, {
+        'fieldName': 'Gender',
+        'fieldId': paintKYCId + 'gender'
+    }, {
+        'fieldName': 'Dob',
+        'fieldId': paintKYCId + 'dob'
+    }, {
+        'fieldName': 'Age',
+        'fieldId': PerDetScrId + 'custAge'
+    }, {
+        'fieldName': 'MobileNumber',
+        'fieldId': paintKYCId + 'mobNum'
+    }, {
+        'fieldName': 'MobileNumber',
+        'fieldId': PerDetScrId + 'sec_mobile'
+    }, {
+        'fieldName': 'MaritalStatus',
+        'fieldId': PerDetScrId + 'maritalSts'
+    }, {
+        'fieldName': 'Name',
+        'fieldId': PerDetScrId + 'fatherName'
+    }, {
+        'fieldName': 'Name',
+        'fieldId': PerDetScrId + 'spouseName'
+    }, {
+        'fieldName': 'AadharNumber',
+        'fieldId': PerDetScrId + 'aadhaarNum'
+    }, {
+        'fieldName': 'VoterID',
+        'fieldId': PerDetScrId + 'voterId'
+    }, {
+        'fieldName': 'VoterID',
+        'fieldId': secondaryKycIdTag
+    }, {
+        'fieldName': 'CKYC',
+        'fieldId': PerDetScrId + 'cKYC' // C_KYC
+    }, {
+        'fieldName': 'VoterID', // Alternate VoterId
+        'fieldId': altVoterIdTag
+    }, {
+        'fieldName': 'PanNumber',
+        'fieldId': PerDetScrId + 'panNumber'
+    }, {
+        'fieldName': 'AddressLine1',
+        'fieldId': PerDetScrId + 'addressLine1'
+    }, {
+        'fieldName': 'AddressLine2',
+        'fieldId': PerDetScrId + 'addressLine2'
+    }, {
+        'fieldName': 'AddressLine3',
+        'fieldId': PerDetScrId + 'addressLine3'
+    }, {
+        'fieldName': 'Pincode',
+        'fieldId': PerDetScrId + 'pin'
+    }, {
+        'fieldName': 'Pincode',
+        'fieldId': PerDetScrId + 'permanentPincode'
+    }, {
+        'fieldName': 'Pincode',
+        'fieldId': PerDetScrId + 'commPincode'
+    }, {
+        'fieldName': 'City',
+        'fieldId': PerDetScrId + 'city'
+    }, {
+        'fieldName': 'District',
+        'fieldId': PerDetScrId + 'district'
+    }, {
+        'fieldName': 'State',
+        'fieldId': PerDetScrId + 'state'
+    }, {
+        'fieldName': 'Country',
+        'fieldId': PerDetScrId + 'country'
+    }, {
+        'fieldName': 'Name',
+        'fieldId': PerDetScrId + 'relationwithApp'
+    }, {
+        'fieldName': 'Name',
+        'fieldId': PerDetScrId + 'nameasKYC'
+    }, {
+        'fieldName': 'KYCType',
+        'fieldId': PerDetScrId + 'primaryKYC'
+    }, {
+        'fieldName': 'LocationCoord',
+        'fieldId': PerDetScrId + 'el_inp_6'
+    }, {
+        'fieldName': 'Area',
+        'fieldId': PerDetScrId + 'presArea'
+    }, {
+        'fieldName': 'Area',
+        'fieldId': PerDetScrId + 'permArea'
+    }, {
+        'fieldName': 'Area',
+        'fieldId': PerDetScrId + 'commArea'
+    },
+    {
+        'fieldName': 'AddressLine1',
+        'fieldId': PerDetScrId + 'permanentAddres1'
+    }, {
+        'fieldName': 'AddressLine2',
+        'fieldId': PerDetScrId + 'permanentAddres2'
+    }, {
+        'fieldName': 'AddressLine3',
+        'fieldId': PerDetScrId + 'permanentAddres3'
+    }, {
+        'fieldName': 'Landmark',
+        'fieldId': PerDetScrId + 'presLandmark'
+    }, {
+        'fieldName': 'Landmark',
+        'fieldId': PerDetScrId + 'permLandmark'
+    }, {
+        'fieldName': 'Landmark',
+        'fieldId': PerDetScrId + 'commLandmark'
+    }, {
+        'fieldName': 'BranchEmail',
+        'fieldId': PerDetScrId + 'branchEmail'
+    },{
+        'fieldName': 'Income',
+        'fieldId': PerDetScrId + 'annualIncome'
+    }]);
+    if (!apz.isNull(gApzCOB.userDetails.panNum)) {
+        $('#' + PerDetScrId + 'panNumber').val(gApzCOB.userDetails.panNum);
+    } else if (!apz.isNull(gApzCOB.requestNodes.customerDetailsList)) {
+        if (gApzCOB.requestNodes.customerDetailsList.length > 0 && gApzCOB.requestNodes.customerDetailsList[gApzCOB.currentApplicant - 1] &&
+            gApzCOB.requestNodes.customerDetailsList[gApzCOB.currentApplicant - 1].payload) {
+            window.panVerified = true;
+            $('#' + PerDetScrId + 'panNumber').val(gApzCOB.requestNodes.customerDetailsList[gApzCOB.currentApplicant - 1].payload.pan);
+        }
+    }
+    apz.app.PersonalDetails.secKycAadharConfig();
+    apz.app.PersonalDetails.paintDetails();
+    if (!backNav) {
+        if (gApzCOB.currentApplicant <= 1) {
+            window.CUST_ADDRESS = []
+            window.CUST_ADDRESS_SAVE = [];
+        }
+    }
+    var curFuncToExe = ConfigureScrJson.filter(function(e, i) {
+        return e.MicroAppID === apz.currAppId && window.allowedUnSave.indexOf(apz.currAppId) !== -1
+    })[0].requestFunc.split('.');
+    if (window.selectedNationalID === 'EmiratesID') {
+        $('#' + PerDetScrId + 'AddressAsperAadharRow').addClass('sno');
+    }
+    if (gApzCOB.product === "CARDS" || gApzCOB.product === "LOAN") {
+        apz.app.PersonalDetails.paintCardDetails();
+    } else {
+        if ($('#' + BaseScrId + 'STAGE3').hasClass('readonly')) {
+            $('#' + BaseScrId + 'STAGE3').removeClass('readonly');
+            /*$("#" + PerDetScrId + "state").attr("disbaled", "");
+            $("#" + PerDetScrId + "title").attr("disbaled", "");
+            $("#PerDet__IPaintKYCDetails__o__PerDet__IPaintKYCDetails_Res__gender").attr("disbaled", "");
+            $("#PerDet__IPaintKYCDetails__o__PerDet__IPaintKYCDetails_Res__dob").attr("disbaled", "");
+            $("#" + PerDetScrId + "city").attr("disbaled", "");*/
+            $("#" + PerDetScrId + "DisclaimerRow").addClass('sno');
+        }
+    }
+    apz.app.BaseScreens.HeaderFooterData();
+    $('#' + paintKYCId + 'dob').attr('placeholder', apz.dateFormat);
+    $('#' + BaseScrId + 'continue').text(ApzCOB.getDescfromLitCode("LIT_CONTINUE"));
+    $('#' + BaseScrId + 'cancel').text(ApzCOB.getDescfromLitCode("LIT_CANCEL"));
+    if (!backNav && !IS_REJECTED_APPLICATION) {
+        apz.app.PersonalDetails.onLoadPaintData();
+    }
+    apz.app.PersonalDetails.paintExistingLoans();
+    $('#' + PerDetScrId + 'commAddrRow').removeClass('sno');
+    $('#' + PerDetScrId + 'locCoordForRow').removeClass('sno');
+    $(`#${PerDetScrId}pin`).change();
+    if (gApzCOB.currentApplicant > 1) {
+        ApzCOB.removeDisableToInput(paintKYCId+'gender');
+        ['customerIdDiv'].hide();
+        ApzCOB.removeFieldMandatory(PerDetScrId + 'custId');
+        $('#' + PerDetScrId + 'personalTopInfoDiv').addClass('sno');
+        $('#' + PerDetScrId + 'relationApplicRow').removeClass('sno');
+        let persoanlFormID = PerDetScrId + 'personDetailsFieldsForm';
+        ApzCOB.addDisableToInput(PerDetScrId + 'custType');
+        ApzCOB.addDisableToInput(PerDetScrId + 'custAge');
+        ApzCOB.addDisableToInput(PerDetScrId + 'nameasKYC');
+        ApzCOB.removeDisableToInput(PerDetScrId + 'relationwithApp');
+        ApzCOB.removeDisableToInput(PerDetScrId + 'voterId');
+        ApzCOB.removeDisableToInput(paintKYCId + 'title');
+       // ApzCOB.removeFieldMandatory(paintKYCId + 'mobNum');
+        $(`#${PerDetScrId}branchEmail`).val(apz.isNull(gApzCOB.selLeadDtls.emailId) ? '' : gApzCOB.selLeadDtls.emailId).blur();
+        if(IS_REJECTED_APPLICATION && !backNav){
+             $('#' + PerDetScrId + 'nameasKYC').val("");
+        } else {
+        if (!apz.isNull(inSessionStore.customerDetailsList)) {
+            var data = inSessionStore.customerDetailsList
+            data.forEach(function(i, k) {
+                if (data[k].customerType === "Co-App") {
+                    if (data[k].payload.primaryKycIdValStatus !== null && data[k].payload.primaryKycIdValStatus !== '') {
+                        CO_APPLICANT_PRIMARY_KYC_VERIFICATION = data[k].payload.primaryKycIdValStatus === 'Verified' ? true : false;
+                    }
+                    if (data[k].payload.alternateVoterIdValStatus !== null && data[k].payload.alternateVoterIdValStatus !== '') {
+                        CO_APPLICANT_ALTERNATE_KYC_VERIFICATION = data[k].payload.alternateVoterIdValStatus === 'Verified' ? true : false;
+                    }
+                    if (data[k].payload.secondaryKycIdValStatus !== null && data[k].payload.secondaryKycIdValStatus !== '') {
+                        CO_APPLICANT_SECONDARY_KYC_VERIFICATION = data[k].payload.secondaryKycIdValStatus === 'Verified' ? true : false;
+                    }
+                }
+            })
+        }
+        if (CO_APPLICANT_PRIMARY_KYC_VERIFICATION) {
+            apz.app.PersonalDetails.validationStatus();
+        }
+        if (CO_APPLICANT_ALTERNATE_KYC_VERIFICATION) {
+            apz.app.PersonalDetails.validationStatus();
+        }
+        if (CO_APPLICANT_SECONDARY_KYC_VERIFICATION) {
+            apz.app.PersonalDetails.validationStatus();
+        }
+        } 
+    } else {
+        $('#' + paintKYCId + 'gender').val('Female');
+        var genderDisable = (ApzCOB.GetCommonCodes("CUSTOMERDETAILS", "COMM")["CUSTOMERDETAILS"].filter(item => {return item.split('~')[0] === 'Gender'}))[0].split('~')[3];
+        if(genderDisable === 'D') {
+            ApzCOB.addDisableToInput(paintKYCId + 'gender');
+        } else {
+            ApzCOB.removeDisableToInput(paintKYCId+'gender');
+            $('#' + paintKYCId + 'gender').val(PleaseSelect);
+        }
+        $('#' + PerDetScrId + 'relationApplicRow').addClass('sno');
+        if(IS_REJECTED_APPLICATION && !backNav){
+             $('#' + PerDetScrId + 'nameasKYC').val("");
+        } else {
+        if (!apz.isNull(inSessionStore.customerDetailsList)) {
+            var data = inSessionStore.customerDetailsList
+            data.forEach(function(i, k) {
+                if (data[k].customerType === "Applicant") {
+                    if (data[k].payload.primaryKycIdValStatus !== null && data[k].payload.primaryKycIdValStatus !== '') {
+                        PRIMARY_KYC_VERIFICATION = data[k].payload.primaryKycIdValStatus === 'Verified' ? true : false;
+                    }
+                    if (data[k].payload.alternateVoterIdValStatus !== null && data[k].payload.alternateVoterIdValStatus !== '') {
+                        ALTERNATE_KYC_VERIFICATION = data[k].payload.alternateVoterIdValStatus === 'Verified' ? true : false;
+                    }
+                    if (data[k].payload.secondaryKycIdValStatus !== null && data[k].payload.secondaryKycIdValStatus !== '') {
+                        SECONDARY_KYC_VERIFICATION = data[k].payload.secondaryKycIdValStatus === 'Verified' ? true : false;
+                    }
+                }
+            })
+        }
+        if (PRIMARY_KYC_VERIFICATION || backNav) {
+            apz.app.PersonalDetails.validationStatus();
+        }
+        if (ALTERNATE_KYC_VERIFICATION) {
+            apz.app.PersonalDetails.validationStatus();
+        }
+        if (SECONDARY_KYC_VERIFICATION) {
+            window.kycVerificationType = "secondary";
+            apz.app.PersonalDetails.validationStatus();
+        }   
+        }
+    }
+    $('#' + PerDetScrId + 'AddressAsperAadharDiv').addClass('sno');
+    IS_ALTERNATE_DEDUPE = false;
+    // IS_SECONDARY_DEDUPE = false;
+    if (gApzCOB.currentApplicant > 1 && apz.isNull(gApzCOB.requestNodes.customerDetailsList[gApzCOB.currentApplicant - 1])) {
+        $(`#${PerDetScrId}custType`).val("Co-Applicant");
+        if(inSessionStore.customerDetailsList[0].payload.maritalStatus === 'Married'){
+            ApzCOB.addDisableToInput(coAppCustomerName + 'name');
+            $("#PerDet__IPaintKYCDetails__o__PerDet__IPaintKYCDetails_Res__name").val(inSessionStore.customerDetailsList[0].payload.spouseName);
+            $('#' + PerDetScrId + 'relationwithApp').val("Spouse").change();
+        }else{
+            ApzCOB.removeDisableToInput(coAppCustomerName + 'name');
+            $("#PerDet__IPaintKYCDetails__o__PerDet__IPaintKYCDetails_Res__name").val("")
+        }
+
+    }
+    ApzCOB.getToggleOnClickEventObj(PerDetScrId);
+    $('#'+paintKYCId+'title').attr('readonly','readonly');
+    $('#'+PerDetScrId+'relationwithApp').attr('readonly','readonly');
+    $('#'+paintKYCId+'gender').attr('readonly','readonly');
+    $('body').removeClass('ajs-no-overflow');
+    $('#' + BaseScrId + 'custIDandName_txtcnt').text(`Member ID/Name - ${gApzCOB.selLeadDtls.customerId} / ${gApzCOB.selLeadDtls.fullName}`);
+    $('#' + BaseScrId + 'custIDandName').removeClass('sno');
+    ApzCOB.AddOrRemoveDisableFields(pinCodeFieldsDropdowns, true);
+    if (PUSHBACK_QUERY_STATUS.includes(gApzCOB.userDetails.applicationStatus)) {
+        ApzCOB.paintingSourcingQuery();
+    }
+    $('input.hasDatepicker').each(function(index, element) {
+        $(element).prop('disabled', true);
+    })
+};
+apz.app.PersonalDetails.validationStatus = function() {
+    if (!apz.isNull(inSessionStore.customerDetailsList)) {
+        var index = gApzCOB.currentApplicant > 1 ? 1 : 0;
+        if(!apz.isNull(inSessionStore.customerDetailsList[index])){
+        var custData = inSessionStore.customerDetailsList[index].payload;
+        if (custData.primaryKycIdValStatus === "Verified") {
+            $('#' + PerDetScrId + 'primaryKycVerifyBtn_ul').addClass('sno');
+            $('#' + PerDetScrId + 'primaryKycVerifiedTxt_ul').removeClass('sno');
+            $('#' + PerDetScrId + 'primaryKycFailedTxt_ul').addClass('sno');
+        } else if (custData.primaryKycIdValStatus === "Inavalid Id") {
+            $('#' + PerDetScrId + 'primaryKycVerifyBtn_ul').addClass('sno');
+            $('#' + PerDetScrId + 'primaryKycVerifiedTxt_ul').addClass('sno');
+            $('#' + PerDetScrId + 'primaryKycFailedTxt_ul').removeClass('sno');
+        }
+        if (custData.alternateVoterIdValStatus === "Verified") {
+            $('#' + PerDetScrId + 'altVoterVerifyBtn_ul').addClass('sno');
+            $('#' + PerDetScrId + 'altVoterVerifiedTxt_ul').removeClass('sno');
+            $('#' + PerDetScrId + 'altVoterFailTxt_ul').addClass('sno');
+        } else if (custData.alternateVoterIdValStatus === "Inavalid Id") {
+            $('#' + PerDetScrId + 'altVoterVerifyBtn_ul').addClass('sno');
+            $('#' + PerDetScrId + 'altVoterVerifiedTxt_ul').addClass('sno');
+            $('#' + PerDetScrId + 'altVoterFailTxt_ul').removeClass('sno');
+        }
+        if (custData.secondaryKycIdValStatus === "Verified") {
+            $('#' + PerDetScrId + 'secondaryKycVerifyBtn_ul').addClass('sno');
+            $('#' + PerDetScrId + 'secondaryKycVerifiedTxt_ul').removeClass('sno');
+            $('#' + PerDetScrId + 'secondaryKycFailTxt_ul').addClass('sno');
+        } else if (custData.secondaryKycIdValStatus === "Inavalid Id") {
+            $('#' + PerDetScrId + 'secondaryKycVerifyBtn_ul').addClass('sno');
+            $('#' + PerDetScrId + 'secondaryKycVerifiedTxt_ul').addClass('sno');
+            $('#' + PerDetScrId + 'secondaryKycFailTxt_ul').removeClass('sno');
+            if (/aadhaar|aadhar/i.test(custData.secondaryKycType)) {
+                $('#' + PerDetScrId + 'secondaryKycFailTxt_ul').addClass('sno');
+            }
+        } 
+        }
+    }
+}
+apz.app.PersonalDetails.dedupeServiceConfirmApplicantCB = function(params) {
+    if (params.choice === true) {
+        RejectReason = "Applicant Dedupe Check Failed.";
+        ApzCOB.applicantKycFailedRejectService();
+    } else {
+        if (IS_ALTERNATE_DEDUPE) {
+            $('#' + altVoterIdTag).val('');
+        }
+    }
+};
+apz.app.PersonalDetails.dedupeServiceConfirmCoApplicantCB = function(params) {
+    if (IS_CO_APPLICANT_ALTERNATE_DEDUPE) {
+        $('#' + altVoterIdTag).val('');
+    } else {
+        $('#' + PerDetScrId + "voterId").val('');
+    }
+    ApzCOB.toggleModal(PerDetScrId + 'dedupeCheckReject');
+};
+apz.app.PersonalDetails.addCoAppConfirmation = function(ptype) {
+    let obj = {};
+    obj.remarks = '';
+    if(ptype === 'KYC') {
+        obj.reason = 'KYCVerificationFailed';
+    }
+    ApzCOB.discardCoApplicant(obj);
+};
+apz.app.PersonalDetails.onChangeRelationWithApp = function() {
+    var relationwithApp = apz.getElmValue(PerDetScrId + "relationwithApp").toLowerCase();
+    apz.app.PersonalDetails.paintCoApplicantAddrData();
+    if (relationwithApp === 'spouse'){
+        spouseFlag = true;
+        const custDetails = inSessionStore.customerDetailsList;
+        const applicant = custDetails.find(c => c.customerType === "Applicant");
+        const name = applicant?.customerName || '';
+        const spouseName = applicant?.payload?.spouseName || '';
+        $(`#${PerDetScrId}spouseName`).val(name).focus();
+        $(`#${PerDetScrId}maritalSts`).val("Married").change();
+        ApzCOB.addDisableToInput(`${PerDetScrId}maritalSts`);
+        ApzCOB.addDisableToInput(`${PerDetScrId}spouseName`);
+        // $('#' + PerDetScrId + 'maritalSts').attr('disabled', true)
+        // $('#' + PerDetScrId + 'spouseName').attr('disabled', true)
+        $('#' + PerDetScrId + 'maritalSts_div').find('li').removeClass('is-selected hilt');
+        $('#' + PerDetScrId + 'maritalSts_option_Married').addClass('is-selected hilt');
+         ApzCOB.addDisableToInput(coAppCustomerName + 'name');
+            $("#PerDet__IPaintKYCDetails__o__PerDet__IPaintKYCDetails_Res__name").val(spouseName);
+    } else {
+//-----------------------Swaroop Raj R (CR-90 Father name is not capturing) 19thNov2025----------------------------------------------
+        ///in co-applicant is father/son making his father name mandatory and enabling input field (if it is disabled)
+        if(relationwithApp === 'father' || relationwithApp === 'son')
+        {
+        ApzCOB.addFieldMandatory(PerDetScrId + 'fatherName');
+        $('#' + PerDetScrId + 'fatherName').attr('disabled', false)
+        }
+//-----------------------------------------------------------------------------------------------------------------------------------        
+        ApzCOB.removeDisableToInput(coAppCustomerName + 'name');
+            $("#PerDet__IPaintKYCDetails__o__PerDet__IPaintKYCDetails_Res__name").val("");
+        //apz.app.PersonalDetails.setEmptyFields(fields,dropDrons);
+        $.map(presentAddressFields, function(field) {
+            $('#' + field).attr('disabled', false)
+        });
+        ApzCOB.AddOrRemoveDisableFields(pinCodeFieldsDropdowns, true);
+        $(`#${PerDetScrId}spouseName`).val('');
+        $(`#${PerDetScrId}maritalSts`).val(PleaseSelect).change();
+        ApzCOB.removeDisableToInput(`${PerDetScrId}maritalSts`);
+        ApzCOB.removeDisableToInput(`${PerDetScrId}spouseName`);
+        // $('#' + PerDetScrId + 'spouseName').attr('disabled', false)
+        $('#' + PerDetScrId + 'maritalSts_div').find('li').removeClass('is-selected hilt');
+        $('#' + PerDetScrId + 'maritalSts_option_Please Select').addClass('is-selected hilt');
+    }
+    apz.app.PersonalDetails.permanentAddressSameAsPresentAddress();
+    apz.app.PersonalDetails.communicationAddressSameAs()
+    femArr = ["daughter", "daughter-in-law", "mother", "mother-in-law", "sister"];
+    malArr = ["spouse", "brother", "father", "father-in-law", "son", "son-in-law"];
+    genderVal = PleaseSelect
+    if (relationwithApp === 'please select' || relationwithApp === 'others') {
+        ApzCOB.removeDisableToInput(`${paintKYCId}gender`);
+        $(`${ResGender}_div`).find('li').removeClass('is-selected hilt');
+        $(`${ResGender}_div`).find('li').first().addClass('is-selected hilt');
+    } else {
+        ApzCOB.addDisableToInput(`${paintKYCId}gender`);
+        femArr.forEach(function(el) {
+            if (relationwithApp.toLowerCase() === el) {
+                genderVal = 'Female';
+            }
+        })
+        malArr.forEach(function(el) {
+            if (relationwithApp.toLowerCase() === el) {
+                genderVal = 'Male';
+            }
+        })
+    }
+    $(ResGender).val(genderVal);
+    // var radioBtn = [PerDetScrId+'permanentAdd_option_Y',PerDetScrId+'permanentAdd_option_N',PerDetScrId+'commAddRadio_option_residential',PerDetScrId+'commAddRadio_option_permanent',PerDetScrId+'commAddRadio_option_business',PerDetScrId+'commAddRadio_option_other']
+    // $.map(radioBtn, function(field) {
+    //     $('#' + field).prop('checked', false)
+    // });
+}
+apz.app.PersonalDetails.paintCoApplicantAddrData = function() {
+    var address = inSessionStore.addressDetailsWrapperList[0].addressDetailsList
+    var presentAddress = []
+    if (!apz.isNull(inSessionStore.addressDetailsWrapperList[0].addressDetailsList)) {
+        if (inSessionStore.addressDetailsWrapperList[0].addressDetailsList.length > 1) {
+            address.forEach(function(i, k) {
+                if (address[k].addressType === 'Personal' && parseInt(address[k].custDtlId) === parseInt(gApzCOB.userDetails.custDtlId)) {
+                    presentAddress.push(address[k])
+                    presentAddress = presentAddress[0].payload.addressList[0];
+                }
+            })
+        } else {
+            presentAddress = inSessionStore.addressDetailsWrapperList[0].addressDetailsList[0].payload.addressList[0]
+        }
+    }
+    if (gApzCOB.currentApplicant > 1) {
+        if (!apz.isNull(inSessionStore.addressDetailsWrapperList[0].addressDetailsList[0].payload.addressList[0]) && !apz.isNull(
+            presentAddress)) {
+            // var presentAddress = inSessionStore.addressDetailsWrapperList[0].addressDetailsList[0].payload.addressList[0]
+            $(`#${PerDetScrId}addressLine1`).val(ApzCOB.getSubstrValue(`#${PerDetScrId}addressLine1`, presentAddress.addressLine1 ?? '')).focus().blur();
+            $(`#${PerDetScrId}addressLine2`).val(ApzCOB.getSubstrValue(`#${PerDetScrId}addressLine2`, presentAddress.addressLine2 ?? '')).focus().blur();
+            $(`#${PerDetScrId}addressLine3`).val(ApzCOB.getSubstrValue(`#${PerDetScrId}addressLine3`, presentAddress.addressLine3 ?? '')).focus().blur();
+            $(`#${PerDetScrId}pin`).val(presentAddress.pinCode).focus().blur();
+            $(`#${PerDetScrId}city`).val(presentAddress.city).change();
+            $(`#${PerDetScrId}district`).val(presentAddress.district).change();
+            $(`#${PerDetScrId}state`).val(presentAddress.state).change();
+            $(`#${PerDetScrId}country`).val(presentAddress.country).change();
+            $(`#${PerDetScrId}presArea`).val(presentAddress.area).focus().blur();
+            $(`#${PerDetScrId}presLandmark`).val(presentAddress.landMark ?? '').focus().blur();
+            $(`#${PerDetScrId}ownership`).val(presentAddress.residenceOwnership).change();
+            if (spouseFlag) {
+                $(`#${PerDetScrId}cityYears`).val(presentAddress.residenceCitySince);
+                $(`#${PerDetScrId}resYears`).val(presentAddress.residenceAddressSince);
+            } else {
+                $(`#${PerDetScrId}cityYears`).val(presentAddress.residenceCitySince).change();
+                $(`#${PerDetScrId}resYears`).val(presentAddress.residenceAddressSince).change();
+            }
+            let currAddrProof = presentAddress.currentAddressProof;
+            $(`#${PerDetScrId}currResProof`).val(apz.isNull(currAddrProof) ? PleaseSelect : currAddrProof).change();
+            if(!apz.isNull(currAddrProof) && IS_REJECTED_APPLICATION && currAddrProof.toLowerCase() !== PleaseSelect.toLowerCase()) {
+                ApzCOB.addDisableToInput("PerDet__PersonalDetails__currResProof");
+            }
+            apz.app.PersonalDetails.onchangeTypeofHouse(presentAddress);
+        }
+        $.map(presentAddressFields, function(field) {
+            $('#' + field).attr('disabled', true)
+        });
+    } else {
+        $.map(presentAddressFields, function(field) {
+            $('#' + field).attr('disabled', false)
+        });
+    }
+};
+apz.app.PersonalDetails.paintExistingLoans = function() {
+    if (gApzCOB.currentApplicant <= 1) {
+        earningLoanFlag = true;
+        $(earningMemberDiv).addClass("sno");
+        $('#PerDet__PersonalDetails__gr_row_21').removeClass('active');
+        $('#PerDet__PersonalDetails__gr_row_21').addClass('sno');
+        var existingLoanDtls = [];
+        let existingLoansListSession = [];
+        let existingLoansList = [];
+        if (loanDtls.length > 0) {
+            existingLoansList = loanDtls;
+        } else {
+            if (!apz.isNull(inSessionStore.existingLoanDetailsWrapperList) && inSessionStore.existingLoanDetailsWrapperList.length > 0) {
+                if (inSessionStore.existingLoanDetailsWrapperList[0].hasOwnProperty("existingLoanDetailsList")) {
+                    existingLoansListSession = inSessionStore.existingLoanDetailsWrapperList[0].existingLoanDetailsList;
+                    if(existingLoansListSession.length > 0){
+                        existingLoansListSession.map(existLoan => {
+                            let exObj = {};
+                            exObj.loanType = JSON.parse(existLoan.payload).productType;
+                            exObj.loanId = existLoan.existingLoanId;
+                            exObj.loanAmt = "-"
+                            exObj.outstandingAmt = JSON.parse(existLoan.payload).outstandingAmount;
+                            existingLoansList.push(exObj);   
+                        })
+                         
+                    }
+                }
+            }
+        }
+        for (var i = 0; i < existingLoansList.length; i++) {
+            if (existingLoansList[0].hasExistingLoans !== 'N') {
+                var elem = {};
+                elem.loanType = existingLoansList[i].loanType;
+                elem.loanId = existingLoansList[i].loanId;
+                elem.loanAmt = apz.isNull(existingLoansList[i].loanAmt) ? "" : ApzCOB.fn_FormatAmount(existingLoansList[i].loanAmt);
+                elem.outstandingAmt = apz.isNull(existingLoansList[0].outstandingAmt) ? "" : ApzCOB.fn_FormatAmount(existingLoansList[i].outstandingAmt);
+                existingLoanDtls.push(elem);
+            }
+        }
+        exisLoanFlag = true;
+        if (existingLoanDtls.length > 0) {
+            $(ExistingLoansDiv).removeClass('sno');
+            $(NoLoansDiv).addClass('sno');
+            $('#PerDet__PersonalDetails__gr_row_3').addClass('active');
+            $('#PerDet__PersonalDetails__gr_row_3').removeClass('sno');
+            apz.data.scrdata.PerDet__IPaintLoanDetails_Res = existingLoanDtls;
+            apz.data.loadData('IPaintLoanDetails', 'PerDet');
+        } else {
+            $(ExistingLoansDiv).addClass('sno');
+            $(NoLoansDiv).removeClass('sno');
+        }
+    } else {
+        exisLoanFlag = true;
+        $(ExistingLoansDiv).addClass("sno");
+        $(NoLoansDiv).addClass("sno");
+        $('#PerDet__PersonalDetails__gr_row_3').removeClass('active');
+        $('#PerDet__PersonalDetails__gr_row_3').addClass('sno');
+        if (earningMembersDtls.length > 0) {
+            earningLoanFlag = true;
+            $(earningMemberDiv).addClass("sno");
+            $('#PerDet__PersonalDetails__gr_row_21').removeClass('active');
+            $('#PerDet__PersonalDetails__gr_row_21').addClass('sno');
+            apz.data.scrdata.PerDet__IPaintEarnMemDtls_Res = earningMembersDtls;
+            apz.data.loadData('IPaintEarnMemDtls', 'PerDet');
+        }
+        $('#PerDet__PersonalDetails__personalDetForm').click();
+    }
+}
+apz.app.PersonalDetails.onLoadPaintData = function() {
+    if (gApzCOB.currentApplicant <= 1) {
+        var cstDtls = gApzCOB.selLeadDtls;
+        var customerName = cstDtls.fullName;
+        var customerID = cstDtls.customerId;
+        var gender = cstDtls.gender;
+        var dateOfBirth = ApzCOB.dateformatter(cstDtls.dob, 'd/m/Y');
+        var mobileNum = cstDtls.mobileNo;
+        var occupations = cstDtls.occupation;
+        var age = ApzCOB.getAge(dateOfBirth);
+        $('#' + PerDetScrId + 'customerTxt_txtcnt').text(customerName);
+        $('#' + PerDetScrId + 'customerGenderAgeTxt_txtcnt').text(gender + ' | ' + age);
+        $('#' + paintKYCId + 'title').val('Mrs');
+        $(`#${paintKYCId}name`).val(ApzCOB.getSubstrValue(`#${paintKYCId}name`, customerName ?? '')).trigger("onblur");
+        // $('#' + paintKYCId + 'name').val(customerName).trigger("onblur");
+        // $('#' + paintKYCId + 'firstname').val(cstDtls.firstName);
+        // $('#' + paintKYCId + 'midname').val(cstDtls.middleName);
+        $('#' + PerDetScrId + 'custAge').val(age).change();
+        $('#' + PerDetScrId + 'custId').val(customerID);
+        $('#' + paintKYCId + 'gender').val(gender);
+        $('#' + paintKYCId + 'dob').val(dateOfBirth);
+        $('#' + paintKYCId + 'dob').trigger('blur');
+        $('#' + paintKYCId + 'mobNum').val(mobileNum).trigger('change');
+        // $('#' + PerDetScrId + 'occupations').val(occupations);
+        $('#' + PerDetScrId + 'custType').val(apz.isNull(cstDtls.customerType) ? '' : cstDtls.customerType.trim());
+        $('#' + PerDetScrId + 'maritalSts').val(apz.isNull(cstDtls.maritalStatus) ? '' : ApzCOB.capitalize(cstDtls?.maritalStatus.trim())).change();
+        $('#' + PerDetScrId + 'MartialStatusDiv').find('li').removeClass('is-selected hilt')
+        $('#' + PerDetScrId + 'maritalSts_option_' + $('#' + PerDetScrId + "maritalSts").val()).addClass('is-selected hilt');
+        // apz.app.PersonalDetails.maritalStatusOnChange($('#' + PerDetScrId + 'maritalSts').val());
+       /* fatherNameInputTag.val(apz.isNull(cstDtls.fathersName) ? "" : cstDtls.fathersName);
+        spouseNameInputTag.val(apz.isNull(cstDtls.spouseName) ? "" : cstDtls.spouseName);*/
+        fatherNameInputTag.val(ApzCOB.getSubstrValue(`#${PerDetScrId}fatherName`, cstDtls.fathersName ?? ''));
+        spouseNameInputTag.val(ApzCOB.getSubstrValue(`#${PerDetScrId}spouseName`, cstDtls.spouseName ?? ''));
+        $('#' + PerDetScrId + 'aadhaarNum').val(apz.isNull(cstDtls.aadhaarNumber) ? "" : cstDtls.aadhaarNumber);
+        $('#' + PerDetScrId + 'primaryKYC').val("Voter ID");
+        $('#' + PerDetScrId + 'voterId').val(apz.isNull(cstDtls.primaryKyc) ? '' : cstDtls.primaryKyc.trim()).keyup();
+        // $('#' + secondaryKycIdTag).val('');
+        $('#' + PerDetScrId + 'panNumber').val(apz.isNull(cstDtls.panCardNumber) ? "" : cstDtls.panCardNumber);
+        // $('#' + secondaryKycTypeTagId).val(apz.isNull(cstDtls.kycType) ? memberArr.kycType : PleaseSelect);
+        // $('#' + secondaryKycTypeTagId).val(apz.isNull(cstDtls.kycType) ? PleaseSelect : cstDtls.kycType.trim());
+        $(`#${PerDetScrId}cKYC`).val(apz.isNull(cstDtls.applicantCkyc) ? '' : cstDtls.applicantCkyc.trim());
+        $(`#${PerDetScrId}branchEmail`).val(apz.isNull(cstDtls.emailId) ? '' : cstDtls.emailId.trim()).blur();
+    }
+};
+apz.app.PersonalDetails.onClickEarningMemberDtlsList = function(pthis) {
+    var rowNo = $(pthis).attr('rowno');
+    var selIndexId = '#PerDet__IPaintEarnMemDtls__o__PerDet__IPaintEarnMemDtls_Res__';
+    var customerName = $(selIndexId + 'name_' + rowNo).text();
+    var dateOfBirth = $(selIndexId + 'dob_' + rowNo).text();
+    var voterID = $(selIndexId + 'voterId_' + rowNo).text();
+    var panNum = $(selIndexId + 'pancard_' + rowNo).text();
+    var mobileNum = $(selIndexId + 'mobileNo_' + rowNo).text();
+    var occupations = $(selIndexId + 'occupation_' + rowNo).text();
+    var memberArr = [];
+    for (var i = 0; i < earningMembersDtls.length; i++) {
+        if (earningMembersDtls[i].name === customerName) {
+            memberArr = earningMembersDtls[i];
+        }
+    }
+    $('#' + paintKYCId + 'title').val(memberArr.title);
+    $('#' + paintKYCId + 'firstname').val(memberArr.firstName);
+    $('#' + paintKYCId + 'midname').val(memberArr.middleName);
+    $('#' + paintKYCId + 'lastname').val(memberArr.lastName);
+    $('#' + paintKYCId + 'name').val(customerName);
+    $('#' + PerDetScrId + 'voterId').val(voterID);
+    $('#' + PerDetScrId + 'panNumber').val(panNum);
+    $('#' + paintKYCId + 'mobNum').val(mobileNum);
+    $('#' + PerDetScrId + 'occupations').val(occupations);
+    $('#' + paintKYCId + 'dob').val(dateOfBirth);
+    $('#' + paintKYCId + 'dob').trigger('blur');
+    $('#' + PerDetScrId + 'custId').val(memberArr.customerID);
+    $('#' + paintKYCId + 'gender').val(memberArr.gender);
+    $('#' + PerDetScrId + 'custType').val(memberArr.customerType);
+    $('#' + PerDetScrId + 'maritalSts').val(ApzCOB.capitalize(memberArr.maritalStatus));
+    $('#' + PerDetScrId + 'MartialStatusDiv').find('li').removeClass('is-selected hilt')
+    $('#' + PerDetScrId + 'maritalSts_option_' + $('#' + PerDetScrId + "maritalSts").val()).addClass('is-selected hilt');
+    fatherNameInputTag.val(memberArr.fathersName);
+    $('#' + PerDetScrId + 'aadhaarNum').val(memberArr.aadhaarNumber);
+    // $('#' + secondaryKycIdTag).val(memberArr.kycNumber);
+    $('#' + PerDetScrId + 'relationwithApp').val(memberArr.relationship);
+    $('#' + PerDetScrId + 'nameasKYC').val(customerName);
+    $('#' + secondaryKycIdTag).val('');
+    $('#' + secondaryKycTypeTagId).val(memberArr.kycType ? memberArr.kycType : PleaseSelect);
+    apz.app.PersonalDetails.onclickAddCoAppl();
+};
+/*apz.app.PersonalDetails.setFieldMinMaxLength = function() {
+    $('#' + paintKYCId + 'name').attr('minlength', '3');
+    $('#' + paintKYCId + 'name').attr('maxlength', '45');
+    $('#' + paintKYCId + 'gender').attr('minlength', '1');
+    $('#' + paintKYCId + 'gender').attr('maxlength', '45');
+    $('#' + paintKYCId + 'mobNum').attr('minlength', '10');
+    $('#' + paintKYCId + 'mobNum').attr('maxlength', '10');
+};*/
+/*Hide and show fields based on configuration
+        fieldName - Commoncode table fieldName respective to stage.
+        fieldId - Id of the respective field.
+        fieldDivId - Id of the complete row.
+        */
+apz.app.PersonalDetails.configureFields = function() {
+    var a = {
+        fieldName: 'MaritalStatus',
+        fieldId: [PerDetScrId + 'maritalSts'],
+        fieldDivId: [PerDetScrId + 'MartialStatusDiv']
+    };
+    var b = {
+        fieldName: 'CustomerType',
+        fieldId: [PerDetScrId + 'custType'],
+        fieldDivId: [PerDetScrId + 'custTypeDiv']
+    };
+    var c = {
+        fieldName: 'Name',
+        fieldId: [paintKYCId + 'name'],
+        fieldDivId: [PerDetScrId + 'sc_row_2278']
+    };
+    var d = {
+        fieldName: 'DOB',
+        fieldId: [paintKYCId + 'dob'],
+        fieldDivId: [PerDetScrId + 'dobDiv']
+    };
+    var e = {
+        fieldName: 'Gender',
+        fieldId: [paintKYCId + 'gender'],
+        fieldDivId: [PerDetScrId + 'genderDiv']
+    };
+    var f = {
+        fieldName: 'MobileNo',
+        fieldId: [paintKYCId + 'mobNum'],
+        fieldDivId: [PerDetScrId + 'MobileNumberDiv']
+    };
+    var g = {
+        fieldName: 'Country',
+        fieldId: [PerDetScrId + 'country'],
+        fieldDivId: [PerDetScrId + 'countryDiv']
+    };
+    var h = {
+        fieldName: 'CustomerID',
+        fieldId: [PerDetScrId + 'custId'],
+        fieldDivId: [PerDetScrId + 'customerIdDiv']
+    };
+    var i = {
+        fieldName: 'CityDuration',
+        fieldId: [PerDetScrId + 'cityYears' /*, PerDetScrId + 'cityMonths'*/ ],
+        fieldDivId: [PerDetScrId + 'cityYearsMonthsDiv']
+    };
+    var j = {
+        fieldName: 'Ownership',
+        fieldId: [PerDetScrId + 'ownership'],
+        fieldDivId: [PerDetScrId + 'ownershipDiv']
+    };
+    var k = {
+        fieldName: 'Pincode',
+        fieldId: [PerDetScrId + 'pin'],
+        fieldDivId: [PerDetScrId + 'pincodeDiv']
+    }
+    var l = {
+        fieldName: 'State',
+        fieldId: [PerDetScrId + 'state'],
+        fieldDivId: [PerDetScrId + 'stateDiv']
+    };
+    var m = {
+        fieldName: 'City',
+        fieldId: [PerDetScrId + 'city'],
+        fieldDivId: [PerDetScrId + 'cityDiv']
+    };
+    var n = {
+        fieldName: 'AddressLine3',
+        fieldId: [PerDetScrId + 'addressLine3'],
+        fieldDivId: [PerDetScrId + 'AddressLine3Div']
+    };
+    var o = {
+        fieldName: 'AddressLine1',
+        fieldId: [PerDetScrId + 'addressLine1'],
+        fieldDivId: [PerDetScrId + 'AddressLine1Div']
+    };
+    var p = {
+        fieldName: 'AddressLine2',
+        fieldId: [PerDetScrId + 'addressLine2'],
+        fieldDivId: [PerDetScrId + 'AddressLine2Div']
+    };
+    var q = {
+        fieldName: 'District',
+        fieldId: [PerDetScrId + 'district'],
+        fieldDivId: [PerDetScrId + 'districtDiv']
+    };
+    var r = {
+        fieldName: 'PanNo',
+        fieldId: [PerDetScrId + 'panNumber'],
+        fieldDivId: [PerDetScrId + 'panNumberDiv']
+    };
+    var s = {
+        fieldName: 'ResidenceDuration',
+        fieldId: [PerDetScrId + 'resYears' /*, PerDetScrId + 'resMonths'*/ ],
+        fieldDivId: [PerDetScrId + 'residenceYearsMonthsDiv']
+    };
+    var t = {
+        fieldName: 'FatherName',
+        fieldId: [PerDetScrId + 'fatherName'],
+        fieldDivId: [PerDetScrId + 'fatherNameDiv']
+    };
+    var u = {
+        fieldName: 'SecondaryKYC',
+        fieldId: [secondaryKycTypeTagId],
+        fieldDivId: [PerDetScrId + 'secKYCDiv']
+    };
+    var v = {
+        fieldName: 'Occupation',
+        fieldId: [PerDetScrId + 'occupations'],
+        fieldDivId: [PerDetScrId + 'occupationDiv']
+    };
+    var w = {
+        fieldName: 'Age',
+        fieldId: [PerDetScrId + 'custAge'],
+        fieldDivId: [PerDetScrId + 'custAgeDiv']
+    };
+    var x = {
+        fieldName: 'AadhaarNumber',
+        fieldId: [PerDetScrId + 'aadhaarNum'],
+        fieldDivId: [PerDetScrId + 'aadhaarNumDiv']
+    };
+    var y = {
+        fieldName: 'VoterID',
+        fieldId: [PerDetScrId + 'voterId'],
+        fieldDivId: [PerDetScrId + 'voterIdDiv']
+    };
+    var z = {
+        fieldName: 'SecondaryVoterID',
+        fieldId: [secondaryKycIdTag],
+        fieldDivId: [PerDetScrId + 'secVoterIdDiv']
+    };
+    var aa = {
+        fieldName: 'AddressAsPerAaadhar',
+        fieldId: [PerDetScrId + 'AddressAsperAadhar'],
+        fieldDivId: [PerDetScrId + 'AddressAsperAadharDiv']
+    };
+    var ab = {
+        fieldName: 'SpouseName',
+        fieldId: [PerDetScrId + 'spouseName'],
+        fieldDivId: [PerDetScrId + 'spouseNameDiv']
+    };
+    var ac = {
+        fieldName: 'PrimaryKYCType',
+        fieldId: [PerDetScrId + 'primaryKYC'],
+        fieldDivId: [PerDetScrId + 'primaryKYCDiv']
+    };
+    var ad = {
+        fieldName: 'Title',
+        fieldId: [paintKYCId + 'title'],
+        fieldDivId: [PerDetScrId + 'sc_row_223']
+    };
+    var ae = {
+        fieldName: 'Name',
+        fieldId: [paintKYCId + 'firstname'],
+        fieldDivId: [PerDetScrId + 'nameDiv']
+    };
+    var af = {
+        fieldName: 'MiddleName',
+        fieldId: [paintKYCId + 'midname'],
+        fieldDivId: [PerDetScrId + 'sc_row_217']
+    };
+    var ag = {
+        fieldName: 'LastName',
+        fieldId: [paintKYCId + 'lastname'],
+        fieldDivId: [PerDetScrId + 'sc_row_220']
+    };
+    var ah = {
+        fieldName: 'RelationWithApp',
+        fieldId: [PerDetScrId + 'relationwithApp'],
+        fieldDivId: [PerDetScrId + 'relationApplicRow']
+    };
+    var ai = {
+        fieldName: 'NameAsKYC',
+        fieldId: [PerDetScrId + 'nameasKYC'],
+        fieldDivId: [PerDetScrId + 'namekycRow']
+    };
+    var aj = {
+        fieldName: 'CurrResProof',
+        fieldId: [PerDetScrId + 'currResProof'],
+        fieldDivId: [PerDetScrId + 'currResProofRow']
+    };
+    var ak = {
+        fieldName: 'TypeOfHouse',
+        fieldId: [PerDetScrId + 'el_rdo_1'],
+        fieldDivId: [PerDetScrId + 'typeHouseRow']
+    };
+    var al = {
+        fieldName: 'LocationCoordFor',
+        fieldId: [PerDetScrId + 'el_rdo_4'],
+        fieldDivId: [PerDetScrId + 'locCoordForRow']
+    };
+    var am = {
+        fieldName: 'CommunicationAddr',
+        fieldId: [PerDetScrId + 'el_rdo_2'],
+        fieldDivId: [PerDetScrId + 'commAddrRow']
+    };
+    var an = {
+        fieldName: 'LocationCoord',
+        fieldId: [PerDetScrId + 'el_inp_6'],
+        fieldDivId: [PerDetScrId + 'locCoordRow']
+    };
+    // Newly Added
+    var ao = {
+        fieldName: 'PermAddressLine1',
+        fieldId: [PerDetScrId + 'permanentAddres1'],
+        fieldDivId: [PerDetScrId + 'permanentAddres1Div']
+    };
+    var ap = {
+        fieldName: 'PermAddressLine2',
+        fieldId: [PerDetScrId + 'permanentAddres2'],
+        fieldDivId: [PerDetScrId + 'permanentAddres2Div']
+    };
+    var aq = {
+        fieldName: 'PermAddressLine3',
+        fieldId: [PerDetScrId + 'permanentAddres3'],
+        fieldDivId: [PerDetScrId + 'permanentAddres3Div']
+    };
+    var ar = {
+        fieldName: 'PermPincode',
+        fieldId: [PerDetScrId + 'permanentPincode'],
+        fieldDivId: [PerDetScrId + 'permanentPincodeDiv']
+    };
+    var as = {
+        fieldName: 'PermCity',
+        fieldId: [PerDetScrId + 'permanentcity'],
+        fieldDivId: [PerDetScrId + 'permanentcityDiv']
+    };
+    var at = {
+        fieldName: 'PermDistrict',
+        fieldId: [PerDetScrId + 'permanentDist'],
+        fieldDivId: [PerDetScrId + 'permanentDistDiv']
+    };
+    var au = {
+        fieldName: 'PermState',
+        fieldId: [PerDetScrId + 'permanentState'],
+        fieldDivId: [PerDetScrId + 'permanentStateDiv']
+    };
+    var av = {
+        fieldName: 'PermCountry',
+        fieldId: [PerDetScrId + 'permanentCountry'],
+        fieldDivId: [PerDetScrId + 'permanentCountryDiv']
+    };
+    var aw = {
+        fieldName: 'CommAddressLine1',
+        fieldId: [PerDetScrId + 'commAddress1'],
+        fieldDivId: [PerDetScrId + 'commAddress1Div']
+    };
+    var ax = {
+        fieldName: 'CommAddressLine2',
+        fieldId: [PerDetScrId + 'commAddress2'],
+        fieldDivId: [PerDetScrId + 'commAddress2Div']
+    };
+    var ay = {
+        fieldName: 'CommAddressLine3',
+        fieldId: [PerDetScrId + 'commAddress3'],
+        fieldDivId: [PerDetScrId + 'commAddress3Div']
+    };
+    var az = {
+        fieldName: 'CommPincode',
+        fieldId: [PerDetScrId + 'commPincode'],
+        fieldDivId: [PerDetScrId + 'commPincodeDiv']
+    };
+    var ba = {
+        fieldName: 'CommCity',
+        fieldId: [PerDetScrId + 'commCity'],
+        fieldDivId: [PerDetScrId + 'commCityDiv']
+    };
+    var bb = {
+        fieldName: 'CommDistrict',
+        fieldId: [PerDetScrId + 'commDist'],
+        fieldDivId: [PerDetScrId + 'commDistDiv']
+    };
+    var bc = {
+        fieldName: 'CommState',
+        fieldId: [PerDetScrId + 'commState'],
+        fieldDivId: [PerDetScrId + 'commStateDiv']
+    };
+    var bd = {
+        fieldName: 'CommCountry',
+        fieldId: [PerDetScrId + 'commCountry'],
+        fieldDivId: [PerDetScrId + 'commCountryDiv']
+    };
+    var be = {
+        fieldName: 'SecMobileNo',
+        fieldId: [PerDetScrId + 'sec_mobile'],
+        fieldDivId: [PerDetScrId + 'SecMobileNumberDiv']
+    };
+    var bf = {
+        fieldName: 'Religion',
+        fieldId: [PerDetScrId + 'religion'],
+        fieldDivId: [PerDetScrId + 'RegionDiv']
+    };
+    var bg = {
+        fieldName: 'Caste',
+        fieldId: [PerDetScrId + 'caste'],
+        fieldDivId: [PerDetScrId + 'CastDiv']
+    };
+    var bh = {
+        fieldName: 'Education',
+        fieldId: [PerDetScrId + 'education'],
+        fieldDivId: [PerDetScrId + 'EducationDiv']
+    };
+    var bi = {
+        fieldName: 'alternateVoterID', // Alternate VoterId
+        fieldId: [altVoterIdTag],
+        fieldDivId: [PerDetScrId + 'altVoterIdDiv']
+    };
+    var bj = {
+        fieldName: 'CommunicationAddr',
+        fieldId: [PerDetScrId + 'commAddRadio'],
+        fieldDivId: [PerDetScrId + 'commAddRadioDiv']
+    };
+    var bk = {
+        fieldName: 'Area',
+        fieldId: [PerDetScrId + 'presArea'],
+        fieldDivId: [PerDetScrId + 'presAreaDiv']
+    };
+    var bl = {
+        fieldName: 'PermArea',
+        fieldId: [PerDetScrId + 'permArea'],
+        fieldDivId: [PerDetScrId + 'permAreaDiv']
+    };
+    var bm = {
+        fieldName: 'CommArea',
+        fieldId: [PerDetScrId + 'commArea'],
+        fieldDivId: [PerDetScrId + 'commAreaDiv']
+    };
+    var bn = {
+        fieldName: 'Landmark',
+        fieldId: [PerDetScrId + 'presLandmark'],
+        fieldDivId: [PerDetScrId + 'presLandmarkDiv']
+    };
+    var bo = {
+        fieldName: 'PermLandmark',
+        fieldId: [PerDetScrId + 'permLandmark'],
+        fieldDivId: [PerDetScrId + 'permLandmarkDiv']
+    };
+    var bp = {
+        fieldName: 'CommLandmark',
+        fieldId: [PerDetScrId + 'commLandmark'],
+        fieldDivId: [PerDetScrId + 'commLandmarkDiv']
+    };
+    var bq = {
+        fieldName: 'CKYC', // Alternate VoterId
+        fieldId: [PerDetScrId + 'cKYC'],
+        fieldDivId: [PerDetScrId + 'cKYCDiv']
+    };
+    var br = {
+        fieldName: 'BranchEmail',
+        fieldId: [PerDetScrId + 'branchEmail'],
+        fieldDivId: [PerDetScrId + 'branchEmailDiv']
+    };
+    var bs = {
+        fieldName: 'AnnualIncome',
+        fieldId: [PerDetScrId + 'annualIncome'],
+        fieldDivId: [PerDetScrId + 'annualIncomeRow']
+    };
+    var bt = {
+        fieldName: 'IsPanNo',
+        fieldId: [PerDetScrId + 'PAN_DropDown'],
+        fieldDivId: [PerDetScrId + 'isPanNumberDiv']
+    };
+    var bu = {
+        fieldName: 'PanNumberInp',
+        fieldId: [PerDetScrId + 'panNumberInp'],
+        fieldDivId: [PerDetScrId + 'panNumberInpDiv']
+    };
+    ApzCOB.ConfigureFields([a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z, aa, ab, ac, ad, ae, af, ag, ah, ai, aj, ak, al, am, an, ao, ap, aq, ar, as, at, au, av, aw, ax, ay, az, ba, bb, bc, bd, be, bf, bg, bh, bi, bj, bk, bl, bm, bn, bo, bp, bq, br, bs, bt, bu], 'CUSTOMERDETAILS', 'CUSTOMERDETAILS');
+}
+apz.app.PersonalDetails.paintDetailsOnBackNav = function() {
+    //Personal Details
+    $('#APZCBO__BaseScreens__continue').attr('disabled', false);
+    let currentIndex = '';
+    if(gApzCOB.currentApplicant <= 1){
+      currentIndex =  inSessionStore.customerDetailsList.findIndex(custData => custData.customerType === "Applicant")
+    } else {
+     currentIndex =  inSessionStore.customerDetailsList.findIndex(custData => custData.customerType !== "Applicant") 
+    }
+    var CustDtls = {};
+    if(!apz.isNull(currentIndex)){
+     CustDtls = inSessionStore.customerDetailsList[currentIndex];   
+    }
+    var address = [];
+    if(!apz.isNull(inSessionStore.addressDetailsWrapperList)) {
+        if (inSessionStore.addressDetailsWrapperList.length > 0) {
+            address = inSessionStore.addressDetailsWrapperList[0].addressDetailsList ?? [];
+        }
+    }
+    if (!apz.isObjectEmpty(CustDtls) && address.length > 0) {
+    var dob = ApzCOB.dateformatter(CustDtls.payload.dob, 'd/m/Y');
+    //var mobNumarr = CustDtls.mobileNumber.split(" ");
+    var mobNumarr = ('+91' + ' ' + CustDtls.mobileNumber).split(" ");
+    var mobNum = mobNumarr[mobNumarr.length - 1];
+    var SecmobNumarr = (!apz.isNull(CustDtls.payload.secMobileNo)) ? CustDtls.payload.secMobileNo.split(" ") : [];
+    var SecmobNum = SecmobNumarr.length > 0 ? SecmobNumarr[SecmobNumarr.length - 1] : "";
+    var custrname = CustDtls.firstname + ' ' + CustDtls.midname + ' ' + CustDtls.lastname;
+    var customerType = CustDtls.customerType === "Applicant" ? CustDtls.customerType : "Co-Applicant";
+    var custId = customerType === "Applicant" ? gApzCOB.selLeadDtls.customerId : "";
+    var age = ApzCOB.getAge(dob);
+    $("#" + PerDetScrId + "customerTxt_txtcnt").text(CustDtls.customerName);
+    $("#" + PerDetScrId + "customerGenderAgeTxt_txtcnt").text(CustDtls.payload.gender + " | " + age);
+    $(`#${paintKYCId}name`).val(CustDtls.customerName);
+    $(`#${paintKYCId}title`).val(CustDtls.payload.title);
+    $(`#${PerDetScrId}custType`).val(customerType);
+    $(`#${PerDetScrId}custId`).val(custId);
+    $(`#${paintKYCId}gender`).val(CustDtls.payload.gender);
+    $(`#${paintKYCId}dob`).val(dob);
+    $(`#${paintKYCId}dob`).trigger('change');
+    $(`#${paintKYCId}mobNum`).val(mobNum);
+    $(`#${PerDetScrId}aadhaarNum`).val(CustDtls.payload.aadhaarNumber);
+    $(`#${PerDetScrId}voterId`).val(CustDtls.payload.primaryKycId).keyup();
+    $(`#${PerDetScrId}altVoterId`).val(CustDtls.payload.alternateVoterId).keyup();
+    $(`#${PerDetScrId}cKYC`).val(CustDtls.payload.ckyc ?? '');
+    let secKycType = !apz.isNull(CustDtls.payload.secondaryKycType) ? CustDtls.payload.secondaryKycType : PleaseSelect;
+    let secKycId = !apz.isNull(CustDtls.payload.secondaryKycId) ? CustDtls.payload.secondaryKycId.toUpperCase() : '';
+    $(`#${PerDetScrId}secVoterId`).val(secKycId ? secKycId.toUpperCase() : '');
+    $(`#${PerDetScrId}secKYC`).val(secKycType);
+    // if(secKycType !== PleaseSelect) {
+        apz.app.PersonalDetails.secKycAadharConfig(secKycType, secKycId);
+    // }
+    $(`#${PerDetScrId}panNumber`).val(CustDtls.payload.pan);
+    $(`#${PerDetScrId}occupations`).val(CustDtls.payload.occupation).change();
+    $(`#${PerDetScrId}religion`).val(CustDtls.payload.religion).change();
+    $(`#${PerDetScrId}caste`).val(CustDtls.payload.caste).change();
+    $(`#${PerDetScrId}education`).val(CustDtls.payload.education).change();
+    $(`#${PerDetScrId}sec_mobile`).val(SecmobNum);
+    $(`#${PerDetScrId}branchEmail`).val(CustDtls.payload.emailId).blur();
+    $(`#${PerDetScrId}nameasKYC`).val(CustDtls.payload.namePerKyc);
+    $(`#${PerDetScrId}annualIncome`).val(!apz.isNull(CustDtls.payload.annualIncome) ? CustDtls.payload.annualIncome : '');
+    if (gApzCOB.currentApplicant > 1) {
+        let relatn = CustDtls.payload.relationShipWithApplicant;
+        if (relatn.toLocaleLowerCase() === 'spouse') {
+            let applicantData = ApzCOB.getApplicantCustData();
+            if (applicantData.length > 0) {
+                if (applicantData[0].payload.maritalStatus.toLocaleLowerCase() !== "married") {
+                    relatn = PleaseSelect;
+                }
+            }
+        }
+        $(`#${PerDetScrId}relationwithApp`).val(relatn).change();
+        //$(`#${PerDetScrId}nameasKYC`).val(CustDtls.payload.namePerKyc);
+    }
+    $(`#${PerDetScrId}maritalSts`).val(ApzCOB.capitalize(CustDtls.payload.maritalStatus)).change();
+    $(`#${PerDetScrId}fatherName`).val(CustDtls.payload.fathersName);
+    $(`#${PerDetScrId}spouseName`).val(CustDtls.payload.spouseName);
+    $(`#${PerDetScrId}PAN_DropDown`).val(apz.isNull(CustDtls.payload.panNumberValue) ? PleaseSelect : CustDtls.payload.panNumberValue).change();
+    if (!apz.isNull(CustDtls.payload.panNumber) && CustDtls.payload?.panNumber !== 'Not Available') {
+        $(`#${panNumberTag}`).val(CustDtls.payload.panNumber);
+        if ((CustDtls.payload.panNumberStatus == "Verified") && (IS_REINITIATE_APPLICATION || IS_REJECTED_APPLICATION)) {
+            window.REINITIATE_PAN_CHECKED = true;
+        } else {
+            window.REINITIATE_PAN_CHECKED = false;
+        }
+        apz.app.PersonalDetails.paintpanDetails(CustDtls)
+    }
+    //Present Address Details
+    var personalAddress = []
+    if (gApzCOB.currentApplicant === 1) {
+        address.forEach(function(i, k) {
+            if (address[k].addressType === 'Personal' && parseInt(address[k].custDtlId) === parseInt(gApzCOB.userDetails.custDtlId)) {
+                personalAddress.push(address[k])
+            }
+        })
+    } else if (gApzCOB.currentApplicant === 2) {
+        address.forEach(function(i, k) {
+            if (address[k].addressType === 'Personal' && parseInt(address[k].custDtlId) === parseInt(gApzCOB.userDetails
+                    .CoApplicantCustomerId)) {
+                personalAddress.push(address[k])
+            }
+        })
+    }
+    if (personalAddress.length > 0) {
+        if (!apz.isNull(personalAddress[0].payload.addressList[0])) {
+            var presentAddress = personalAddress[0].payload.addressList[0]
+            $(`#${PerDetScrId}addressLine1`).val(ApzCOB.getSubstrValue(`#${PerDetScrId}addressLine1`, presentAddress.addressLine1 ?? ''));
+            $(`#${PerDetScrId}addressLine2`).val(ApzCOB.getSubstrValue(`#${PerDetScrId}addressLine2`, presentAddress.addressLine2 ?? ''));
+            $(`#${PerDetScrId}addressLine3`).val(ApzCOB.getSubstrValue(`#${PerDetScrId}addressLine3`, presentAddress.addressLine3 ?? ''));
+            $(`#${PerDetScrId}pin`).val(apz.isNull(presentAddress.pinCode) ? '' : presentAddress.pinCode);
+            $(`#${PerDetScrId}city`).val(apz.isNull(presentAddress.city) ? '' : presentAddress.city);
+            $(`#${PerDetScrId}district`).val(apz.isNull(presentAddress.district) ? '' : presentAddress.district);
+            $(`#${PerDetScrId}state`).val(apz.isNull(presentAddress.state) ? '' : presentAddress.state);
+            $(`#${PerDetScrId}country`).val(apz.isNull(presentAddress.country) ? '' : presentAddress.country);
+            $(`#${PerDetScrId}presArea`).val(apz.isNull(presentAddress.area) ? '' : presentAddress.area);
+            $(`#${PerDetScrId}presLandmark`).val(apz.isNull(presentAddress.landMark) ? '' : presentAddress.landMark);
+            $(`#${PerDetScrId}ownership`).val(apz.isNull(presentAddress.residenceOwnership) ? PleaseSelect : presentAddress.residenceOwnership);
+            $(`#${PerDetScrId}cityYears`).val(apz.isNull(presentAddress.residenceCitySince) ? PleaseSelect : presentAddress.residenceCitySince).change();
+            $(`#${PerDetScrId}resYears`).val(apz.isNull(presentAddress.residenceAddressSince) ? PleaseSelect : presentAddress.residenceAddressSince).change();
+            let currAddrProof = presentAddress.currentAddressProof;
+            $(`#${PerDetScrId}currResProof`).val(apz.isNull(currAddrProof) ? PleaseSelect : currAddrProof);
+            if (!apz.isNull(currAddrProof) && IS_REJECTED_APPLICATION && currAddrProof.toLowerCase() !== PleaseSelect.toLowerCase()) {
+                ApzCOB.addDisableToInput("PerDet__PersonalDetails__currResProof");
+            }
+        }
+        apz.app.PersonalDetails.onchangeTypeofHouse(presentAddress);
+        window.houseTypechoose = presentAddress.houseType;
+        apz.app.PersonalDetails.onchangeLoc_CoordFor(presentAddress);
+        window.loc_CordFor = presentAddress.locateCoOrdinatesFor;
+        $(`#${PerDetScrId}el_inp_6`).val(presentAddress.locateCoOrdinates);
+        //Permanent Address Details
+        if (!apz.isNull(personalAddress[0].payload.addressList[1])) {
+            var permanentAddressDtls = personalAddress[0].payload.addressList[1];
+            $(`#${PerDetScrId}permanentAddres1`).val(ApzCOB.getSubstrValue(`#${PerDetScrId}permanentAddres1`, permanentAddressDtls.addressLine1 ?? ''));
+            $(`#${PerDetScrId}permanentAddres2`).val(ApzCOB.getSubstrValue(`#${PerDetScrId}permanentAddres2`, permanentAddressDtls.addressLine2 ?? ''));
+            $(`#${PerDetScrId}permanentAddres3`).val(ApzCOB.getSubstrValue(`#${PerDetScrId}permanentAddres3`, permanentAddressDtls.addressLine3 ?? ''));
+            $(`#${PerDetScrId}permanentPincode`).val(apz.isNull(permanentAddressDtls.pinCode) ? '' : permanentAddressDtls.pinCode);
+            $(`#${PerDetScrId}permanentcity`).val(apz.isNull(permanentAddressDtls.city) ? '' : permanentAddressDtls.city);
+            $(`#${PerDetScrId}permanentDist`).val(apz.isNull(permanentAddressDtls.district) ? '' : permanentAddressDtls.district);
+            $(`#${PerDetScrId}permanentState`).val(apz.isNull(permanentAddressDtls.state) ? '' : permanentAddressDtls.state);
+            $(`#${PerDetScrId}permanentCountry`).val(apz.isNull(permanentAddressDtls.country) ? '' : permanentAddressDtls.country);
+            $(`#${PerDetScrId}permArea`).val(apz.isNull(permanentAddressDtls.area) ? '' : permanentAddressDtls.area);
+            $(`#${PerDetScrId}permLandmark`).val(apz.isNull(permanentAddressDtls.landMark) ? '' : permanentAddressDtls.landMark);
+            if (!apz.isNull(permanentAddressDtls.addressSameAs)) {
+                $(`#${PerDetScrId}permanentAdd_option_${permanentAddressDtls.addressSameAs}`).prop(`checked`, true);
+            }
+        }
+        //Communication Address Details
+        if (!apz.isNull(personalAddress[0].payload.addressList[2])) {
+            var communicationAddressDtls = personalAddress[0].payload.addressList[2];
+            $(`#${PerDetScrId}commAddress1`).val(ApzCOB.getSubstrValue(`#${PerDetScrId}commAddress1`, communicationAddressDtls.addressLine1 ?? ''));
+            $(`#${PerDetScrId}commAddress2`).val(ApzCOB.getSubstrValue(`#${PerDetScrId}commAddress2`, communicationAddressDtls.addressLine2 ?? ''));
+            $(`#${PerDetScrId}commAddress3`).val(ApzCOB.getSubstrValue(`#${PerDetScrId}commAddress3`, communicationAddressDtls.addressLine3 ?? ''));
+            $(`#${PerDetScrId}commPincode`).val(apz.isNull(communicationAddressDtls.pinCode) ? '' : communicationAddressDtls.pinCode);
+            $(`#${PerDetScrId}commCity`).val(apz.isNull(communicationAddressDtls.city) ? '' : communicationAddressDtls.city);
+            $(`#${PerDetScrId}commDist`).val(apz.isNull(communicationAddressDtls.district) ? '' : communicationAddressDtls.district);
+            $(`#${PerDetScrId}commState`).val(apz.isNull(communicationAddressDtls.state) ? '' : communicationAddressDtls.state);
+            $(`#${PerDetScrId}commCountry`).val(apz.isNull(communicationAddressDtls.country) ? '' : communicationAddressDtls.country);
+            $(`#${PerDetScrId}commArea`).val(apz.isNull(communicationAddressDtls.area) ? '' : communicationAddressDtls.area);
+            $(`#${PerDetScrId}commLandmark`).val(apz.isNull(communicationAddressDtls.landMark) ? '' : communicationAddressDtls.landMark);
+            if (!apz.isNull(communicationAddressDtls.addressSameAs)) {
+                $(`#${PerDetScrId}commAddRadio_option_${communicationAddressDtls.addressSameAs}`).prop(`checked`, true);
+            }
+        }
+    }
+    } else {
+        apz.app.PersonalDetails.onLoadPaintData();
+    }
+}
+apz.app.PersonalDetails.secKycAadharConfig = function(lType, lId) {
+    if (!apz.isNull(AADHAR_CONFIG)) {
+        if (AADHAR_CONFIG.AADHAR_MANDATORY) {
+            $(`#${PerDetScrId}secKYC`).val(secondaryKyc[1]).change();
+            ApzCOB.addFieldMandatory(PerDetScrId + 'secKYC');
+            ApzCOB.addDisableToInput(PerDetScrId + 'secKYC');
+            if (!apz.isNull(lType)) {
+                if (lType !== secondaryKyc[1] && !apz.isNull(lId)) {
+                    $(`#${PerDetScrId}secVoterId`).val('');
+                } else {
+                    $(`#${PerDetScrId}secVoterId`).val(lId);
+                }
+            }
+        } else {
+            ApzCOB.removeFieldMandatory(PerDetScrId + 'secKYC');
+            ApzCOB.removeDisableToInput(PerDetScrId + 'secKYC');
+            // if (!apz.isNull(secKycId)) {
+            //     $(`#${PerDetScrId}secVoterId`).val(secKycId);
+            // }
+        }
+    }
+};
+apz.app.PersonalDetails.paintCardDetails = function() {
+    if (gApzCOB.ExistingCustomer) {
+        apz.data.scrdata.PerDet__IPaintKYCDetails_Res = {
+            'name': gApzCOB.customerDetails.customerDetails.customerName,
+            'mobNum': gApzCOB.customerDetails.customerDetails.mobileNum,
+            'gender': gApzCOB.customerDetails.customerDetails.gender,
+            'dob': "",
+            'addressasPerAadhar': gApzCOB.customerDetails.customerDetails.permAddress
+        }
+        var mobilenumber;
+        if (!apz.isNull(gApzCOB.customerDetails.customerDetails)) {
+            if (!apz.isNull(gApzCOB.customerDetails.customerDetails) && gApzCOB.customerDetails.customerDetails !== '') {
+                mobilenumber = gApzCOB.customerDetails.customerDetails.mobileNum;
+            }
+            if (!apz.isNull(mobilenumber.trim().split(" ")) && mobilenumber.trim().split(" ").length > 1) {
+                $(SelectedFlag).removeClass(ApzCOB.GetCommonCodes("COUNTRYCODE").COUNTRYCODE[0].preferredCountries);
+                $('#' + PerDetScrId + "regnFlag").val(('+91' + ' ' + mobilenumber.trim()).split(" ")[0]);
+                $('#' + PerDetScrId + "SecRegnFlag").val(mobNum.trim().split(" ")[0]);
+            }
+            dummy1 = '91'
+            if (!apz.isNull(dummy1)) {
+                $(PerSelectedFlag).trigger('click'); //Start: [data-dial-code= ' + dummy + '] this is
+                $(CountryList).addClass('sno'); // available only if the country drop down is open, hence opening the drop down and hiding it
+                $(SelectedFlag).addClass($(DialCode + dummy1 + ']').attr(CountryCode));
+            }
+            apz.data.scrdata.PerDet__IPaintKYCDetails_Res.mobNum = mobilenumber.trim().split(" ").length > 1 ? mobilenumber.trim().split(" ")[1] :
+                mobilenumber.trim().split(" ")[0];
+        }
+        apz.data.loadData('IPaintKYCDetails', 'PerDet');
+        $("#" + PerDetScrId + "perDetailsDiv").find("input").prop("disabled", true);
+        $('#PerDet__IPaintKYCDetails__o__PerDet__IPaintKYCDetails_Res__dob_button').prop("disabled", true);
+        $("#" + PerDetScrId + "regnFlag_ul").addClass('sub-elt');
+        ApzCOB.stateDropDown(PerDetScrId, 'pState');
+        if (!apz.isNull(gApzCOB.customerDetails.addressList) && gApzCOB.customerDetails.addressList.length > 0) {
+            gApzCOB.customerDetails.addressList.filter(function(e) {
+                if (JSON.parse(e.payloadColumn).addressList[0].addressType === "Permanent" || JSON.parse(e.payloadColumn).addressList[0]
+                    .addressType === "Communication") {
+                    gApzCOB.customerDetails.addrdet = JSON.parse(e.payloadColumn);
+                    if (JSON.parse(e.payloadColumn).addressList[1].addressType === "Communication") {
+                        gApzCOB.customerDetails.addrdet.addressLine1 = gApzCOB.customerDetails.addrdet["addressList"][1].addressLine1;
+                        gApzCOB.customerDetails.addrdet.addressLine2 = gApzCOB.customerDetails.addrdet["addressList"][1].addressLine2;
+                        gApzCOB.customerDetails.addrdet.addressLine3 = gApzCOB.customerDetails.addrdet["addressList"][1].addressLine3;
+                        gApzCOB.customerDetails.addrdet.addressType = gApzCOB.customerDetails.addrdet["addressList"][1].addressType;
+                        gApzCOB.customerDetails.addrdet.city = gApzCOB.customerDetails.addrdet["addressList"][1].city;
+                        gApzCOB.customerDetails.addrdet.country = gApzCOB.customerDetails.addrdet["addressList"][1].country;
+                        gApzCOB.customerDetails.addrdet.pinCode = gApzCOB.customerDetails.addrdet["addressList"][1].pinCode;
+                        gApzCOB.customerDetails.addrdet.state = gApzCOB.customerDetails.addrdet["addressList"][1].state;
+                        // apz.setElmValue(PerDetScrId + "state", stateVal[stateDesc.indexOf(gApzCOB.customerDetails.addrdet.state)]);
+                        // apz.setElmValue(PerDetScrId + "city", cityVal[cityDesc.indexOf(gApzCOB.customerDetails.addrdet.city)]);
+                        $("#" + PerDetScrId + "addressLine1").val(gApzCOB.customerDetails.addrdet.addressLine1);
+                        $("#" + PerDetScrId + "addressLine2").val(gApzCOB.customerDetails.addrdet.addressLine2);
+                        $("#" + PerDetScrId + "landMark").val(gApzCOB.customerDetails.addrdet.landMark);
+                        $("#" + PerDetScrId + "pin").val(gApzCOB.customerDetails.addrdet.pinCode);
+                        $("#" + PerDetScrId + "doorNo").val(gApzCOB.customerDetails.addrdet.doorNum);
+                    }
+                    if (JSON.parse(e.payloadColumn).addressList[0].addressType === "Permanent") {
+                        gApzCOB.customerDetails.addrdet.addressLine1 = gApzCOB.customerDetails.addrdet["addressList"][0].addressLine1
+                        gApzCOB.customerDetails.addrdet.addressLine2 = gApzCOB.customerDetails.addrdet["addressList"][0].addressLine2
+                        gApzCOB.customerDetails.addrdet.addressLine3 = gApzCOB.customerDetails.addrdet["addressList"][0].addressLine3
+                        gApzCOB.customerDetails.addrdet.addressType = gApzCOB.customerDetails.addrdet["addressList"][0].addressType
+                        gApzCOB.customerDetails.addrdet.city = gApzCOB.customerDetails.addrdet["addressList"][0].city
+                        gApzCOB.customerDetails.addrdet.country = gApzCOB.customerDetails.addrdet["addressList"][0].country
+                        gApzCOB.customerDetails.addrdet.landMark = gApzCOB.customerDetails.addrdet["addressList"][0].landMark
+                        gApzCOB.customerDetails.addrdet.pinCode = gApzCOB.customerDetails.addrdet["addressList"][0].pinCode
+                        gApzCOB.customerDetails.addrdet.state = gApzCOB.customerDetails.addrdet["addressList"][0].state
+                        gApzCOB.customerDetails.addrdet.doorNum = gApzCOB.customerDetails.addrdet["addressList"][0].doorNum
+                        ApzCOB.stateDropDown(PerDetScrId, 'pState');
+                        // apz.setElmValue(PerDetScrId + "pState", stateVal[stateDesc.indexOf(gApzCOB.customerDetails.addrdet.state)]);
+                        // apz.setElmValue(PerDetScrId + "pCity", cityVal[cityDesc.indexOf(gApzCOB.customerDetails.addrdet.city)]);
+                        $("#" + PerDetScrId + "pAddress1").val(gApzCOB.customerDetails.addrdet.addressLine1);
+                        $("#" + PerDetScrId + "pAddress2").val(gApzCOB.customerDetails.addrdet.addressLine2);
+                        $("#" + PerDetScrId + "pLandmark").val(gApzCOB.customerDetails.addrdet.landMark);
+                        $("#" + PerDetScrId + "pPin").val(gApzCOB.customerDetails.addrdet.pinCode);
+                        $("#" + PerDetScrId + "pDoorNumber").val(gApzCOB.customerDetails.addrdet.doorNum);
+                    }
+                    if (JSON.parse(e.payloadColumn).commAddEqPerAdd === 'Y') {
+                        $("#" + PerDetScrId + "AddPermanentToggle").prop('checked', true);
+                    } else {
+                        $("#" + PerDetScrId + "AddPermanentToggle").prop('checked', false);
+                    }
+                }
+            })
+        }
+        apz.setElmValue(PerDetScrId + "email", gApzCOB.customerDetails.customerDetails.emailId);
+        $(ResGender).val(gApzCOB.customerDetails.customerDetails.gender);
+        $("#" + PerDetScrId + "title").val(gApzCOB.customerDetails.customerDetails.title);
+        $("#" + PerDetScrId + "panNumber").val(gApzCOB.customerDetails.customerDetails.pan);
+        $(ResDOB).val(gApzCOB.customerDetails.customerDetails.dateOfBirth);
+        $("#" + PerDetScrId + "state").attr("disbaled", "true");
+        $("#" + PerDetScrId + "title").attr("disbaled", "true");
+        if (gApzCOB.ExistingCustomer) {
+            var savevalue = JSON.parse(gApzCOB.customerDetails.addressList[0].payloadColumn);
+            if (savevalue.addressList[0].addressType === "Permanent") {
+                if (savevalue.addressList[0].state !== PleaseSelect || savevalue.addressList[0].state !== '') {
+                    $("#PerDet__PersonalDetails__pState").val(savevalue.addressList[0].state);
+                }
+                if (savevalue.addressList[0].city !== PleaseSelect || savevalue.addressList[0].city !== '') {
+                    $("#PerDet__PersonalDetails__pCity").val(savevalue.addressList[0].city);
+                }
+            }
+        }
+        $(ResGender).attr("disbaled", "true");
+        $(ResDOB).attr("disbaled", "true");
+        $("#" + PerDetScrId + "city").attr("disbaled", "true");
+        $('#' + BaseScrId + 'STAGE3').addClass('readonly')
+        $(document).ready(function() {
+            $('.readonly').find('input, textarea, select, text, span').attr('readonly', 'readonly');
+        });
+        $("#" + PerDetScrId + "DisclaimerRow").removeClass('sno');
+    } else {
+        if ($('#' + BaseScrId + 'STAGE3').hasClass('readonly')) {
+            $('#' + BaseScrId + 'STAGE3').removeClass('readonly');
+            $("#" + PerDetScrId + "DisclaimerRow").addClass('sno');
+        }
+    }
+}
+apz.app.PersonalDetails.displaydefaultData = function() {
+    $('#' + PerDetScrId + 'AddressAsperAadharRow').addClass('sno');
+    if (window.editappln || !window.JointFlow) {
+        apz.app.PersonalDetails.mobileNumber();
+        // var mobileNum = "";
+        // if (!(apz.isNull(gApzCOB.nationalIdDetails.mobileNum) && apz.isNull(gApzCOB.userDetails.mobileNum))) {
+        //     var mbNumUsrDetail = gApzCOB.userDetails.mobileNum.trim().split(" ")[1] === undefined ? gApzCOB.userDetails.mobileNum.trim().split(" ")[0] :
+        //         gApzCOB.userDetails.mobileNum.trim().split(" ")[1];
+        //     var mbNumAadDetail = gApzCOB.nationalIdDetails.mobileNum.trim().split(" ")[1] === undefined ? gApzCOB.nationalIdDetails.mobileNum.trim().split(" ")[0] :
+        //         gApzCOB.nationalIdDetails.mobileNum.trim().split(" ")[1];
+        //     mobileNum = apz.isNull(gApzCOB.nationalIdDetails.mobileNum) ? mbNumUsrDetail : mbNumAadDetail;
+        //     gApzCOB.userDetails.mobileNum = mobileNum;
+        // }
+        var dob = apz.isNull(gApzCOB.nationalIdDetails.dob) ? "" : ApzCOB.dateformatter(Date.parse(gApzCOB.nationalIdDetails.dob), 'd/m/Y');
+        if (ocrVerified) {
+            //var tempMob = '';
+            if (window.COUNTRYCODE === 'Y') {
+                if (ApzCOB.GetCommonCodes("COUNTRYCODE").COUNTRYCODE[0].includeInReq === "Y") {
+                    $(SelectedFlag).removeClass(ApzCOB.GetCommonCodes("COUNTRYCODE").COUNTRYCODE[0].preferredCountries)
+                    $('#' + PerDetScrId + "regnFlag").val(('+91' + ' ' + gApzCOB.nationalIdDetails.mobileNum.trim()).split(" ")[0]);
+                    $('#' + PerDetScrId + "SecRegnFlag").val(mobNum.trim().split(" ")[0]);
+                    $('#' + paintKYCId + "mobNum").val(mobileNum);
+                    //dummy1 = ((gApzCOB.nationalIdDetails.mobileNum).trim().split(" ")[0].split("+")[1])
+                    dummy1 = '91'
+                    if (!apz.isNull(dummy1)) {
+                        $(SelectedFlag).addClass($(DialCode + dummy + ']').attr(CountryCode));
+                    }
+                } else {
+                    $('#' + paintKYCId + "mobNum").val(gApzCOB.nationalIdDetails.mobileNum.trim().split(" ")[1]);
+                }
+            } else {
+                $('#' + paintKYCId + "mobNum").val(gApzCOB.nationalIdDetails.mobileNum.trim().split(" ")[1]);
+            }
+            $('#' + paintKYCId + "dob").val(dob)
+            $('#' + PerDetScrId + 'AddressAsperAadharRow').removeClass('sno');
+            if (!apz.isNull(gApzCOB.nationalIdDetails.name)) {
+                $('#' + paintKYCId + "name").val(gApzCOB.nationalIdDetails.name);
+                $('#' + PerDetScrId + "customerName").text(gApzCOB.nationalIdDetails.name);
+                $('#' + PerDetScrId + 'nameList').removeClass('sno');
+            } else {
+                $('#' + PerDetScrId + 'nameList').addClass('sno');
+            }
+            $('#' + paintKYCId + 'addressasPerAadhar').text(gApzCOB.nationalIdDetails.address)
+            $('#' + paintKYCId + "gender").val(gApzCOB.nationalIdDetails.gender);
+            $('#' + PerDetScrId + 'gender_div').find('li').removeClass('is-selected hilt')
+            $('#' + PerDetScrId + 'gender_option_' + $('#' + paintKYCId + "gender").val()).addClass('is-selected hilt')
+        } else {
+            $('#' + PerDetScrId + 'AddressAsperAadharRow').addClass('sno');
+            // $('#' + paintKYCId + "name").val(gApzCOB.userDetails.userName);
+            if (!apz.isNull(gApzCOB.userDetails.userName)) {
+                // $('#' + paintKYCId + "name").val(gApzCOB.userDetails.userName);
+                $('#' + PerDetScrId + "customerName").text(gApzCOB.userDetails.userName);
+                $('#' + PerDetScrId + 'nameList').removeClass('sno');
+            } else {
+                $('#' + PerDetScrId + 'nameList').addClass('sno');
+            }
+            $('#' + PerDetScrId + "customerName").text(gApzCOB.userDetails.userName);
+            $('#' + paintKYCId + "mobNum").val(mobileNum);
+        }
+        if (gApzCOB.userDetails.maritialStatus === "M") {
+            $('#' + PerDetScrId + "spouseNameDiv").removeClass('sno');
+            $('#' + PerDetScrId + "spouseName").val(gApzCOB.userDetails.spouseName);
+        } else {
+            $('#' + PerDetScrId + "spouseName").val("");
+            $('#' + PerDetScrId + "spouseNameDiv").addClass('sno');
+        }
+        $('#PerDet__PersonalDetails__maritialStsRadio_option_' + gApzCOB.userDetails.maritialStatus).attr('checked', true);
+    }
+};
+//paint the details on click of back icon.
+apz.app.PersonalDetails.paintDetails = function() {
+    if (window.editappln || !window.JointFlow) {
+        if (!apz.isNull(window.CUST_ADDRESS) && window.CUST_ADDRESS.length > 0) {
+            gApzCOB.requestNodes['addressDetailsWrapperList'] = window.CUST_ADDRESS;
+        }
+        if ((!apz.isNull(window.CUST_ADDRESS_SAVE) && window.CUST_ADDRESS_SAVE.length > 0) && window.inSessionStoreEnabled) {
+            window.inSessionStore.addressDetailsWrapperList = window.CUST_ADDRESS_SAVE;
+        }
+        var custdata = apz.isNull(gApzCOB["requestNodes"]["customerDetailsList"]) ? "" : gApzCOB["requestNodes"]["customerDetailsList"];
+        custdata = apz.isNull(window.inSessionStore.customerDetailsList) ? JSON.parse(JSON.stringify(custdata)) : window.inSessionStore
+            .customerDetailsList;
+        var index = gApzCOB.currentApplicant - 1;
+        if (!apz.isNull(custdata[index])) {
+            if (!apz.isNull(custdata[index]["payload"])) {
+                window.currcutApp = custdata[index]["payload"];
+                if (custdata[index]["payload"]["maritalStatus"].toLowerCase() === 'married') {
+                    $('#' + PerDetScrId + "spouseNameDiv").removeClass('sno');
+                }
+                if (!apz.isNull(custdata[index]["customerName"])) {
+                    $('#' + paintKYCId + "name").val(custdata[index]["customerName"]);
+                    $('#' + PerDetScrId + "customerName").text(custdata[index]["customerName"]);
+                    $('#' + PerDetScrId + 'nameList').removeClass('sno');
+                } else {
+                    $('#' + PerDetScrId + 'nameList').addClass('sno');
+                }
+                $('#' + paintKYCId + "gender").val(custdata[index]["payload"]["gender"]);
+                if (!apz.isNull(custdata[index]["payload"]["dob"])) {
+                    //$('#' + paintKYCId + "dob").val(ApzCOB.dateformatter(Date.parse(custdata[0]["payload"]["dob"]), 'd/m/Y'));
+                    $('#' + paintKYCId + "dob").val($.datepicker.formatDate(apz.dateformat, new Date((custdata[0]["payload"]["dob"]))));
+                }
+                if (window.COUNTRYCODE === 'Y') {
+                    if (ApzCOB.GetCommonCodes("COUNTRYCODE").COUNTRYCODE[0].includeInReq === "Y") {
+                        $(SelectedItiFlag).removeClass(ApzCOB.GetCommonCodes("COUNTRYCODE").COUNTRYCODE[0].preferredCountries)
+                        $(SelectedFlag).removeClass(ApzCOB.GetCommonCodes("COUNTRYCODE").COUNTRYCODE[0].preferredCountries)
+                        //dummy = apz.isNull(custdata[index]["mobileNumber"]) ? "" : (custdata[index]["mobileNumber"].trim().split(" ")[0].split(
+                        //   "+")[1])
+                        // dummy1 = apz.isNull(custdata[index]["payload"]["altMobileNumber"]) ? "" : (custdata[index]["payload"]["altMobileNumber"].trim().split(" ")[0]
+                        //     .split("+")[1])
+                        //dummy1 = apz.isNull(dummy1) ? dummy : dummy1;
+                        $(PerSelectedFlag).trigger('click'); //Start: [data-dial-code= ' + dummy + '] this is
+                        $(CountryList).addClass(
+                        'sno'); // available only if the country drop down is open, hence opening the drop down and hiding it
+                        dummy = '91'
+                        if (!apz.isNull(dummy)) {
+                            $(SelectedFlag).addClass($(DialCode + dummy + ']').attr(CountryCode)); // till we get 
+                        }
+                        $(CountryList).removeClass(
+                        'sno'); //the selected country code. Then remove the sno class and close the country modal and set the country flag
+                        $(PerSelectedFlag).trigger('click');
+                        $('#PerDet__PersonalDetails__altregnFlag_li .selected-flag').trigger('click');
+                        $(CountryList).addClass('sno');
+                        dummy1 = '91'
+                        if (!apz.isNull(dummy1)) {
+                            $(SelectedItiFlag).addClass($(DialCode + dummy1 + ']').attr(CountryCode));
+                        }
+                        $(CountryList).removeClass('sno');
+                        $('#PerDet__PersonalDetails__altregnFlag_li .selected-flag').trigger('click') //end fix for #52385
+                        $('#' + paintKYCId + "mobNum").val(custdata[index]["mobileNumber"].trim().split(" ")[1]);
+                        // $('#' + PerDetScrId + "altPhno").val(custdata[index]["payload"]["altMobileNumber"].trim().split(" ")[1]);
+                        if ((!apz.isNull(custdata[index]["mobileNumber"]) && !apz.isNull(custdata[index]["mobileNumber"].trim().split(" ")[0]))) {
+                            $('#' + PerDetScrId + "regnFlag").val(('+91' + ' ' + custdata[index]["mobileNumber"].trim()).split(" ")[0]);
+                        } else {
+                            $(SelectedFlag).addClass(ApzCOB.GetCommonCodes("COUNTRYCODE").COUNTRYCODE[0].preferredCountries)
+                        }
+                        // if ((!apz.isNull(custdata[index]["payload"]["altMobileNumber"]) && !apz.isNull(custdata[index]["payload"]["altMobileNumber"].trim().split(
+                        //         " ")[0]))) {
+                        //     $('#' + PerDetScrId + "altregnFlag").val(custdata[index]["payload"]["altMobileNumber"].trim().split(" ")[0]);
+                        // } else {
+                        //     $(SelectedItiFlag).addClass(ApzCOB.GetCommonCodes("COUNTRYCODE").COUNTRYCODE[0]
+                        //         .preferredCountries)
+                        // }
+                    } else {
+                        $('#' + paintKYCId + "mobNum").val(custdata[index]["mobileNumber"]);
+                        // $('#' + PerDetScrId + "altPhno").val(custdata[index]["payload"]["altMobileNumber"]);
+                    }
+                } else {
+                    $('#' + paintKYCId + "mobNum").val(custdata[index]["mobileNumber"]);
+                    // $('#' + PerDetScrId + "altPhno").val(custdata[index]["payload"]["altMobileNumber"]);
+                }
+                $('#' + PerDetScrId + "email").val(custdata[index]["payload"]["emailId"]);
+                $('#PerDet__PersonalDetails__maritialStsRadio_option_' + custdata[index]["payload"]["maritalStatus"]).attr('checked', true)
+                $('#' + PerDetScrId + "spouseName").val(custdata[index]["payload"]["spouseName"]);
+                $('#' + PerDetScrId + "panNumber").val(custdata[index]["payload"]["pan"]);
+                if (!apz.isNull(custdata[index]["payload"]["panNumber"])) {
+                    $('#' + PerDetScrId + "PAN_DropDown").val(custdata[index]["payload"]["panNumber"]);
+                    if ((custdata[index]["payload"]["panNumberStatus"] == "Verified") && (IS_REINITIATE_APPLICATION || IS_REJECTED_APPLICATION)) {
+                        window.REINITIATE_PAN_CHECKED = true;
+                    } else {
+                        window.REINITIATE_PAN_CHECKED = false;
+                    }
+                    if((currcutApp.panNumberStatus !== "Verified") && REINITIATE_PAN_CHECKED){
+                      inSessionStore.customerDetailsList[0].payload.panNumberStatus = '';
+                      inSessionStore.customerDetailsList[1].payload.panNumberStatus = '';
+                    }
+                }
+            }
+            apz.app.PersonalDetails.paintDetailsOnBackNav();
+        }
+        if (!backNav && gApzCOB.currentApplicant <= 1 && !IS_REJECTED_APPLICATION) {
+            var leaddata = gApzCOB.selLeadDtls;
+            $(`#${PerDetScrId}addressLine1`).val(ApzCOB.getSubstrValue(`#${PerDetScrId}addressLine1`, leaddata.presLine1 ?? '')).blur();
+            $(`#${PerDetScrId}addressLine2`).val(ApzCOB.getSubstrValue(`#${PerDetScrId}addressLine2`, leaddata.presLine2 ?? '')).blur();
+            $(`#${PerDetScrId}addressLine3`).val(ApzCOB.getSubstrValue(`#${PerDetScrId}addressLine3`, leaddata.presLine3 ?? '')).blur();
+            $(`#${PerDetScrId}pin`).val(leaddata.presPincode);
+            $(`#${PerDetScrId}city`).val(leaddata.presCityTownVillage + ", " + leaddata.presArea);
+            $(`#${PerDetScrId}district`).val(leaddata.presDist);
+            $(`#${PerDetScrId}state`).val(leaddata.presState);
+            $(`#${PerDetScrId}country`).val(leaddata.presCountry);
+        }
+    }
+};
+//to hide the sub header when all the subheader fields are hidden.
+apz.app.PersonalDetails.hideHeader = function() {
+    ApzCOB.hideHeader([{
+        'fieldId': [PerDetScrId + 'AlternatePhNoDiv', PerDetScrId + 'EmailDiv'],
+        'headerId': PerDetScrId + 'ContactDetailsHeader'
+    }, {
+        'fieldId': [PerDetScrId + 'AddressAsperAadharDiv', PerDetScrId + 'pincodeDiv', PerDetScrId + 'stateDiv',
+            PerDetScrId + 'cityDiv',
+            PerDetScrId + 'DoorNumDiv', PerDetScrId + 'BuildingNameDiv', PerDetScrId + 'LandMarkDiv'
+        ],
+        'headerId': PerDetScrId + 'CommunicationAddHeader'
+    }, {
+        'fieldId': [PerDetScrId + 'panNumberDiv'],
+        'headerId': PerDetScrId + 'panHeader'
+    }])
+}
+//to validate fields
+apz.app.PersonalDetails.formValidator = function(formId) {
+    var form = "",
+        form_validator_check = {};
+    form = $("#" + PerDetScrId + formId).find("input");
+    for (var n = 0; n < form.length; n++) {
+        form_validator_check = {
+            [form[n]['id']]: {
+                verify: nullcheck,
+            }
+        };
+        ApzCOB.validateInputFields(form, form_validator_check);
+    }
+}
+// To set the marital status value based on the selection
+apz.app.PersonalDetails.MartialStatus = function(pthis) {
+    MaritalStatus = pthis.id.split('_').pop();
+    if (pthis.id.endsWith('M')) {
+        $('#' + PerDetScrId + "spouseNameDiv").removeClass('sno');
+    } else {
+        $('#' + PerDetScrId + "spouseName").val("");
+        $('#' + PerDetScrId + "spouseNameDiv").addClass('sno');
+    }
+}
+// communication address toggle function
+apz.app.PersonalDetails.sameCommunicationAddress = function(pthis) {
+    if (!$('#' + PerDetScrId + 'commAddToggle').is(':checked')) {
+        window.sameCommAddress = false;
+        $('#' + PerDetScrId + "addressDetailsRow").removeClass('sno');
+    } else {
+        window.sameCommAddress = true;
+        $('#' + PerDetScrId + "addressDetailsRow").addClass('sno');
+        apz.app.PersonalDetails.clearAddressFields();
+    }
+}
+/**
+ * @author praisy.b
+ * @since 08.06.21
+ * Added below function to avoid validation check inside createApplication application function
+ * No min max length validation and Mobile tel validation
+ **/
+apz.app.PersonalDetails.validateMobNumInputFields = function() {
+    if (!REJECT_REQUEST_CALL) {
+        window.isMobErr = false;
+        var lcountrycode, lcountrycodeWord;
+        if (!apz.isNull($('#' + paintKYCId + 'mobNum').val())) {
+            lcountrycode = $("#" + PerDetScrId + "regnFlag_li").children().children().children().children().attr('title').split(": ")[1];
+            lcountrycodeWord = $("#" + PerDetScrId + "regnFlag_li").children().children().children().children().children().attr('class').split(
+                "iti-flag ")[1];
+            ApzCOB.fnValidateMobileNumber(paintKYCId + 'mobNum', lcountrycode, lcountrycodeWord);
+        }
+        if (!apz.isNull($('#' + PerDetScrId + 'sec_mobile').val())) {
+            lcountrycode = $("#" + PerDetScrId + "SecRegnFlag_li").children().children().children().children().attr('title').split(": ")[1];
+            lcountrycodeWord = $("#" + PerDetScrId + "SecRegnFlag_li").children().children().children().children().children().attr('class').split(
+                "iti-flag ")[1];
+            ApzCOB.fnValidateMobileNumber(PerDetScrId + 'sec_mobile', lcountrycode, lcountrycodeWord);
+        }
+        if (!window.gIsMinMaxErr && !window.isMobErr) {
+            return true;
+        } else {
+            // if (apz.childScr === "PersonalDetails" && window.isMobErr) {
+            if ($('#' + PerDetScrId + 'MobileNumberDiv input').hasClass("err")) {
+                $('#' + PerDetScrId + 'MobileNumberDiv .err')[0].scrollIntoView();
+            }
+            window.isMobErr = false;
+            // }
+            return false;
+        }
+    } else {
+        return true;
+    }
+}
+apz.app.PersonalDetails.perDetAsFirstScr = function() {
+    if ((kycID !== -1 && PerID < kycID) || (CusVerID !== -1 && PerID < CusVerID)) {
+        if (window.COUNTRYCODE === 'Y') {
+            if (ApzCOB.GetCommonCodes("COUNTRYCODE").COUNTRYCODE[0].includeInReq === "Y") {
+                gApzCOB.userDetails.mobileNum = $('#' + PerDetScrId + 'regnFlag').val() + " " + $('#' + paintKYCId + 'mobNum').val();
+            } else {
+                gApzCOB.userDetails.mobileNum = $('#' + paintKYCId + 'mobNum').val();
+            }
+        } else {
+            gApzCOB.userDetails.mobileNum = $('#' + paintKYCId + 'mobNum').val();
+        }
+        gApzCOB.userDetails.userName = $('#' + paintKYCId + 'name').val();
+        gApzCOB.userDetails.panNum = $('#' + PerDetScrId + 'panNumber').val();
+        gApzCOB.userDetails.email = $('#' + PerDetScrId + 'email').val();
+    }
+}
+// request creation function
+apz.app.PersonalDetails.createRequest = function(iSave) {
+    if (apz.app.PersonalDetails.validateMobNumInputFields() || !apz.isNull(iSave)) {
+        apz.app.PersonalDetails.personalDetailObject();
+        var existingLoanObj = {
+            "existingLoansDetailList": []
+        };
+        if (apz.data.scrdata.PerDet__IPaintLoanDetails_Res.length > 0) {
+            apz.app.PersonalDetails.existingLoanObject();
+        } else {
+            var obj = {
+                "hasExistingLoans": 'N',
+                "existingLoanId": '',
+                "loanDtlsId": '',
+                "payload": {
+                    "productType": '',
+                    "subProductType": '',
+                    "loanAmount": '',
+                    "accountNumber": '',
+                    "outstandingAmount": '',
+                    "expectedClosureDate": ''
+                }
+            }
+            // existingLoanObj.existingLoansDetailList.push(obj);
+            gApzCOB.requestNodes['existingLoanDetailsWrapperList'] = [existingLoanObj];
+        }
+        var custDtlId = gApzCOB.currentApplicant > 1 ? gApzCOB.userDetails.CoApplicantCustomerId : gApzCOB.userDetails.custDtlId
+        var addressDetObj = {
+            "addressDetailsList": [{
+                "addressDtlsId": gApzCOB.userDetails.addressDtlsId,
+                "custDtlId": parseInt(custDtlId),
+                "addressType": "Personal",
+                "payload": {
+                    //"commAddEqPerAdd": apz.getElmValue("PerDet__PersonalDetails__AddPermanentToggle"),
+                    //  "relatedKey": "custDtlId",
+                    //  "relatedValue": gApzCOB.userDetails.custDtlId,
+                    "addressList": apz.app.PersonalDetails.address()
+                }
+            }]
+        }
+        if (iSave !== 'captureBefore') {
+            if (gApzCOB.currentApplicant > 1) {
+                addressDetObj.addressDetailsList[0].addressDtlsId = apz.isNull(gApzCOB.userDetails.CoApplicantAddressDtlsId) ? "" : gApzCOB
+                    .userDetails.CoApplicantAddressDtlsId;
+            }
+        }
+        if (iSave === 'captureAfter') {
+            window.afterBack.customerDetailsList = [];
+            window.afterBack.addressDetailsWrapperList = [];
+            window.afterBack.customerDetailsList.push(perDetobj);
+            window.afterBack.addressDetailsWrapperList = [addressDetObj];
+            window.CUST_ADDRESS_SAVE = [];
+            window.CUST_ADDRESS_SAVE.push(addressDetObj);
+            return window.afterBack;
+        }
+        if (iSave === 'captureBefore') {
+            window.beforeBack.customerDetailsList = [];
+            window.beforeBack.addressDetailsWrapperList = [];
+            window.beforeBack.customerDetailsList.push(perDetobj);
+            window.beforeBack.addressDetailsWrapperList = [addressDetObj];
+            window.CUST_ADDRESS_SAVE = [];
+            window.CUST_ADDRESS_SAVE.push(addressDetObj);
+            return window.beforeBack;
+        }
+        //  window.inSessionStore.customerDetailsList = [];
+        if (gApzCOB.currentApplicant <= 1) {
+            if (!apz.isNull(window.inSessionStore.addressDetailsWrapperList)) {
+                if(!apz.isNull(gApzCOB.userDetails)){
+                   if(!apz.isNull(gApzCOB.userDetails.custDtlId)){
+                    let itemIndex = window.inSessionStore.addressDetailsWrapperList[0].addressDetailsList.findIndex(addr => parseInt(addr.custDtlId) === parseInt(gApzCOB.userDetails.custDtlId) && addr.addressType === addressDetObj.addressDetailsList[0].addressType);
+                    window.inSessionStore.addressDetailsWrapperList[0].addressDetailsList[itemIndex] = addressDetObj.addressDetailsList[0];
+                   }
+                } else {
+                    window.inSessionStore.addressDetailsWrapperList[0].addressDetailsList[gApzCOB.currentApplicant - 1] = addressDetObj
+                    .addressDetailsList[0];  
+                }
+            } else {
+                window.inSessionStore.addressDetailsWrapperList = [];
+                window.inSessionStore.addressDetailsWrapperList = [addressDetObj];
+            }
+        } else {
+                   if(!apz.isNull(gApzCOB.userDetails.CoApplicantCustomerId)){
+                        let itemIndex = window.inSessionStore.addressDetailsWrapperList[0].addressDetailsList.findIndex(addr => parseInt(addr.custDtlId) === parseInt(gApzCOB.userDetails.CoApplicantCustomerId) && addr.addressType === addressDetObj.addressDetailsList[0].addressType);
+                    window.inSessionStore.addressDetailsWrapperList[0].addressDetailsList[itemIndex] = addressDetObj.addressDetailsList[0];
+                   } else {
+                       window.inSessionStore.addressDetailsWrapperList[0].addressDetailsList[gApzCOB.currentApplicant - 1] = addressDetObj
+                    .addressDetailsList[0];
+                   }
+        }
+        //  window.inSessionStore.customerDetailsList.push(perDetobj);
+        if (gApzCOB.currentApplicant <= 1) {
+            window.CUST_ADDRESS_SAVE = [];
+        } else {
+                  if(apz.isNull(window.CUST_ADDRESS_SAVE)){
+         window.CUST_ADDRESS_SAVE = [];   
+        }  
+        }
+        window.CUST_ADDRESS_SAVE.push(addressDetObj);
+        if (iSave === 'triggerdSave') {
+            return window.inSessionStore;
+        }
+        if (gApzCOB.currentApplicant <= 1) {
+            if (!apz.isNull(window.inSessionStore.customerDetailsList)) {
+                if(!apz.isNull(gApzCOB.userDetails)){
+                   if(!apz.isNull(gApzCOB.userDetails.custDtlId)){
+                    let itemIndex =  window.inSessionStore.customerDetailsList.findIndex(cust => parseInt(cust.custDtlId) === parseInt(gApzCOB.userDetails.custDtlId));  
+                    window.inSessionStore.customerDetailsList[itemIndex] = perDetobj;
+                   }
+                } else {
+                  window.inSessionStore.customerDetailsList[gApzCOB.currentApplicant - 1] = perDetobj;  
+                }
+            } else {
+                window.inSessionStore.customerDetailsList = [];
+                window.inSessionStore.customerDetailsList.push(perDetobj);
+            }
+        } else {
+            if (!apz.isNull(gApzCOB.userDetails.CoApplicantCustomerId)) {
+                let itemIndex = window.inSessionStore.customerDetailsList.findIndex(cust => parseInt(cust.custDtlId) === parseInt(gApzCOB.userDetails.CoApplicantCustomerId));
+                window.inSessionStore.customerDetailsList[itemIndex === -1 ? inSessionStore.customerDetailsList.length : itemIndex] = perDetobj;
+            } else {
+                if (window.inSessionStore.customerDetailsList.length === gApzCOB.currentApplicant) {
+                    window.inSessionStore.customerDetailsList[gApzCOB.currentApplicant - 1] = perDetobj;
+                } else {
+                    window.inSessionStore.customerDetailsList.push(perDetobj);
+                }
+            }
+        }
+        gApzCOB.requestNodes['customerDetailsList'] = [];
+        gApzCOB.requestNodes['customerDetailsList'].push(perDetobj);
+        window.CUST_ADDRESS = []
+        window.CUST_ADDRESS.push(addressDetObj);
+        if (!window.pendingApplication) {
+            gApzCOB.requestNodes['addressDetailsWrapperList'] = [];
+        }
+        apz.app.PersonalDetails.perDetAsFirstScr();
+        gApzCOB.requestNodes['addressDetailsWrapperList'] = window.CUST_ADDRESS;
+        /*if (gApzCOB.currentApplicant > 1) {
+            window.inSessionStore.customerDetailsList[0].custDtlId = parseInt(gApzCOB.userDetails.custDtlId);
+            window.inSessionStore.addressDetailsWrapperList[0].addressDetailsList[0].addressDtlsId = gApzCOB.userDetails.addressDtlsId;
+        }*/
+        return gApzCOB["requestNodes"];
+    }
+    return []
+}
+apz.app.PersonalDetails.existingLoanObject = function() {
+    var existingLoanObj = {
+        "existingLoansDetailList": []
+    };
+    for (var i = 0; i < apz.data.scrdata.PerDet__IPaintLoanDetails_Res.length; i++) {
+        var obj = {
+            "hasExistingLoans": '',
+            "payload": {
+                "productType": '',
+                "subProductType": '',
+                "loanAmount": '',
+                "accountNumber": '',
+                "outstandingAmount": '',
+                "expectedClosureDate": ''
+            }
+        };
+        obj.hasExistingLoans = 'Y';
+        if (!apz.isNull(gApzCOB.userDetails.existisingLoanDtlId) && gApzCOB.userDetails.existisingLoanDtlId.length > 0) {
+            obj.existingLoanId = gApzCOB.userDetails.existisingLoanDtlId[i];
+        } else {
+            obj.existingLoanId = "";
+        }
+        if(!apz.isNull(gApzCOB.userDetails.existingLoanId) && gApzCOB.userDetails.existingLoanId.length > 0){
+            obj.loanDtlsId = gApzCOB.userDetails.existingLoanId[i];
+        } else {
+            obj.loanDtlsId = "";
+        }
+        obj.payload.productType = apz.data.scrdata.PerDet__IPaintLoanDetails_Res[i].loanType;
+        obj.payload.subProductType = "";
+        obj.payload.loanAmount = "";
+        obj.payload.accountNumber = "";
+        obj.payload.outstandingAmount = apz.data.scrdata.PerDet__IPaintLoanDetails_Res[i].outstandingAmt;
+        obj.payload.expectedClosureDate = "";
+        existingLoanObj.existingLoansDetailList.push(obj);
+    }
+    gApzCOB.requestNodes['existingLoanDetailsWrapperList'] = [existingLoanObj];
+};
+apz.app.PersonalDetails.address = function() {
+    var addressArr = [];
+    var residentialAddress = {};
+    var permanentAdress = {};
+    var communicationAddress = {};
+    var resCitySince;
+    var resAddrSince;
+    residentialAddress = {
+        "addressType": "Present",
+        "state": $('#' + PerDetScrId + 'state').val(),
+        "city": $('#' + PerDetScrId + 'city').val(),
+        "country": $('#' + PerDetScrId + 'country').val(),
+        "pinCode": $('#' + PerDetScrId + 'pin').val(),
+        "addressLine1": $('#' + PerDetScrId + 'addressLine1').val(),
+        "addressLine2": $('#' + PerDetScrId + 'addressLine2').val(),
+        "addressLine3": $('#' + PerDetScrId + 'addressLine3').val(),
+        "district": $('#' + PerDetScrId + 'district').val(),
+        "residenceOwnership": $('#' + PerDetScrId + 'ownership').val(),
+        "residenceAddressSince": $('#' + PerDetScrId + 'resYears').val(),
+        "residenceCitySince": $('#' + PerDetScrId + 'cityYears').val(),
+        "currentAddressProof": $("#PerDet__PersonalDetails__currResProof").val(),
+        "houseType": window.houseTypechoose,
+        // "communctionAddress": window.commAddr,
+        "locateCoOrdinatesFor": window.loc_CordFor,
+        "locateCoOrdinates": $('#' + coOrdinateInputTag).val(),
+        "area": $(`#${PerDetScrId}presArea`).val(),
+        "landMark": $(`#${PerDetScrId}presLandmark`).val()
+    }
+    addressArr.push(residentialAddress);
+    if (gApzCOB.currentApplicant == 1) {
+        applicantState = residentialAddress.state.toUpperCase();
+    }
+    let permanentAddressSameAs = $('input[name="PerDet__PersonalDetails__permanentAdd_"]:checked').val();
+    permanentAdress = {
+        "addressType": "Permanent",
+        "addressSameAs": apz.isNull(permanentAddressSameAs) ? "" : permanentAddressSameAs,
+        "state": $('#' + PerDetScrId + 'permanentState').val(),
+        "city": $('#' + PerDetScrId + 'permanentcity').val(),
+        "country": $('#' + PerDetScrId + 'permanentCountry').val(),
+        "pinCode": $('#' + PerDetScrId + 'permanentPincode').val(),
+        "addressLine1": $('#' + PerDetScrId + 'permanentAddres1').val(),
+        "addressLine2": $('#' + PerDetScrId + 'permanentAddres2').val(),
+        "addressLine3": $('#' + PerDetScrId + 'permanentAddres3').val(),
+        "district": $('#' + PerDetScrId + 'permanentDist').val(),
+        "area": $(`#${PerDetScrId}permArea`).val(),
+        "landMark": $(`#${PerDetScrId}permLandmark`).val()
+    }
+    addressArr.push(permanentAdress);
+    let communicationAddressSameAs = $('input[name="PerDet__PersonalDetails__commAddRadio_"]:checked').val();
+    communicationAddress = {
+        "addressType": "Communication",
+        "addressSameAs": apz.isNull(communicationAddressSameAs) ? "" : communicationAddressSameAs,
+        "state": $('#' + PerDetScrId + 'commState').val(),
+        "city": $('#' + PerDetScrId + 'commCity').val(),
+        "country": $('#' + PerDetScrId + 'commCountry').val(),
+        "pinCode": $('#' + PerDetScrId + 'commPincode').val(),
+        "addressLine1": $('#' + PerDetScrId + 'commAddress1').val(),
+        "addressLine2": $('#' + PerDetScrId + 'commAddress2').val(),
+        "addressLine3": $('#' + PerDetScrId + 'commAddress3').val(),
+        "district": $('#' + PerDetScrId + 'commDist').val(),
+        "area": $(`#${PerDetScrId}commArea`).val(),
+        "landMark": $(`#${PerDetScrId}commLandmark`).val()
+    }
+    addressArr.push(communicationAddress);
+    return addressArr;
+}
+apz.app.PersonalDetails.clearAddressFields = function() {
+    $('#' + PerDetScrId + 'commAddressForm').find('input').val('');
+    $('#' + PerDetScrId + 'ownership').val(PleaseSelect);
+    $('#' + PerDetScrId + 'resYears').val(PleaseSelect);
+    $('#' + PerDetScrId + 'resMonths').val(PleaseSelect);
+    $('#' + PerDetScrId + 'cityYears').val(PleaseSelect);
+    $('#' + PerDetScrId + 'cityMonths').val(PleaseSelect);
+}
+apz.app.PersonalDetails.paintData = function() {
+    if (!apz.isNull(apz.app.serReqList)) {
+        $("#PerDet__PersonalDetails__email").val(apz.app.serReqList[0]);
+    }
+}
+/*
+        @PrathamKumar N D
+        @04-06-2021
+        @condition block Added for display Title based on Gender
+        */
+/*apz.app.PersonalDetails.validateTitleOnGender = function() {
+    var selectedGender = $('#' + paintKYCId + 'gender').val();
+    if (!apz.isNull(selectedGender)) {
+        if (selectedGender === "Male") {
+            $('#' + PerDetScrId + 'title').val("Mr.");
+        } else if (selectedGender === "Female") {
+            var updatedArray = ["Ms.", "Mrs."]
+            apz.populateDropdown(document.getElementById(PerDetScrId + 'title'), ApzCOB.formatDropDownforArray(updatedArray));
+        } else if (selectedGender === "Others") {
+            $('#' + PerDetScrId + 'title').val("Mx.");
+        }
+    } else {
+        var a = apz.isNull(afterBack.customerDetailsList) ? '' : afterBack.customerDetailsList[window.custIndex].payload.title;
+        var b = apz.isNull(inSessionStore.customerDetailsList) ? '' : inSessionStore.customerDetailsList[window.custIndex].payload.title;
+        $('#' + PerDetScrId + 'title').val(inSessionStoreEnabled ? a : b);
+    }
+};*/
+apz.app.PersonalDetails.updateNameonkeyup = function(pthis) {
+    var name = $(pthis).val();
+    if (!apz.isNull(name)) {
+        $('#' + PerDetScrId + 'customerName').text(name);
+        $('#' + PerDetScrId + 'nameList').removeClass('sno');
+    } else {
+        $('#' + PerDetScrId + 'nameList').addClass('sno');
+    }
+}
+/*apz.app.PersonalDetails.MobileNo = function() {
+    if (!apz.isNull(apz.getElmValue("PerDet__IPaintKYCDetails__o__PerDet__IPaintKYCDetails_Res__mobNum")) && !apz.isNull(apz.getElmValue(
+            PerDetScrId + "altPhno"))) {
+        if (apz.getElmValue("PerDet__IPaintKYCDetails__o__PerDet__IPaintKYCDetails_Res__mobNum") === apz.getElmValue(PerDetScrId + "altPhno")) {
+            ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_PERDTLS_ERR_TXT_SAMEMOBNO"), "E");
+            $("#PerDet__PersonalDetails__altPhno").val("");
+            //return false;
+        }
+    }
+};*/
+apz.app.PersonalDetails.verifyAppln = function(defaultScreen) {
+    // if (!apz.isNull(apz.getElmValue("PerDet__IPaintKYCDetails__o__PerDet__IPaintKYCDetails_Res__mobNum")) && !apz.isNull(apz.getElmValue(
+    //         PerDetScrId + "altPhno"))) {
+    //     if (apz.getElmValue("PerDet__IPaintKYCDetails__o__PerDet__IPaintKYCDetails_Res__mobNum") === apz.getElmValue(PerDetScrId + "altPhno")) {
+    //         ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_PERDTLS_ERR_TXT_SAMEMOBNO"), "E");
+    //         return false;
+    //     }
+    // }
+    if (defaultScreen) {
+        gApzCOB.userDetails.panNum = $('#' + PerDetScrId + 'panNumber').val();
+        // gApzCOB.userDetails.email = $('#' + PerDetScrId + 'email').val();
+        if (window.COUNTRYCODE === 'Y') {
+            if (ApzCOB.GetCommonCodes("COUNTRYCODE").COUNTRYCODE[0].includeInReq === "Y") {
+                gApzCOB.userDetails.mobileNum = $('#' + PerDetScrId + 'regnFlag').val() + " " + $('#' + paintKYCId + 'mobNum').val();
+            } else {
+                gApzCOB.userDetails.mobileNum = $('#' + paintKYCId + 'mobNum').val();
+            }
+        } else {
+            gApzCOB.userDetails.mobileNum = $('#' + paintKYCId + 'mobNum').val();
+        }
+        if (apz.app.PersonalDetails.verifyPan()) {
+            ApzCOB.VerifyApplication();
+        }
+    } else {
+        apz.app.PersonalDetails.verifyApplnConditionCheck1();
+        /*if (apz.app.PersonalDetails.verifyPan()) {
+            if(gApzCOB.product === "CARDS"){
+                ApzCOB.createCreditCard();
+            }else{
+                ApzCOB.createApplication();
+            }
+        }*/
+    }
+}
+apz.app.PersonalDetails.verifyApplnConditionCheck1 = function() {
+    if (apz.app.PersonalDetails.verifyPan()) {
+        if (gApzCOB.product === "CARDS") {
+            ApzCOB.createCreditCard();
+        } else {
+            ApzCOB.createApplication();
+            //window.fullAddress = gApzCOB.requestNodes.addressDetailsWrapperList;
+        }
+        return true;
+    }
+}
+apz.app.PersonalDetails.panVerifyBtnStatus = function() {
+    ApzCOB.panVerifyButtonStatus();
+    // ApzCOB.GetCommonCodes("CUSTOMERDETAILS").CUSTOMERDETAILS.forEach(function(k) {
+    //     if (k.split('~')[0] === "PanVerify") {
+    //         panVerifybutton = k.split('~')[1];
+    //         if (panVerifybutton === 'N') {
+    //             window.panWithoutService = false;
+    //         } else if (panVerifybutton === 'Y') {
+    //             window.panWithoutService = true;
+    //         }
+    //     }
+    //     if (k.split('~')[0] === "PanNo") {
+    //         panEnabledorDisabled = k.split('~')[1];
+    //         panMandatory = k.split('~')[2];
+    //     }
+    // })
+}
+apz.app.PersonalDetails.verifyPan = function() {
+    window.isMobErr = false;
+    window.isValid = false;
+    var Demo = true
+    if (gApzCOB.demoMode === "N") {
+        if (!apz.isNull($('#' + paintKYCId + 'mobNum').val())) {
+            ApzCOB.fnValidateMobileNumber(paintKYCId + 'mobNum');
+            document.getElementById(paintKYCId + 'mobNum').scrollIntoView({
+                behavior: "smooth",
+                block: "center",
+                inline: "center"
+            })
+        }
+        if ($("#" + PerDetScrId + 'perDetailsDiv').is(':visible') && !window.isMobErr) {
+            apz.app.PersonalDetails.LoadPanStatus();
+            /*if (panEnabledorDisabled === "Y" && panMandatory === "M") {
+                if ((panVerifybutton === "Y" && window.panVerified) || (window.panWithoutService && panMandatory === "N")) {
+                    window.isValid = true;
+                } else {
+                    ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_PERDTLS_PANDTLS_ERR_TXT_VERIFYPAN"), "E");
+                }
+            } else {
+                window.isValid = true;
+            }*/
+        } else {
+            window.isMobErr = false;
+            window.isValid = false;
+        }
+        return window.isValid;
+    } else {
+        return Demo
+    }
+};
+apz.app.PersonalDetails.clearForm = function() {
+    $('#' + PerDetScrId + 'personalDetForm').find('input').val('');
+    $('#' + PerDetScrId + 'commAddressForm').find('input').val('');
+    // $('#' + PerDetScrId + 'success').addClass('sno');
+    // $('#' + PerDetScrId + 'verify').removeClass('sno')
+    // $('#' + PerDetScrId + 'retry').addClass('sno');
+    $('#' + PerDetScrId + 'nameList').addClass('sno');
+    $('#' + PerDetScrId + 'panNumber').attr('disabled', false);
+}
+apz.app.PersonalDetails.sameCommuAddress = function() {
+    if (window.Ocr_Required && window.sameCommAddress) {
+        $('#' + PerDetScrId + 'commAddToggle').prop('checked', true);
+        $('#' + PerDetScrId + "addressDetailsRow").addClass('sno');
+    }
+}
+apz.app.PersonalDetails.mobileNumber = function() {
+    //var mobileNum = "";
+    if (!(apz.isNull(gApzCOB.nationalIdDetails.mobileNum) && apz.isNull(gApzCOB.userDetails.mobileNum))) {
+        var mbNumUsrDetail = gApzCOB.userDetails.mobileNum.trim().split(" ")[1] === undefined ? gApzCOB.userDetails.mobileNum.trim().split(" ")[
+            0] : gApzCOB.userDetails.mobileNum.trim().split(" ")[1];
+        var mbNumAadDetail = gApzCOB.nationalIdDetails.mobileNum.trim().split(" ")[1] === undefined ? gApzCOB.nationalIdDetails.mobileNum.trim()
+            .split(" ")[0] : gApzCOB.nationalIdDetails.mobileNum.trim().split(" ")[1];
+        mobileNum = apz.isNull(gApzCOB.nationalIdDetails.mobileNum) ? mbNumUsrDetail : mbNumAadDetail;
+        //gApzCOB.userDetails.mobileNum = mobileNum;
+    }
+}
+apz.app.PersonalDetails.ageCalculator = function() {
+    var age = ApzCOB.getAge($('#' + paintKYCId + 'dob').val());
+    if (age > 0) {
+        $('#' + PerDetScrId + 'custAge').val(age).change();
+        ApzCOB.removeErrMessgae(PerDetScrId + 'custAge', "element");
+    } else {
+        $('#' + PerDetScrId + 'custAge').val('');
+        $('#' + paintKYCId + 'dob').val('');
+        ApzCOB.fnDisplayMsg(`Please select valid age(min:${minAge},max:${maxAge})`, "E");
+    }
+};
+apz.app.PersonalDetails.personalDetailObject = function() {
+    var primaryStatus = '',
+        alternateStatus = '',
+        secondaryStatus = '',
+        panNumberStatus = '';
+    if (gApzCOB.currentApplicant <= 1) {
+        if (PRIMARY_KYC_VERIFICATION !== null && PRIMARY_KYC_VERIFICATION !== '') {
+            primaryStatus = PRIMARY_KYC_VERIFICATION === true ? 'Verified' : 'Inavalid Id';
+        }
+        if (ALTERNATE_KYC_VERIFICATION !== null && ALTERNATE_KYC_VERIFICATION !== '') {
+            if ($('#' + altVoterIdTag).val() !== '') {
+                alternateStatus = ALTERNATE_KYC_VERIFICATION === true ? 'Verified' : 'Inavalid Id';
+            } else {
+                alternateStatus = '';
+            }
+        }
+        if (SECONDARY_KYC_VERIFICATION !== null && SECONDARY_KYC_VERIFICATION !== '') {
+            secondaryStatus = SECONDARY_KYC_VERIFICATION === true ? 'Verified' : 'Inavalid Id';
+        }
+    } else {
+        if (CO_APPLICANT_PRIMARY_KYC_VERIFICATION !== null && CO_APPLICANT_PRIMARY_KYC_VERIFICATION !== '') {
+            primaryStatus = CO_APPLICANT_PRIMARY_KYC_VERIFICATION === true ? 'Verified' : 'Inavalid Id';
+        }
+        if (CO_APPLICANT_ALTERNATE_KYC_VERIFICATION !== null && CO_APPLICANT_ALTERNATE_KYC_VERIFICATION !== '') {
+            alternateStatus = CO_APPLICANT_ALTERNATE_KYC_VERIFICATION === true ? 'Verified' : 'Inavalid Id';
+        }
+        if (CO_APPLICANT_SECONDARY_KYC_VERIFICATION !== null && CO_APPLICANT_SECONDARY_KYC_VERIFICATION !== '') {
+            secondaryStatus = CO_APPLICANT_SECONDARY_KYC_VERIFICATION === true ? 'Verified' : 'Inavalid Id';
+        }
+    }
+    if (gApzCOB.currentApplicant <= 1 && window.applicant_pancheck !== '') {
+        panNumberStatus = window.applicant_pancheck === true ? 'Verified' : 'Inavalid Id';
+    } else if (gApzCOB.currentApplicant > 1 && window.coapplicant_pancheck !== '') {
+        panNumberStatus = window.coapplicant_pancheck === true ? 'Verified' : 'Inavalid Id';
+    }
+    let appVer = APP_VERSION, custData = ApzCOB.getApplicantCustData();
+    if (custData.length > 0) {
+        appVer = !apz.isNull(custData[0].payload.appVersion) ? custData[0].payload.appVersion : APP_VERSION;
+    }
+    perDetobj = {
+        "custDtlId": parseInt(gApzCOB.userDetails.custDtlId),
+        "customerType": "Applicant",
+        "customerFullName": "",
+        "customerName": $('#' + paintKYCId + 'name').val(),
+        "mobileNumber": $('#' + paintKYCId + 'mobNum').val(),
+        "kycStatus": "Pending",
+        "amlStatus": "Pending",
+        "memberId": "",
+        "payload": {
+            "title": $('#' + paintKYCId + 'title').val(),
+            "firstName": $('#' + paintKYCId + 'firstname').val(),
+            "middleName": $('#' + paintKYCId + 'midname').val(),
+            "lastName": $('#' + paintKYCId + 'lastname').val(),
+            "dob": "",
+            "age": $('#' + PerDetScrId + 'custAge').val(),
+            // "isEarningMember": "",
+            // "relationship": "",
+            // "altMobileNumber": "",
+            "emailId": $(`#${PerDetScrId}branchEmail`).val(),
+            "gender": $('#' + paintKYCId + 'gender').val(),
+            "maritalStatus": $('#' + PerDetScrId + 'maritalSts').val(),
+            /*"uniqueIds": [{
+                "docName": "",
+                "docValue": ""
+            }],*/
+            "spouseName": spouseNameInputTag.val(),
+            "fathersName": fatherNameInputTag.val(),
+            "custId": $('#' + PerDetScrId + 'custId').val(),
+            "gkCustomerType": $('#' + PerDetScrId + 'custType').val(),
+            // "memberId": "",
+            "pan": '',
+            "aadhaarNumber": $('#' + PerDetScrId + 'aadhaarNum').val(),
+            "primaryKycType": $('#' + PerDetScrId + 'primaryKYC').val(),
+            "primaryKycId": $('#' + PerDetScrId + 'voterId').val().toLocaleUpperCase(),
+            //  "kycType": $('#' + PerDetScrId + 'primaryKYC').val(),
+            //  "kycID": $('#' + PerDetScrId + 'voterId').val(),
+            "secondaryKycType": $('#' + secondaryKycTypeTagId).val() === PleaseSelect ? "" : $('#' + secondaryKycTypeTagId).val(),
+            "secondaryKycId": $('#' + secondaryKycIdTag).val().toUpperCase(),
+            "occupation": $('#' + PerDetScrId + 'occupations').val(),
+            "religion": $('#' + PerDetScrId + 'religion').val(),
+            "caste": $('#' + PerDetScrId + 'caste').val(),
+            "education": $('#' + PerDetScrId + 'education').val(),
+            "secMobileNo": $('#' + PerDetScrId + 'sec_mobile').val(),
+            "relationShipWithApplicant": "",
+            "namePerKyc": "",
+            "alternateVoterId": $('#' + altVoterIdTag).val().toLocaleUpperCase(),
+            "ckyc": $(`#${PerDetScrId}cKYC`).val(),
+            "primaryKycIdValStatus": primaryStatus,
+            "secondaryKycIdValStatus": secondaryStatus,
+            "alternateVoterIdValStatus": alternateStatus,
+            "appVersion": appVer,
+            "customerIndex": CO_APP_ADDED_COUNT,
+            "annualIncome": $(`#${PerDetScrId}annualIncome`).val(),
+            "panNumberValue": $("#PerDet__PersonalDetails__PAN_DropDown").val(),
+            "panNumber": $('#' + panNumberTag).val(),
+            "panNumberStatus": $('#' + panNumberTag).val() === '' ? '': panNumberStatus
+            // "riskRating": "",
+            // "creditScore": ""
+        }
+    }
+    perDetobj.payload.namePerKyc = $('#' + PerDetScrId + 'nameasKYC').val();
+    if (gApzCOB.currentApplicant > 1) {
+        perDetobj.custDtlId = apz.isNull(gApzCOB.userDetails.CoApplicantCustomerId) ? "" : parseInt(gApzCOB.userDetails.CoApplicantCustomerId);
+        perDetobj.customerType = "Co-App";
+        perDetobj.payload.relationShipWithApplicant = $('#' + PerDetScrId + 'relationwithApp').val() === PleaseSelect ? "" : $('#' + PerDetScrId +
+            'relationwithApp').val();
+        //perDetobj.payload.namePerKyc = $('#' + PerDetScrId + 'nameasKYC').val();
+    } else if(gApzCOB.currentApplicant <= 1) {
+        if(apz.isNull(gApzCOB.userDetails.createdByName)) {
+            let createdByName = (!apz.isNull(gApzCOB.LoggedInUserDetails.loginResponse.userDet.name)) ? gApzCOB.LoggedInUserDetails.loginResponse.userDet.name.trim() : "";
+            perDetobj.payload.createdByName = createdByName;
+        } else {
+            perDetobj.payload.createdByName = gApzCOB.userDetails.createdByName.trim();
+        }
+    }
+    //   var mobN = $('#' + paintKYCId + 'mobNum').val();
+    //   var secMobN = $('#' + paintKYCId + 'mobNum').val();
+    if (window.doblength === 8) {
+        perDetobj.payload.dob = new Date($(ResDOB).val()).$format('d/m/Y');
+    } else {
+        perDetobj.payload.dob = apz.isNull($('#' + paintKYCId + 'dob').val()) ? "" : ApzCOB.dateformatter($('#' + paintKYCId + 'dob').datepicker(
+            'getDate'), 'Y-m-d');
+    }
+    if (perDetobj.payload.pan !== "") {
+        gApzCOB.userDetails.panNum = perDetobj.payload.pan;
+    }
+    if (perDetobj.payload.maritalStatus !== "") {
+        gApzCOB.userDetails.maritialStatus = perDetobj.payload.maritalStatus;
+        gApzCOB.userDetails.spouseName = perDetobj.payload.spouseName;
+    }
+    //   if (window.COUNTRYCODE === 'Y') {
+    //       if (ApzCOB.GetCommonCodes("COUNTRYCODE").COUNTRYCODE[0].includeInReq === "Y") {
+    //          perDetobj.mobileNumber = apz.isNull(mobN) ? '' : $('#' + PerDetScrId + 'regnFlag').val() + " " + $('#' + paintKYCId + 'mobNum').val();
+    //          perDetobj.payload.secMobileNo = apz.isNull(secMobN) ? '' : $('#' + PerDetScrId + 'SecRegnFlag').val() + " " + $('#' + PerDetScrId + 'sec_mobile').val();
+    //       } else {
+    //          perDetobj.mobileNumber = $('#' + paintKYCId + 'mobNum').val();
+    //          perDetobj.payload.secMobileNo  = $('#' + PerDetScrId + 'sec_mobile').val();
+    //       }
+    //   } else {
+    //       perDetobj.mobileNumber = $('#' + paintKYCId + 'mobNum').val();
+    //       perDetobj.payload.secMobileNo  = $('#' + PerDetScrId + 'sec_mobile').val();
+    //   }
+}
+apz.app.PersonalDetails.samePermanentAddress = function(pthis) {
+    if ($(PerDetAddPermanentToggle).prop('checked') === true) {
+        if (apz.app.PersonalDetails.validatePerAddress()) {
+            window.iscomplete = true;
+            window.sameCommAddress = true;
+            var pPin = $('#' + PerDetScrId + "pPin").val();
+            var pState = $('#' + PerDetScrId + "pState").val();
+            var pCity = $('#' + PerDetScrId + "pCity").val();
+            var pAddress1 = $('#' + PerDetScrId + "pAddress1").val();
+            var pAddress2 = $('#' + PerDetScrId + "pAddress2").val();
+            var pLandmark = $('#' + PerDetScrId + "pLandmark").val();
+            var pDoorNo = $('#' + PerDetScrId + "pDoorNumber").val();
+            if ($('#' + PerDetScrId + "pin").is(':visible')) {
+                $('#' + PerDetScrId + "pin").val(pPin);
+            }
+            if ($('#' + PerDetScrId + "state").is(':visible')) {
+                ApzCOB.citydropDown(PerDetScrId, "state", "city");
+                apz.setElmValue(PerDetScrId + "state", apz.getElmValue(PerDetScrId + 'pState'))
+            }
+            if ($('#' + PerDetScrId + "city").is(':visible')) {
+                apz.setElmValue(PerDetScrId + "city", apz.getElmValue(PerDetScrId + 'pCity'))
+                $('#' + PerDetScrId + "city").val(pCity);
+                $('#' + PerDetScrId + "AddPermanentToggle").prop('checked', true);
+                window.sameCommAddress = true
+            }
+            if ($('#' + PerDetScrId + "addressLine1").is(':visible')) {
+                $('#' + PerDetScrId + "addressLine1").val(pAddress1);
+            }
+            if ($('#' + PerDetScrId + "addressLine2").is(':visible')) {
+                $('#' + PerDetScrId + "addressLine2").val(pAddress2);
+            }
+            if ($('#' + PerDetScrId + "landMark").is(':visible')) {
+                $('#' + PerDetScrId + "landMark").val(pLandmark);
+            }
+            if ($('#' + PerDetScrId + "doorNo").is(':visible')) {
+                $('#' + PerDetScrId + "doorNo").val(pDoorNo);
+            }
+            $('#' + PerDetScrId + "addressDetailsRow").removeClass('sno');
+            if ((apz.isNull(pPin) && apz.isNull(pCity) && apz.isNull(pAddress1) && apz.isNull(pAddress2) && apz.isNull(pLandmark)) && apz.isNull(
+                    pDoorNo) && (pState === PleaseSelect)) {
+                ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_COMM_ERR_TXT_ENTERPERMANENTADDRESSDETAILS"), "E");
+                $('#' + PerDetScrId + "AddPermanentToggle").prop('checked', false);
+                return false;
+            }
+            window.iscomplete = false;
+        } else {
+            window.sameCommAddress = false;
+            $('#' + PerDetScrId + "AddPermanentToggle").prop('checked', false);
+        }
+    } else {
+        window.sameCommAddress = false;
+        $('#PerDet__PersonalDetails__addressDetailsRow').find('input').val('');
+    }
+}
+apz.app.PersonalDetails.checkPerNComAddValues = function() {
+    var pPin = $('#PerDet__PersonalDetails__pPin').val();
+    var pState = $('#PerDet__PersonalDetails__pState').val();
+    var pCity = $('#PerDet__PersonalDetails__pCity').val();
+    var pAddress1 = $('#PerDet__PersonalDetails__pAddress1').val();
+    var pAddress2 = $('#PerDet__PersonalDetails__pAddress2').val();
+    var pLandmark = $('#PerDet__PersonalDetails__pLandmark').val();
+    var pDoorNo = $('#PerDet__PersonalDetails__pDoorNumber').val();
+    var pin = $('#' + PerDetScrId + 'pin').val();
+    var state = $('#' + PerDetScrId + 'state').val();
+    var city = $('#' + PerDetScrId + 'city').val();
+    var Address1 = $('#' + PerDetScrId + 'addressLine1').val();
+    var Address2 = $('#' + PerDetScrId + 'addressLine2').val();
+    var landmark = $('#' + PerDetScrId + 'landMark').val();
+    var doorNo = $('#' + PerDetScrId + 'doorNo').val();
+    if (window.sameCommAddress) {
+        if (pPin !== pin || pState !== state || pCity !== city || pAddress1 !== Address1 || pAddress2 !== Address2 || pLandmark !== landmark ||
+            pDoorNo !== doorNo) {
+            window.sameCommAddress = false;
+            $('#' + PerDetScrId + "AddPermanentToggle").prop('checked', false);
+            $('#' + PerDetScrId + "addressDetailsRow").find('input').val('');
+        }
+    }
+}
+apz.app.PersonalDetails.turnOffToggle = function() {
+    var pPin = $('#' + PerDetScrId + "pPin").val();
+    var pState = $('#' + PerDetScrId + "pState").val();
+    var pCity = $('#' + PerDetScrId + "pCity").val();
+    var pAddress1 = $('#' + PerDetScrId + "pAddress1").val();
+    var pAddress2 = $('#' + PerDetScrId + "pAddress2").val();
+    var pLandmark = $('#' + PerDetScrId + "pLandmark").val();
+    var pDoorNo = $('#' + PerDetScrId + "pDoorNumber").val();
+    var pin = $('#' + PerDetScrId + 'pin').val();
+    var state = $('#' + PerDetScrId + 'state').val();
+    var city = $('#' + PerDetScrId + 'city').val();
+    var Address1 = $('#' + PerDetScrId + 'addressLine1').val();
+    var Address2 = $('#' + PerDetScrId + 'addressLine2').val();
+    var landmark = $('#' + PerDetScrId + 'landMark').val();
+    var doorNo = $('#' + PerDetScrId + 'doorNo').val();
+    if (pPin !== pin || pState !== state || pCity !== city || pAddress1 !== Address1 || pAddress2 !== Address2 || pLandmark !== landmark ||
+        pDoorNo !== doorNo) {
+        window.sameCommAddress = false;
+        $('#' + PerDetScrId + "AddPermanentToggle").prop('checked', false);
+    }
+    if (window.iscomplete) {
+        window.sameCommAddress = true;
+    }
+}
+// $('#' + PerDetScrId + 'pDoorNumber').on('mousemove', function(event) {
+//     var input = document.getElementById(event.target.id);
+//     input.addEventListener("drop", $('#' + event.target.id).trigger('onblur'));
+//     // mouseDown = true;
+// })
+/*$('#' + PerDetScrId + 'pPin').on('mousemove', function(event) {
+    
+    var input = document.getElementById(event.target.id);
+    input.addEventListener("drop", $('#' + event.target.id).trigger('onblur'));
+    // mouseDown = true;
+})*/
+// $('#' + PerDetScrId + 'doorNo').on('mousemove', function(event) {
+//     var input = document.getElementById(event.target.id);
+//     input.addEventListener("drop", $('#' + event.target.id).trigger('onblur'));
+//     // mouseDown = true;
+// })
+/*$('#' + PerDetScrId + 'pin').on('mousemove', function(event) {
+    
+    var input = document.getElementById(event.target.id);
+    input.addEventListener("drop", $('#' + event.target.id).trigger('onblur'));
+    // mouseDown = true;
+})*/
+apz.app.PersonalDetails.validatePerAddress = function() {
+    var isValid = true;
+    if (gApzCOB.demoMode === "N") {
+        // errorCount = 0;
+        STAGES.forEach(function(m, n) {
+            ConfigureScrJson.forEach(function(i, k) {
+                if (Number(CURRENT_STAGE_NO) === parseInt(m.split('~')[1].toUpperCase()) && i.confParamName === m.split('~')[0]
+                    .toUpperCase()) {
+                    var FormValidator = {
+                        0: 'addressDetailsRow'
+                    };
+                    if (!apz.isNull(FormValidator)) {
+                        $.each(FormValidator, function(a, b) {
+                            var form = "",
+                                form_validator_check = {};
+                            form = $("#" + i.MicroAppID + '__' + i.ScreenID + '__' + b).find("input");
+                            for (let n = 0; n < form.length; n++) {
+                                form_validator_check = {
+                                    [form[n]['id']]: {
+                                        verify: nullcheck,
+                                        dropDown
+                                    }
+                                };
+                                isValid = ApzCOB.validateInputFields(form, n, form_validator_check);
+                            }
+                        })
+                    } else {
+                        isValid = true;
+                    }
+                }
+            })
+        })
+    }
+    return isValid;
+}
+apz.app.PersonalDetails.LoadPanStatus = function() {
+    if (panEnabledorDisabled === "Y" && panMandatory === "M") {
+        if ((panVerifybutton === "Y" && window.panVerified) || (window.panWithoutService && panMandatory === "N")) {
+            window.isValid = true;
+        } else {
+            ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_PERDTLS_PANDTLS_ERR_TXT_VERIFYPAN"), "E");
+        }
+    } else {
+        window.isValid = true;
+    }
+}
+apz.app.PersonalDetails.onChangeAddressRadio = function() {
+    let optY = '#PerDet__PersonalDetails__AddrAsperAadharRadio_option_Y';
+    let optN = '#PerDet__PersonalDetails__AddrAsperAadharRadio_option_N';
+    if ($(optY).is(':checked')) {
+        var leaddata = gApzCOB.selLeadDtls[0].commAddr;
+        $(`#${PerDetScrId}addressLine1`).val(ApzCOB.getSubstrValue(`#${PerDetScrId}addressLine1`, leaddata.addressline1));
+        $(`#${PerDetScrId}addressLine2`).val(ApzCOB.getSubstrValue(`#${PerDetScrId}addressLine2`, leaddata.addressline2));
+        $(`#${PerDetScrId}addressLine3`).val(ApzCOB.getSubstrValue(`#${PerDetScrId}addressLine3`, leaddata.addressline3));
+        $(`#${PerDetScrId}pin`).val(leaddata.pincode);
+        $(`#${PerDetScrId}city`).val(leaddata.city);
+        $(`#${PerDetScrId}district`).val(leaddata.district);
+        $(`#${PerDetScrId}state`).val(leaddata.state);
+        $(`#${PerDetScrId}country`).val(leaddata.country);
+        $(resDtlsDiv).find('.ett-inpt').attr('disabled', true);
+        $('#' + PerDetScrId + 'ownershipDiv').addClass('sno');
+        $('#' + PerDetScrId + 'residenceYearsMonthsDiv').addClass('sno');
+        $('#' + PerDetScrId + 'cityYearsMonthsDiv').addClass('sno');
+        $('#' + PerDetScrId + 'currResProofRow').addClass('sno');
+        $('#' + PerDetScrId + 'typeHouseRow').addClass('sno');
+    } else if ($(optN).is(':checked')) {
+        $('#' + PerDetScrId + 'currResProofRow').removeClass('sno');
+        $('#' + PerDetScrId + 'typeHouseRow').removeClass('sno');
+        $(resDtlsDiv).find('.ett-inpt').attr('disabled', false);
+        $(resDtlsDiv).find('.ett-inpt').val("");
+        $('#' + PerDetScrId + 'ownershipDiv').removeClass('sno');
+        $('#' + PerDetScrId + 'residenceYearsMonthsDiv').removeClass('sno');
+        $('#' + PerDetScrId + 'cityYearsMonthsDiv').removeClass('sno');
+        $('#' + PerDetScrId + 'currResProofRow').removeClass('sno');
+        $('#' + PerDetScrId + 'typeHouseRow').removeClass('sno');
+    }
+};
+apz.app.PersonalDetails.lengthvalidator = function(pthis, max) {
+    var maxlength = max;
+    var p = pthis.value;
+    pthis.value = p.substr(0, maxlength);
+};
+apz.app.PersonalDetails.panRegex = function() {
+    var regex = /[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+    var panNum = $('#' + PerDetScrId + 'panNumber').val().toLocaleUpperCase();
+    if (panNum.length === 10 && regex.test(panNum)) {
+        $('#' + PerDetScrId + 'panError').removeClass('err-msg');
+        $('#' + PerDetScrId + 'panError').addClass('sno')
+    } else {
+        $('#' + PerDetScrId + 'panError').addClass('err-msg');
+        $('#' + PerDetScrId + 'panError').removeClass('sno');
+    }
+}
+apz.app.PersonalDetails.onLoadCollapseAll = function() {
+    $(persDtlsDiv).addClass('sno');
+    $(resDtlsDiv).addClass('sno');
+    $(personalDetailsParentDiv).removeClass('active');
+    $('#PerDet__PersonalDetails__gr_row_15').removeClass('active');
+    ['existingDown', 'personalUp', 'addressUp'].hide();
+    ['existingUp', 'personalDown', 'addressDown'].show();
+    ApzCOB.addFieldMandatory(PerDetScrId + 'PAN_DropDown');
+}
+apz.app.PersonalDetails.onclickExistingLoans = function(pthis) {
+    if ($(ExistingLoansDiv).is(":visible") || $(NoLoansDiv).is(":visible")) {
+        ['existingUp', 'personalDown', 'addressDown'].hide();
+        ['existingDown', 'personalUp', 'addressUp'].show();
+        $(ExistingLoansDiv).addClass("sno");
+        $(NoLoansDiv).addClass("sno");
+        $('#PerDet__PersonalDetails__gr_row_3').removeClass('active');
+    } else {
+        exisLoanFlag = true;
+        $('#PerDet__PersonalDetails__gr_row_3').addClass('active');
+        $(personalDetailsParentDiv).removeClass('active');
+        $('#PerDet__PersonalDetails__gr_row_15').removeClass('active');
+        $('#PerDet__PersonalDetails__gr_row_21').removeClass('active');
+        $(persDtlsDiv).addClass("sno");
+        $(resDtlsDiv).addClass("sno");
+        $(earningMemberDiv).addClass("sno");
+        ['existingUp', 'personalDown', 'addressDown'].show();
+        ['existingDown', 'personalUp', 'addressUp'].hide();
+        if (apz.data.scrdata.PerDet__IPaintLoanDetails_Res.length > 0) {
+            $(ExistingLoansDiv).removeClass("sno");
+            $(NoLoansDiv).addClass("sno");
+        } else {
+            $(ExistingLoansDiv).addClass("sno");
+            $(NoLoansDiv).removeClass("sno");
+        }
+    }
+    apz.app.PersonalDetails.continueBtn();
+}
+apz.app.PersonalDetails.onclickPersonalDtls = function(pthis) {
+    if (apz.isNull(window.toggleEvents)) {
+        ApzCOB.getToggleOnClickEventObj();
+    }
+    if ($(persDtlsDiv).is(":visible")) {
+        ['existingDown', 'personalUp', 'addressDown'].hide();
+        ['existingUp', 'personalDown', 'addressUp'].show();
+        $(persDtlsDiv).addClass("sno");
+        $(personalDetailsParentDiv).removeClass('active');
+    } else {
+        perDetFLag = true;
+        $(persDtlsDiv).removeClass("sno");
+        $(personalDetailsParentDiv).addClass('active');
+        $("#" + PerDetScrId + 'existingSuccess_ul').removeClass("sno");
+        $("#" + PerDetScrId + 'earningSuccess_ul').removeClass('sno');
+        $(resDtlsDiv).addClass("sno");
+        $('#PerDet__PersonalDetails__gr_row_15').removeClass('active');
+        $(ExistingLoansDiv).addClass("sno");
+        $(NoLoansDiv).addClass("sno");
+        $(earningMemberDiv).addClass("sno");
+        $('#PerDet__PersonalDetails__gr_row_3').removeClass('active');
+        $('#PerDet__PersonalDetails__gr_row_21').removeClass('active');
+        ['existingDown', 'personalUp', 'addressDown'].show();
+        ['existingUp', 'personalDown', 'addressUp'].hide();
+    }
+    apz.app.PersonalDetails.continueBtn();
+    let toggleDivID = pthis.id;
+    let toggleEventListIndex = window.toggleEvents.findIndex((item) => item.toggleID === pthis.id);
+    ApzCOB.addEventToNextToggle(toggleEventListIndex);
+}
+apz.app.PersonalDetails.onclickResidenceDtls = function(pthis) {
+    let validateForm = ApzCOB.fnformValidator(PerDetScrId, 'ct_frm_1');
+    if (apz.app.PersonalDetails.validateMobNumInputFields()) {
+        if (validateForm) {
+            let checkKycValidated = apz.app.PersonalDetails.kycValidationCheck();
+            let checkpanValidated = apz.app.PersonalDetails.panValidationCheck();
+            if (checkKycValidated && checkpanValidated) {
+                if ($(resDtlsDiv).is(":visible")) {
+                    $(resDtlsDiv).addClass("sno");
+                    $('#PerDet__PersonalDetails__gr_row_15').removeClass('active');
+                    ['existingDown', 'personalDown', 'addressUp'].hide();
+                    ['existingUp', 'personalUp', 'addressDown'].show();
+                } else {
+                    ApzCOB.scrollToTop();
+                    appAddrFlag = true;
+                    $(resDtlsDiv).removeClass("sno");
+                    $('#PerDet__PersonalDetails__gr_row_15').addClass('active');
+                    $("#" + PerDetScrId + 'existingSuccess_ul').removeClass("sno");
+                    $("#" + PerDetScrId + 'earningSuccess_ul').removeClass('sno');
+                    $("#" + PerDetScrId + 'personalSuccess_ul').removeClass("sno");
+                    $(ExistingLoansDiv).addClass("sno");
+                    $(NoLoansDiv).addClass("sno");
+                    $(persDtlsDiv).addClass("sno");
+                    $(earningMemberDiv).addClass("sno");
+                    $('#PerDet__PersonalDetails__gr_row_3').removeClass('active');
+                    $(personalDetailsParentDiv).removeClass('active');
+                    $('#PerDet__PersonalDetails__gr_row_21').removeClass('active');
+                    ['existingDown', 'personalDown', 'addressUp'].show();
+                    ['existingUp', 'personalUp', 'addressDown'].hide();
+                }
+                apz.app.PersonalDetails.continueBtn();
+            }
+        } else {
+            if (!$(persDtlsDiv).is(":visible")) {
+                let toggleDivID = pthis.id;
+                let toggleEventListIndex = window.toggleEvents.findIndex((item) => item.toggleID === pthis.id);
+                $('#' + window.toggleEvents[toggleEventListIndex - 1].toggleID).click();
+            }
+            $("#" + PerDetScrId + 'personalSuccess_ul').addClass("sno");
+        }
+    } else {
+        $('#' + PerDetScrId + 'MobileNumberDiv .err')[0].scrollIntoView();
+    }
+    if ($("#PerDet__PersonalDetails__occupations").val() === "Self Employed") {
+        apz.app.PersonalDetails.validateOccupation();
+    } else {
+        // Do nothing
+    }
+}
+apz.app.PersonalDetails.onclickEarnMemDtls = function(pthis) {
+    if ($(earningMemberDiv).is(":visible")) {
+        $(earningMemberDiv).addClass("sno");
+        $('#PerDet__PersonalDetails__gr_row_21').removeClass('active');
+    } else {
+        earningLoanFlag = true;
+        $(earningMemberDiv).removeClass("sno");
+        $('#PerDet__PersonalDetails__gr_row_21').addClass('active');
+        $('#PerDet__PersonalDetails__gr_row_3').removeClass('active');
+        $(personalDetailsParentDiv).removeClass('active');
+        $('#PerDet__PersonalDetails__gr_row_15').removeClass('active');
+        $(ExistingLoansDiv).addClass("sno");
+        $(NoLoansDiv).addClass("sno");
+        $(persDtlsDiv).addClass("sno")
+        $("#" + PerDetScrId + 'existingSuccess_ul').removeClass("sno");
+    }
+}
+apz.app.PersonalDetails.onclickAddCoAppl = function(pthis) {
+    perDetFLag = true;
+    $(persDtlsDiv).removeClass('sno');
+    $(earningMemberDiv).addClass('sno');
+    if (pthis) {
+        $('#PerDet__PersonalDetails__ct_frm_1').find("input").val("");
+        $('#PerDet__PersonalDetails__custType').val("New");
+        $('#PerDet__PersonalDetails__regnFlag').val("+91");
+        $('#PerDet__PersonalDetails__secKYC').val(PleaseSelect);
+    }
+    $('#PerDet__PersonalDetails__gr_row_21').removeClass('active');
+    $(personalDetailsParentDiv).addClass('active');
+}
+apz.app.PersonalDetails.continueBtn = function() {
+    if (exisLoanFlag && perDetFLag && appAddrFlag && earningLoanFlag) {
+        $('#APZCBO__BaseScreens__continue').attr('disabled', false);
+    } else {
+        $('#APZCBO__BaseScreens__continue').attr('disabled', true);
+    }
+};
+apz.app.PersonalDetails.onchangeTypeofHouse = function(param) {
+    let optHT1 = '#PerDet__PersonalDetails__el_rdo_1_option_HouType1';
+    let optHT2 = '#PerDet__PersonalDetails__el_rdo_1_option_HouType2';
+    let optHT3 = '#PerDet__PersonalDetails__el_rdo_1_option_HouType3';
+    if (apz.isNull(param)) {
+        window.houseTypechoose = '';
+        if ($(optHT1).is(':checked')) {
+            window.houseTypechoose = ApzCOB.getDescfromLitCode("LIT_TYP_HOUSE_OPT1");
+        } else if ($(optHT2).is(':checked')) {
+            window.houseTypechoose = ApzCOB.getDescfromLitCode("LIT_TYP_HOUSE_OPT2");
+        } else if ($(optHT3).is(':checked')) {
+            window.houseTypechoose = ApzCOB.getDescfromLitCode("LIT_TYP_HOUSE_OPT3");
+        }
+    } else {
+        let optHT = param.houseType;
+        window.houseTypechoose = optHT;
+        if (optHT === 'Kuccha') {
+            document.getElementById("PerDet__PersonalDetails__el_rdo_1_option_HouType1").checked = true;
+            $(optHT1).focus();
+        } else if (optHT === 'Pucca') {
+            document.getElementById("PerDet__PersonalDetails__el_rdo_1_option_HouType2").checked = true;
+            $(optHT2).focus();
+        } else if (optHT === 'Semi Pucca') {
+            document.getElementById("PerDet__PersonalDetails__el_rdo_1_option_HouType3").checked = true;
+            $(optHT3).focus();
+        }
+    }
+};
+apz.app.PersonalDetails.onchangecommAddr = function(param) {
+    if (apz.isNull(param)) {
+        window.commAddr = '';
+        let ComAddr1 = '#PerDet__PersonalDetails__el_rdo_2_option_ComAddr1';
+        let ComAddr2 = '#PerDet__PersonalDetails__el_rdo_2_option_ComAddr2';
+        let ComAddr3 = '#PerDet__PersonalDetails__el_rdo_2_option_ComAddr3';
+        if ($(ComAddr1).is(':checked')) {
+            window.commAddr = ApzCOB.getDescfromLitCode("LIT_COMADD_OPT1");
+        } else if ($(ComAddr2).is(':checked')) {
+            window.commAddr = ApzCOB.getDescfromLitCode("LIT_COMADD_OPT2");
+        } else if ($(ComAddr3).is(':checked')) {
+            window.commAddr = ApzCOB.getDescfromLitCode("LIT_COMADD_OPT3");
+        }
+    } else {
+        let optComAddr = param.communctionAddress;
+        if (optComAddr === 'Permanent Address') {
+            document.getElementById("PerDet__PersonalDetails__el_rdo_2_option_ComAddr1").checked = true;
+        } else if (optComAddr === 'Residential Address') {
+            document.getElementById("PerDet__PersonalDetails__el_rdo_2_option_ComAddr2").checked = true;
+        } else if (optComAddr === 'Business Address') {
+            document.getElementById("PerDet__PersonalDetails__el_rdo_2_option_ComAddr3").checked = true;
+        }
+    }
+};
+apz.app.PersonalDetails.onchangeLoc_CoordFor = function(param) {
+    if (apz.isNull(param)) {
+        window.loc_CordFor = '';
+        let LOCCORD1 = '#PerDet__PersonalDetails__el_rdo_4_option_LOCCORD1';
+        let LOCCORD2 = '#PerDet__PersonalDetails__el_rdo_4_option_LOCCORD2';
+        let LOCCORD3 = '#PerDet__PersonalDetails__el_rdo_4_option_LOCCORD3';
+        if ($(LOCCORD1).is(':checked')) {
+            window.loc_CordFor = ApzCOB.getDescfromLitCode("LIT_COMADD_OPT1");
+        } else if ($(LOCCORD2).is(':checked')) {
+            window.loc_CordFor = ApzCOB.getDescfromLitCode("LIT_COMADD_OPT2");
+        } else if ($(LOCCORD3).is(':checked')) {
+            window.loc_CordFor = ApzCOB.getDescfromLitCode("LIT_COMADD_OPT3");
+        }
+        if (apz.deviceType === "WEB") {
+            ApzCOB.getGeoCordinates();
+        } else {
+            ApzCOB.getGeoCordinatesMobile();
+        }
+    } else {
+        let optComAddr = param.locateCoOrdinatesFor;
+        if (optComAddr === 'Permanent Address') {
+            document.getElementById("PerDet__PersonalDetails__el_rdo_4_option_LOCCORD1").checked = true;
+        } else if (optComAddr === 'Present Address') {
+            document.getElementById("PerDet__PersonalDetails__el_rdo_4_option_LOCCORD2").checked = true;
+        } else if (optComAddr === 'Business Address') {
+            document.getElementById("PerDet__PersonalDetails__el_rdo_4_option_LOCCORD3").checked = true;
+        }
+    }
+};
+apz.app.PersonalDetails.onchangepincode = function(pthis, addressType) {
+    let pincode_temp = $(pthis).val();
+    if (pincode_temp.length > 5) {
+        window.pincodeAddresstype = addressType;
+        ApzCOB.fetchpincodeDtls(pincode_temp, "per");
+    }
+};
+apz.app.PersonalDetails.paint_pincode = function(params) {
+    //   $(`#${PerDetScrId}pin`).val(params.pinCode);
+    if (window.pincodeAddresstype === "present") {
+        $(`#${PerDetScrId}city`).val(params.city).blur();
+        $(`#${PerDetScrId}district`).val(params.district).blur();
+        $(`#${PerDetScrId}state`).val(params.state).blur();
+        $(`#${PerDetScrId}country`).val(params.country).blur();
+        $(`#${PerDetScrId}presArea`).val(params.area).blur();
+    } else if (window.pincodeAddresstype === "permanent") {
+        $(`#${PerDetScrId}permanentcity`).val(params.city).blur();
+        $(`#${PerDetScrId}permanentDist`).val(params.district).blur();
+        $(`#${PerDetScrId}permanentState`).val(params.state).blur();
+        $(`#${PerDetScrId}permanentCountry`).val(params.country).blur();
+        $(`#${PerDetScrId}permArea`).val(params.area).blur();
+    } else if (window.pincodeAddresstype === "communication") {
+        $(`#${PerDetScrId}commCity`).val(params.city).blur();
+        $(`#${PerDetScrId}commDist`).val(params.district).blur();
+        $(`#${PerDetScrId}commState`).val(params.state).blur();
+        $(`#${PerDetScrId}commCountry`).val(params.country).blur();
+        $(`#${PerDetScrId}commArea`).val(params.area).blur();
+    }
+};
+apz.app.PersonalDetails.permanentAddressSameAsPresentAddress = function() {
+    var permanentAdd = apz.getElmValue(PerDetScrId + "permanentAdd")
+    if (permanentAdd === 'Y') {
+        apz.app.PersonalDetails.copyAddress(residentialAddressFields, permanentAddressFields, "elements");
+        $('#' + PerDetScrId + 'commAddRadio_option_permanent').attr('disabled', true);
+        $('input[name="PerDet__PersonalDetails__commAddRadio_"]').prop('checked',false);
+        ApzCOB.removeErrMessgae(permanentAddressFields, "array");
+    } else if (permanentAdd === 'N') {
+        apz.app.PersonalDetails.setEmptyFields(permanentAddressFields, permanentAddressDropdowns);
+        $.map(permanentAddressFields, function(field) {
+            $('#' + field).attr('disabled', false)
+        });
+        $('#' + PerDetScrId + 'commAddRadio_option_permanent').attr('disabled', false);
+    }
+}
+apz.app.PersonalDetails.communicationAddressSameAs = function() {
+    var commAddRadio = apz.getElmValue(PerDetScrId + "commAddRadio");
+    let copyFrom = [],
+        copyType = "elements";
+    if (commAddRadio === 'present') {
+        copyFrom = residentialAddressFields;
+        copyType = "elements";
+    } else if (commAddRadio === 'permanent') {
+        copyFrom = permanentAddressFields;
+        copyType = "elements";
+    } else if (commAddRadio === 'business') {
+        copyFrom = []; // business Address values Array here
+        copyType = "values";
+        apz.app.PersonalDetails.setEmptyFields(communicationAddressFields);
+    } else {
+        copyFrom = [];
+    }
+    if (copyFrom.length > 0) {
+        apz.app.PersonalDetails.copyAddress(copyFrom, communicationAddressFields, copyType);
+        ApzCOB.removeErrMessgae(communicationAddressFields, "array");
+    } else {
+        // apz.app.PersonalDetails.setEmptyFields(communicationAddressFields);
+        $.map(communicationAddressFields, function(field) {
+            $('#' + field).attr('disabled', false)
+        });
+    }
+}
+apz.app.PersonalDetails.setEmptyFields = function(fields, dropDown) {
+    $.map(fields, function(field) {
+        apz.setElmValue(field, "");
+    });
+    $.map(dropDown, function(field) {
+        // apz.setElmValue(field, "-1")
+        $(`#${field}`).val(PleaseSelect);
+    });
+}
+//$('#' + PerDetScrId + 'panNumber').attr('disabled', false)
+// Code From Sharath 09/Jan/2024
+apz.app.PersonalDetails.personalDetailValidation = function() {
+    window.errorCount = 0;
+    let validationStatus;
+    let personalDetailsFormID = 'ct_frm_1';
+    var form = "",
+        form_validator_check = {};
+    form = $("#" + PerDetScrId + personalDetailsFormID).find(".input-field:not(.sno) input");
+    for (var n = 0; n < form.length; n++) {
+        form_validator_check = {
+            [form[n]['id']]: {
+                verify: nullcheck,
+                dropDown: dropDown
+            }
+        };
+        validationStatus = ApzCOB.validateInputFields(form, n, form_validator_check);
+    }
+    return validationStatus;
+}
+apz.app.PersonalDetails.maritalStatusOnChange = function(maritalStatusValue) {
+    if (maritalStatusValue !== "Please Select") {
+        if (maritalStatusValue.toUpperCase() === "MARRIED") {
+            ApzCOB.addFieldMandatory(PerDetScrId + 'spouseName');
+            ApzCOB.removeFieldMandatory(PerDetScrId + 'fatherName');
+            $('#' + PerDetScrId + 'fatherName').attr('disabled', true)
+//-----------------------Swaroop Raj R (CR-90 Father name is not capturing) 19thNov2025---------------------------------------------------
+             //in co-applicant is spouse/son and he is married making father name mandatory and enabling input field (if it is disabled)
+             var relationwithApp = apz.getElmValue(PerDetScrId + "relationwithApp").toLowerCase();
+             if(relationwithApp === 'spouse'|| relationwithApp === 'son' || relationwithApp === 'father' )
+             ApzCOB.addFieldMandatory(PerDetScrId + 'fatherName');
+             $('#' + PerDetScrId + 'fatherName').attr('disabled', false)
+//-----------------------------------------------------------------------------------------------------------------------------------------              
+            $('#' + PerDetScrId + 'spouseName').attr('disabled', false)
+            $('#' + PerDetScrId + 'fatherName').val('')
+        } else {
+            ApzCOB.addFieldMandatory(PerDetScrId + 'fatherName');
+            ApzCOB.removeFieldMandatory(PerDetScrId + 'spouseName');
+            $('#' + PerDetScrId + 'spouseName').attr('disabled', true)
+            $('#' + PerDetScrId + 'fatherName').attr('disabled', false)
+            $('#' + PerDetScrId + 'spouseName').val('')
+        }
+    }
+}
+apz.app.PersonalDetails.copyAddress = function(copyFrom, copyTo, copyType) {
+    if (copyType === "elements") {
+        if (copyFrom.length > 0 && (copyFrom.length === copyTo.length)) {
+            for (let c = 0; c < copyFrom.length; c++) {
+                $('#' + copyTo[c]).val(document.getElementById(copyFrom[c]).value)
+                //   apz.setElmValue(copyTo[c], );
+            }
+            $.map(copyTo, function(field) {
+                $('#' + field).attr('disabled', true)
+            });
+        }
+    }
+}
+apz.app.PersonalDetails.primaryKycVerification = function() {
+    IS_CO_APPLICANT_PRIMARY_DEDUPE = false;
+    IS_CO_APPLICANT_SECONDARY_DEDUPE = false;
+    IS_CO_APPLICANT_ALTERNATE_DEDUPE = false;
+    IS_APPLICANT_PRIMARY_DEDUPE = false;
+    IS_ALTERNATE_DEDUPE = false;
+    let isValid = ApzCOB.validateEachInputField(PerDetScrId + 'voterId');
+    if (isValid) {
+        window.kycVerificationType = "primary";
+        var kycObj = {};
+        kycObj.kycType = "voter";
+        kycObj.kycId = $('#' + PerDetScrId + 'voterId').val().trim().toLocaleUpperCase();
+        if (gApzCOB.currentApplicant > 1) {
+            IS_CO_APPLICANT_PRIMARY_DEDUPE = true;
+        } else {
+            IS_APPLICANT_PRIMARY_DEDUPE = true;
+        }
+         ApzCOB.KycDedupeCheck(kycObj.kycId);
+    }
+}
+apz.app.PersonalDetails.altVoterIdVerification = function() {
+    IS_CO_APPLICANT_PRIMARY_DEDUPE = false;
+    IS_CO_APPLICANT_SECONDARY_DEDUPE = false;
+    IS_APPLICANT_PRIMARY_DEDUPE = false;
+    let isValidKycId = ApzCOB.validateEachInputField(altVoterIdTag);
+    if (isValidKycId) {
+        window.kycVerificationType = "alternate";
+        var kycObj = {};
+        kycObj.kycType = "voter";
+        kycObj.kycId = $('#' + altVoterIdTag).val().trim().toLocaleUpperCase();
+        if (gApzCOB.currentApplicant > 1) {
+            IS_CO_APPLICANT_ALTERNATE_DEDUPE = true;
+        } else {
+            IS_ALTERNATE_DEDUPE = true;
+        }
+        ApzCOB.KycDedupeCheck(kycObj.kycId);
+    }
+}
+apz.app.PersonalDetails.secondaryKycVerification = function() {
+    // IS_CO_APPLICANT_PRIMARY_DEDUPE = false;
+    // IS_CO_APPLICANT_SECONDARY_DEDUPE = false;
+    let isValidKycType = ApzCOB.validateEachInputField(secondaryKycTypeTagId);
+    let isValidKycId = ApzCOB.validateEachInputField(secondaryKycIdTag);
+    if (isValidKycType && isValidKycId) {
+        window.kycVerificationType = "secondary";
+        var kycObj = {};
+        kycObj.kycType = ApzCOB.getKycVerificationType($('#' + secondaryKycTypeTagId).val().trim());
+        kycObj.kycId = $('#' + secondaryKycIdTag).val().toUpperCase().trim();
+        ApzCOB.kycVerificationCheck(kycObj);
+        /*if (kycObj.kycType === "voter") {
+            if (gApzCOB.currentApplicant > 1) {
+                IS_CO_APPLICANT_SECONDARY_DEDUPE = true;
+            } else {
+                IS_SECONDARY_DEDUPE = true;
+            }
+            ApzCOB.KycDedupeCheck(kycObj.kycId);
+        } else {
+            ApzCOB.kycVerificationCheck(kycObj);
+        }*/
+    }
+}
+apz.app.PersonalDetails.primaryVoterOnChange = function() {
+    if (gApzCOB.currentApplicant <= 1) {
+        if (PRIMARY_KYC_VERIFICATION) {
+            $('#' + PerDetScrId + 'nameasKYC').val('');
+        }
+    } else {
+        if (CO_APPLICANT_PRIMARY_KYC_VERIFICATION) {
+            $('#' + PerDetScrId + 'nameasKYC').val('');
+        }
+    }
+    PRIMARY_KYC_VERIFICATION = false;
+    CO_APPLICANT_PRIMARY_KYC_VERIFICATION = false
+    $('#' + PerDetScrId + 'primaryKycVerifyBtn_ul').removeClass('sno');
+    $('#' + PerDetScrId + 'primaryKycVerifiedTxt_ul').addClass('sno');
+    $('#' + PerDetScrId + 'primaryKycFailedTxt_ul').addClass('sno');
+}
+apz.app.PersonalDetails.altVoterOnChange = function() {
+    if (ALTERNATE_KYC_VERIFICATION) {
+        if (gApzCOB.currentApplicant <= 1) {
+            if (PRIMARY_KYC_VERIFICATION) {
+                apz.app.PersonalDetails.primaryKycVerification()
+            }
+        } else {
+            $('#' + PerDetScrId + 'nameasKYC').val('');
+        }
+        $('#' + PerDetScrId + 'nameasKYC').val('');
+    }
+    ALTERNATE_KYC_VERIFICATION = false;
+    
+    $('#' + PerDetScrId + 'altVoterVerifyBtn_ul').removeClass('sno');
+    $('#' + PerDetScrId + 'altVoterVerifiedTxt_ul').addClass('sno');
+    $('#' + PerDetScrId + 'altVoterFailTxt_ul').addClass('sno');
+}
+apz.app.PersonalDetails.secKycOnChange = function(elementType) {
+    if (elementType === "type") {
+        $('#' + secondaryKycIdTag).val('');
+        let secKycType = $('#' + PerDetScrId + 'secKYC').val();
+        if (!apz.isNull(secKycType) && secKycType.toLocaleLowerCase() !== PleaseSelect.toLocaleLowerCase()) {
+            let aadharVal = secondaryKyc[1]?.toLocaleLowerCase() || 'aadhaar card';
+            let secKycTypeLower = secKycType.toLocaleLowerCase();
+            if (secKycTypeLower === aadharVal && /aadhaar|aadhar/i.test(secKycTypeLower)) {
+                $(`#${secondaryKycIdTag}`).attr({'placeholder': "Enter Aadhaar's last 4 digits", 'maxlength':"4",'minlength':"4", 'type': "Tel"});
+                $(`#${PerDetScrId}secondaryKycVerifyBtn_ul`).addClass('sno');
+                let keyupValues = $(`#${secondaryKycIdTag}`).attr('onkeyup') ?? '';
+                if (!keyupValues.includes("ApzCOB.fnValidateCustId(this)")) {
+                    $(`#${secondaryKycIdTag}`).attr('onkeyup', (keyupValues + " ApzCOB.fnValidateCustId(this);"));
+                }
+                let blurValues = $(`#${secondaryKycIdTag}`).attr('onblur') ?? '';
+                if (blurValues.includes('ApzCOB.validateVoterid(this)')) {
+                    blurValues = blurValues.replace('ApzCOB.validateVoterid(this);', '').trim();
+                    $(`#${secondaryKycIdTag}`).attr('onblur', blurValues);
+                }
+                ApzCOB.removeFieldMandatory(secondaryKycIdTag);
+                ApzCOB.addDisableToInput(secondaryKycIdTag);
+            } else {
+                if (secKycType === "PAN") {
+                    $('#' + secondaryKycIdTag).attr('onblur', "ApzCOB.ValidatePan(this)");
+                } else {
+                    $('#' + secondaryKycIdTag).attr('onblur', "")
+                    $('#' + secondaryKycIdTag).parents('.error-block').find('.err-msg .errText span').text(ApzCOB.getDescfromLitCode("LIT_SEC_VOTER_ERR"));
+                    $('#' + secondaryKycIdTag).parents('.error-block').find('.err-msg').addClass('sno');
+                }
+                let keyupValues = $(`#${secondaryKycIdTag}`).attr('onkeyup') ?? '';
+                if (keyupValues.includes("ApzCOB.fnValidateCustId(this)")) {
+                    keyupValues = keyupValues.replace('ApzCOB.fnValidateCustId(this);', '').trim();
+                    $(`#${secondaryKycIdTag}`).attr('onkeyup', keyupValues);
+                }
+                $(`#${secondaryKycIdTag}`).attr({'maxlength':"10",'minlength':"10", 'type': "Text"});
+                $('#' + secondaryKycIdTag).attr('placeholder', "Enter Secondary KYC Number");
+                $(`#${PerDetScrId}secondaryKycVerifyBtn_ul`).removeClass('sno');
+                $('#' + PerDetScrId + 'secondaryKycVerifyBtn_ul').removeClass('sno');
+                $('#' + PerDetScrId + 'secondaryKycVerifiedTxt_ul').addClass('sno');
+                $('#' + PerDetScrId + 'secondaryKycFailTxt_ul').addClass('sno');
+                ApzCOB.addFieldMandatory(secondaryKycIdTag);
+                ApzCOB.removeDisableToInput(secondaryKycIdTag);
+            }
+        } else {
+            ApzCOB.removeFieldMandatory(secondaryKycIdTag);
+        }
+    }
+    SECONDARY_KYC_VERIFICATION = false;
+}
+apz.app.PersonalDetails.kycValidationCheck = function() {
+    let isValid = false;
+    let errmsg;
+    if (gApzCOB.currentApplicant <= 1) {
+        if (!apz.isNull(PRIMARY_KYC_VERIFICATION)) {
+            if (PRIMARY_KYC_VERIFICATION) {
+                isValid = true;
+            } else {
+                if (ALTERNATE_KYC_VERIFICATION) {
+                    isValid = true;
+                } else {
+                    isValid = false;
+                    errmsg = "LIT_PRIMARY_AND_ALT_VOTERID_VERIFICATION_FAILED";
+                }
+            }
+        } else {
+            errmsg = "LIT_PLEASE_VALIDATE_PRIMARY_KYC";
+            isValid = false;
+        }
+    } else {
+        if (!apz.isNull(CO_APPLICANT_PRIMARY_KYC_VERIFICATION)) {
+            if (CO_APPLICANT_PRIMARY_KYC_VERIFICATION) {
+                isValid = true;
+            } else {
+                if (CO_APPLICANT_ALTERNATE_KYC_VERIFICATION) {
+                    isValid = true;
+                } else {
+                    isValid = false;
+                    errmsg = "LIT_PRIMARY_AND_ALT_VOTERID_VERIFICATION_FAILED";
+                }
+            }
+        } else {
+            errmsg = "LIT_PLEASE_VALIDATE_PRIMARY_KYC";
+            isValid = false;
+        }
+    }
+    if (!isValid) {
+        ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode(errmsg), "E");
+    } else {
+        //  isValid = ApzCOB.validateAlterVoterIfEntered();
+        // if (isValid) {
+        //   isValid = ApzCOB.validateSecondaryKycIfEntered(); 
+        // }
+        if (gApzCOB.currentApplicant <= 1) {
+            if (PRIMARY_KYC_VERIFICATION || ALTERNATE_KYC_VERIFICATION) {
+                isValid = true;
+            } else {
+                isValid = false;
+            }
+        } else {
+            if (CO_APPLICANT_PRIMARY_KYC_VERIFICATION || CO_APPLICANT_ALTERNATE_KYC_VERIFICATION) {
+                isValid = true;
+            } else {
+                isValid = false;
+            }
+        }
+    }
+    return isValid;
+}
+apz.app.PersonalDetails.clearCoAppFields = function(){
+    $('#'+PerDetScrId+'personDetailsFieldsForm input.ett-inpt:not(.disabled)').val('') ;
+    $('#'+PerDetScrId+'personDetailsFieldsForm input.sub-elt:not(.disabled)').val(PleaseSelect).change();
+    $('#'+PerDetScrId+'relationwithApp').attr('readonly','readonly')
+    $('#'+paintKYCId+'title').val('Mr.')
+    $(`#${PerDetScrId}nameasKYC`).val('');
+    $('#'+PerDetScrId+'custAge').val('');
+    apz.app.PersonalDetails.primaryVoterOnChange();
+    apz.app.PersonalDetails.altVoterOnChange();
+    apz.app.PersonalDetails.secKycOnChange('ID');
+    apz.app.PersonalDetails.onChangeRelationWithApp();
+    $('input[name="PerDet__PersonalDetails__el_rdo_1_"]').prop('checked',false);//HouseType Tag
+    $('input[name="PerDet__PersonalDetails__commAddRadio_"]').prop('checked',false);
+    $('input[name="PerDet__PersonalDetails__el_rdo_4_"]').prop('checked',false);//Location Tag
+    $(`#${PerDetScrId}el_inp_6`).val('');//Location Coord
+    $(`#${PerDetScrId}branchEmail`).val(apz.isNull(gApzCOB.selLeadDtls.emailId) ? '' : gApzCOB.selLeadDtls.emailId).blur();
+}
+apz.app.PersonalDetails.onChangeResStability = function(pthis) {
+    var cityValue = $("#PerDet__PersonalDetails__cityYears").val();
+    var resValue = $("#PerDet__PersonalDetails__resYears").val();
+    var cityIndex = resYr.indexOf(cityValue);
+    var resIndex = resYr.indexOf(resValue);
+    if((resIndex!= 0 && resIndex < 3) || (cityIndex != 0 && cityIndex < 3)) {
+        ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_RESIDENTIAL_STABILITY_TWO_YR_ERR"), "E");
+        $(pthis).val(PleaseSelect);
+        $(`#${pthis.id}_div`).find('li').removeClass('is-selected hilt');
+        $(`#${pthis.id}_div`).find('li').first().addClass('is-selected hilt');
+    } else if (cityIndex === 0 || resIndex === 0) {
+        // do nothing
+    } else if (resYr.indexOf(resValue) > resYr.indexOf(cityValue)) {
+        ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_RESIDENTIAL_STABILITY_ERR"), "E");
+        $(pthis).val(PleaseSelect);
+        $(`#${pthis.id}_div`).find('li').removeClass('is-selected hilt');
+        $(`#${pthis.id}_div`).find('li').first().addClass('is-selected hilt');
+    }
+}
+apz.app.PersonalDetails.onChangeOccupation = function(pthis) {
+    apz.app.PersonalDetails.validateOccupation();
+    var selVal = pthis.value;
+    BussTagFields = [`${PerDetScrId}commAddRadio_option_business`, `${PerDetScrId}el_rdo_4_option_LOCCORD3`];
+    if (selVal.toLowerCase() === 'homemaker') {
+        ApzCOB.AddOrRemoveDisableFields(BussTagFields, true);
+        $.map(BussTagFields, function(field) {
+            $(`#${field}`).prop("checked", false);
+        });
+    } else{
+        ApzCOB.AddOrRemoveDisableFields(BussTagFields, false);
+    }
+}
+apz.app.PersonalDetails.validateOccupation = function () {
+    if (gApzCOB.currentApplicant !== 1) {
+        const occupationVal = $(`#${PerDetScrId}occupations`).val();
+        const applicantData = ApzCOB.getApplicantCustData();
+        const applicantOccupation = applicantData.length > 0 ? applicantData[0].payload.occupation : '';
+        const $occupationField = $(`${PerDetScrId}occupations`);
+        let errMsg = '';
+
+        if (applicantOccupation !== 'Self Employed') {
+            if (occupationVal !== 'Self Employed') {
+                errMsg = 'Either applicant or the co-applicant must be self-employed';
+            }
+        } else {
+            if (occupationVal !== 'Self Employed' && occupationVal !== 'Salaried') {
+                errMsg = 'Co-Applicant must be self-employed or Salaried';
+            }
+        }
+
+        if (errMsg) {
+            ApzCOB.fnDisplayMsg(errMsg, "E");
+            $("#PerDet__PersonalDetails__occupations").val("Please Select");
+        }
+    }
+};
+apz.app.PersonalDetails.validateAnnualIncome = function() {
+    var annualIncome = apz.getElmValue(PerDetScrId + "annualIncome");
+    if (!apz.isNull(annualIncome)) {
+        if (parseInt(annualIncome) < minAnnualIncome || parseInt(annualIncome) > maxAnnualIncome) {
+            $(`#${PerDetScrId}annualIncome`).val('');
+            ApzCOB.fnDisplayMsg((ApzCOB.getDescfromLitCode("LIT_PERDTLS_MaxANNUAL_INCOME") + ' ' + ApzCOB.fn_FormatAmount(minAnnualIncome) + ' ' + 'and' + ' ' + ApzCOB.fn_FormatAmount(maxAnnualIncome)), "E");
+        }
+    }
+};
+apz.app.PersonalDetails.PanonchangeVal = function(pthis) {
+    (gApzCOB.currentApplicant <= 1) ? window.applicant_pancheck = false : window.coapplicant_pancheck = false;
+    var type = pthis.value;
+    if(type == 'Yes') {
+        $("#"+PerDetScrId+ "panNumberInp").val('');
+        $('#' + PerDetScrId + 'sc_row_2428').removeClass('sno');
+        // $('#' + PerDetScrId + 'sc_row_2432').removeClass('sno');
+        ApzCOB.addFieldMandatory(panNumberTag);
+    } else {
+        $('#' + PerDetScrId + 'sc_row_2428').addClass('sno');
+        // $('#' + PerDetScrId + 'sc_row_2432').addClass('sno');
+        ApzCOB.removeFieldMandatory(panNumberTag);
+        $("#"+PerDetScrId+ "panNumberInp").val('');
+        $("#" + PerDetScrId + "el_txt_141_ul").addClass("sno");
+         $("#" + PerDetScrId + "el_hpl_3_ul").removeClass("sno");
+        ApzCOB.AddOrRemoveDisableFields([`${PerDetScrId}panNumberInp`], false);
+    }
+};
+apz.app.PersonalDetails.PanVerification = function() {
+    let isValidPanType = ApzCOB.validateEachInputField(panNumberTag);
+    let isValidPanId = ApzCOB.validateEachInputField(panNumberTag);
+    let isValidNumber = false;
+    isValidNumber = apz.app.PersonalDetails.PannumberVerCheck();
+    if (isValidPanType && isValidPanId && isValidNumber) {
+        var PanObj = {};
+        PanObj.kycType = 'pan';
+        PanObj.kycId = $('#' + panNumberTag).val().toUpperCase().trim();
+        ApzCOB.PanVerificationCheck(PanObj);
+    }
+};
+apz.app.PersonalDetails.PannumberVerCheck = function() {
+    let isNotSame = true;
+    let errmsg;
+    if (apz.isNull(inSessionStore.customerDetailsList)) {
+        isNotSame = true;
+    } else {
+        let currentType = gApzCOB.currentApplicant === 1 ? "Applicant" : "Co-App";
+        let otherCustomer = inSessionStore.customerDetailsList.find(
+            c => c.customerType !== currentType
+        );
+        let enteredPan = $('#' + panNumberTag).val().toUpperCase().trim();
+        let otherPan = otherCustomer?.payload?.panNumber?.toUpperCase().trim();
+        if (otherPan && enteredPan === otherPan) {
+            isNotSame = false;
+            errmsg = "LIT_PERDTLS_PANDTLS_ERR_TXT_SAMEPAN";
+            ApzCOB.fnDisplayMsg(
+                ApzCOB.getDescfromLitCode(errmsg),
+                "E"
+            );
+        }
+    }
+    return isNotSame;
+}
+apz.app.PersonalDetails.panValidationCheck = function() {
+    let isValid = false;
+    let errmsg;
+    let panDropValue = $("#PerDet__PersonalDetails__PAN_DropDown").val();
+    let verifyPan = $(`#PerDet__PersonalDetails__el_hpl_3`).is(':visible');
+    let inValidPan = $(`#PerDet__PersonalDetails__el_txt_142`).is(':visible');
+    if (verifyPan || inValidPan) {
+        window.applicant_pancheck = false;
+    } else {
+        window.applicant_pancheck = true;
+    }
+    if (gApzCOB.currentApplicant <= 1) {
+        if (panDropValue == 'Yes' && window.applicant_pancheck == false) {
+            isValid = false;
+            errmsg = "LIT_PERDTLS_PANDTLS_ERR_TXT_VERIFYPAN";
+        } else {
+            isValid = true;
+        }
+    } else {
+        if (panDropValue == 'Yes' && window.coapplicant_pancheck == false) {
+            isValid = false;
+            errmsg = "LIT_PERDTLS_PANDTLS_ERR_TXT_VERIFYPAN";
+        } else {
+            isValid = true;
+        }
+    }
+    if (!isValid) {
+        ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode(errmsg), "E");
+    }
+    return isValid;
+}
+apz.app.PersonalDetails.paintpanDetails = function(params) {
+    let data = params;
+    if(data.payload.panNumberStatus == 'Verified' || REINITIATE_PAN_CHECKED) {
+        $("#"+PerDetScrId+ "panNumberInp").val('');
+        document.getElementById(PerDetScrId+ "PAN_DropDown").value = "Yes";
+        document.getElementById(PerDetScrId+ "panNumberInp").value = data.payload.panNumber.toLocaleUpperCase();
+        $('#' + PerDetScrId + 'sc_row_2428').removeClass('sno');
+        $('#' + PerDetScrId + 'sc_row_2432').removeClass('sno');
+        ApzCOB.addFieldMandatory(panNumberTag);
+        ApzCOB.AddOrRemoveDisableFields([`${PerDetScrId}panNumberInp`], true);
+        $("#" + PerDetScrId + "el_hpl_3_ul").addClass("sno");
+        $("#" + PerDetScrId + "el_txt_141_ul").removeClass("sno");
+        $("#" + PerDetScrId + "el_txt_142_ul").addClass("sno");
+        if (gApzCOB.currentApplicant > 1) {
+            window.coapplicant_pancheck = true;
+        } else {
+            window.applicant_pancheck = true;
+        }
+        apz.app.PersonalDetails.reinitiate_panstatus(data)
+    }
+};
+apz.app.PersonalDetails.reinitiate_panstatus = function(data) {
+    if ((data.payload.panNumberStatus !== "Verified") && (IS_REINITIATE_APPLICATION || IS_REJECTED_APPLICATION)) {
+        window.REINITIATE_PAN_CHECKED = false;
+    } else {
+        window.REINITIATE_PAN_CHECKED = true;
+    }
+    if (IS_REJECTED_APPLICATION && REINITIATE_PAN_CHECKED) {
+        window.applicant_pancheck = false;
+        window.coapplicant_pancheck = false;
+        if (data.payload.panNumberStatus == 'Verified') {
+            $("#" + PerDetScrId + "el_hpl_3_ul").removeClass("sno");
+            $("#" + PerDetScrId + "el_txt_141_ul").addClass("sno");
+        } else {        
+            $("#" + PerDetScrId + "el_hpl_3_ul").addClass("sno");
+            $("#" + PerDetScrId + "el_txt_141_ul").removeClass("sno");
+        }
+        $("#" + PerDetScrId + "el_txt_142_ul").addClass("sno");
+        document.getElementById(PerDetScrId + "PAN_DropDown").value = 'Yes';
+        $("#" + PerDetScrId + "panNumberInp").val(data.payload.panNumber.toLocaleUpperCase());
+        ApzCOB.AddOrRemoveDisableFields([`${PerDetScrId}panNumberInp`], false)
+        $('#' + PerDetScrId + 'sc_row_2428').removeClass('sno');
+    }
+};

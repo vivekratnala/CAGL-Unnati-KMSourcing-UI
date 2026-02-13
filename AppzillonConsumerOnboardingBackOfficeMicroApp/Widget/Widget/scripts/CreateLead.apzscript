@@ -1,0 +1,21 @@
+var createLeadId = 'Widget__CreateLead__';
+apz.app.CreateLead = {};
+apz.app.CreateLead.openAppTypeModal = function(params) {
+    if (gApzCOB.FetchRole.accessPermission !== "V") {
+        window.dashRevConf = false;
+        ApzCOB.FetchLov();
+        ApzCOB.LaunchConfiguredScreens();
+        $("#" + BaseScrId + "SettingIconCol").addClass('sno');
+        $("#" + BaseScrId + "searchByNumCol").addClass('sno');
+        $("#" + BaseScrId + "dashBoardList").addClass("sno");
+        $("#" + BaseScrId + "menulist").removeClass("sno");
+        $("#" + BaseScrId + "applnStatus").addClass('sno');
+    } else {
+        ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_PERMISSION_DENIED"), "E");
+    }
+}
+apz.app.CreateLead.continueAppTypeModal = function() {
+    $("#APZCBO__BaseScreens__sidebaricon").removeClass("sno");
+    apz.app.BaseScreens.sideBarMenu();
+    ApzCOB.LaunchConfiguredScreens();
+};

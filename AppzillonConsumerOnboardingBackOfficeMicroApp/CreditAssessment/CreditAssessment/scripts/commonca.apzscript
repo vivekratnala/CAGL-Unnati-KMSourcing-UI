@@ -1,0 +1,187 @@
+var imageIDs = [];
+var lobj = {};
+var imgIndex = 0;
+var imgArray = [];
+apz.app.commonca.fetchImageIds = function() {
+    imgArray = [];
+    imgIndex = 0;
+    imageIDs = document.querySelectorAll(".kycdocs img")
+    Array.from(imageIDs).forEach(img => {
+        let obj = {};
+        obj.custType = img.id.split('__')[2];
+        obj.docType = img.id.split('__')[3];
+        obj.ActualdocType = img.id.split('__')[3];
+        if (apz.childScr == "AddressContactus") {
+            let custDetailID;
+            if (obj.custType === 'A') {
+                custDetailID = gApzCOB.userDetails.custDtlId;
+            } else {
+                custDetailID = gApzCOB.userDetails.CoApplicantCustomerId;
+            }
+
+            const addressList = inSessionStore.addressDetailsWrapperList[0]
+                .addressDetailsList
+                .find(custAdd => custAdd.addressType === "Personal" && custAdd.custDtlId == custDetailID)
+                ?.payload?.addressList || [];
+
+            const currentAddressProof = addressList.find(item => item.addressType == "Present")?.currentAddressProof?.toLowerCase() ?? "";
+
+            if (["as per voter id", "as per kyc"].includes(currentAddressProof)) {
+                obj.docType = "PRIMARY_KYC";
+            }
+        }
+        imgArray.push(obj);
+    });
+    if (imgArray.length > 0) {
+        apz.app.paintDocuments(imgArray[imgIndex].custType, imgArray[imgIndex].docType, imgArray[imgIndex].ActualdocType);
+    }
+}
+apz.app.paintDocuments = function(custType, docType, ActualdocType) {
+    let custDetailID
+    if (custType === 'A') {
+        custDetailID = gApzCOB.userDetails.custDtlId;
+    } else {
+        custDetailID = gApzCOB.userDetails.CoApplicantCustomerId
+    }
+    let applicationData = [];
+    applicationData = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList?.filter(cust => cust.custDtlId ===
+        custDetailID) || [];
+    if (!Array.isArray(applicationData) || applicationData.length === 0) {
+        ApzCOB.fnDisplayMsg("File not found", "E");
+    } else {
+        applicationData.forEach(appDoc => {
+            if (appDoc.payload.documentType === docType && appDoc.payload.docLevel === '1') {
+                lobj.custType = custType;
+                lobj.docType = docType;
+                lobj.documentName = appDoc.payload.documentName;
+                lobj.docLevel = appDoc.payload.docLevel;
+                lobj.documentFileName = appDoc.payload.documentFileName;
+                window.ImageLocationDetails = {
+                    latitude: appDoc.payload.latitude || "",
+                    longitude: appDoc.payload.longitude || "",
+                    uploadedTs: appDoc.payload.uploadedTs || "",
+                    documentFileName: appDoc.payload.documentFileName || ""
+                };
+                lobj.actualdocType = ActualdocType;
+            }
+        });
+        ApzCOB.downloadFileFromServer(lobj.documentFileName, apz.app.paintDocumentsCB);
+    }
+};
+apz.app.paintDocumentsCB = function(params) {
+    apz.stopLoader();
+    let imgPaintId;
+    if (CURRENTSCREEN === "photokyc") {
+        imgPaintId = "CrdAss__photokyc__";
+    } else if (CURRENTSCREEN === "AddressContactus") {
+        imgPaintId = "CrdAss__AddressContactus__";
+    } else if (CURRENTSCREEN = "CaInPrincipleDecision") {
+        imgPaintId = "CrdAss__CaInPrincipleDecision__";
+    }
+    if (!apz.isNull(params.base64)) {
+        $(`#${imgPaintId}${lobj.custType}__${lobj.actualdocType}`).attr('src', 'data:image/png;base64,' + params.base64);
+        $(`#${imgPaintId}${lobj.custType}__${lobj.actualdocType}`).attr("documentName", `${lobj.documentName}`);
+        $(`#${imgPaintId}${lobj.custType}__${lobj.actualdocType}`).attr("docLevel", `${lobj.docLevel}`);
+        let id = `#${imgPaintId}${lobj.custType}__${lobj.actualdocType}`;
+        if (Object.keys(window.ImageLocationDetails).length > 0) {
+            apz.app.BaseScreens.paintImageLocationDetails(id, window.ImageLocationDetails);
+        }
+        switch (CURRENTSCREEN) {
+            case "photokyc":
+                if (lobj.custType === "A" && lobj.docType === "PRIMARY_KYC") {
+                    $("#CrdAss__photokyc__el_txt_3_txtcnt").text(lobj.documentName);
+                } else if (lobj.custType === "C" && lobj.docType === "PRIMARY_KYC") {
+                    $("#CrdAss__photokyc__el_txt_21_txtcnt").text(lobj.documentName);
+                } else if (lobj.custType === "A" && lobj.docType === "RELATIONSHIP_PROOF") {
+                    $("#CrdAss__photokyc__el_txt_13_txtcnt").text(lobj.documentName);
+                } else {}
+                break;
+            case "AddressContactus":
+                if (lobj.custType === "A" && (lobj.docType === "ADDRESS_PROOF" || lobj.docType === "PRIMARY_KYC")) {
+                    $("#CrdAss__AddressContactus__el_txt_38_txtcnt").text(lobj.documentName);
+                }
+                break;
+            case "CaInPrincipleDecision":
+                if (lobj.custType === "A" && lobj.docType === "PRIMARY_KYC") {
+                    $("#CrdAss__CaInPrincipleDecision__el_txt_315_txtcnt").text(lobj.documentName);
+                } else if (lobj.custType === "C" && lobj.docType === "PRIMARY_KYC") {
+                    $("#CrdAss__CaInPrincipleDecision__el_txt_334_txtcnt").text(lobj.documentName);
+                } else if (lobj.custType === "A" && lobj.docType === "RELATIONSHIP_PROOF") {
+                    $("#CrdAss__CaInPrincipleDecision__el_txt_335_txtcnt").text(lobj.documentName);
+                } else if (lobj.custType === "A" && lobj.docType === "ADDRESS_PROOF") {
+                    $("#CrdAss__CaInPrincipleDecision__el_txt_345_txtcnt").text(lobj.documentName);
+                }
+                break;
+        }
+    } else {
+        ApzCOB.fnDisplayMsg("File not found", "E");
+    }
+    imgIndex++;
+    if (imgIndex < imgArray.length) {
+        apz.app.paintDocuments(imgArray[imgIndex].custType, imgArray[imgIndex].docType, imgArray[imgIndex].ActualdocType);
+    }
+}
+apz.app.flipImage = function(imgid) {
+    ApzCOB.imageAction('fit', imgid);
+    let docLevel = $('#' + imgid).attr("doclevel")
+    let custType = imgid.split("__")[2];
+    let docType = imgid.split("__")[3];
+    if (custType === 'A') {
+        custDetailID = gApzCOB.userDetails.custDtlId;
+    } else {
+        custDetailID = gApzCOB.userDetails.CoApplicantCustomerId;
+    }
+    if (apz.childScr == "AddressContactus") {
+        let addressList = inSessionStore.addressDetailsWrapperList[0].addressDetailsList.filter((custAdd) => custAdd.addressType === "Personal" && custAdd.custDtlId == custDetailID)[0].payload.addressList;
+        let currentAddressProof = addressList.filter(item => item.addressType == "Present")[0]?.currentAddressProof.toLocaleLowerCase() ?? "";
+        if (currentAddressProof == "as per voter id" || currentAddressProof == "as per kyc") {
+            docType = "PRIMARY_KYC";
+        }
+    }
+    if (docLevel === '1') {
+        docLevel++;
+    } else if (docLevel === '2') {
+        docLevel--;
+    }
+    applicationData = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList?.filter(cust => cust.custDtlId ===
+        custDetailID) || [];
+    applicationData = applicationData.map(doc => {
+        if (parseInt(doc.payload.docLevel) === docLevel && doc.payload.documentType === docType) {
+            lobj = {};
+            lobj.custType = custType;
+            lobj.docType = docType;
+            lobj.documentName = doc.payload.documentName;
+            lobj.docLevel = doc.payload.docLevel;
+            lobj.actualdocType = imgid.split("__")[3];
+            window.ImageLocationDetails = {
+                latitude: doc.payload.latitude || "",
+                longitude: doc.payload.longitude || "",
+                uploadedTs: doc.payload.uploadedTs || "",
+                documentFileName: doc.payload.documentFileName || ""
+            };
+            ApzCOB.downloadFileFromServer(doc.payload.documentFileName, apz.app.flipImageCB);
+        }
+    })
+}
+apz.app.flipImageCB = function(params) {
+    let imgPaintId;
+    if (CURRENTSCREEN === "photokyc") {
+        imgPaintId = "CrdAss__photokyc__";
+    } else if (CURRENTSCREEN === "AddressContactus") {
+        imgPaintId = "CrdAss__AddressContactus__";
+    } else if (CURRENTSCREEN === "CaInPrincipleDecision") {
+        imgPaintId = "CrdAss__CaInPrincipleDecision__";
+    }
+    if (!apz.isNull(params.base64)) {
+        $(`#${imgPaintId}${lobj.custType}__${lobj.actualdocType}`).attr('src', 'data:image/png;base64,' + params.base64);
+        $(`#${imgPaintId}${lobj.custType}__${lobj.actualdocType}`).attr("documentName", `${lobj.documentName}`);
+        $(`#${imgPaintId}${lobj.custType}__${lobj.actualdocType}`).attr("docLevel", `${lobj.docLevel}`);
+        let id = `#${imgPaintId}${lobj.custType}__${lobj.actualdocType}`;
+        if (Object.keys(window.ImageLocationDetails).length > 0) {
+            apz.app.BaseScreens.paintImageLocationDetails(id, window.ImageLocationDetails);
+        }
+    } else {
+        ApzCOB.fnDisplayMsg("File not found", "E");
+    }
+    apz.stopLoader();
+}

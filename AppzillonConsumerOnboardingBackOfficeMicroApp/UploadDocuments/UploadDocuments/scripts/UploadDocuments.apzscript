@@ -1,0 +1,1819 @@
+var UpDocScrId = 'UpDocs__UploadDocuments__';
+upDocsData = "";
+var gAllowedFileTypes = {};
+var localFileObj = {};
+var selType = "";
+var selCat = "";
+var finalDocsArr = [];
+var uploadClick = false;
+var docType = ""
+var FileSideBrowseId = "";
+var dragNdrop = false;
+var deleteRowNo = "";
+var encodedImage = "";
+var filesObj = '';
+var isValid = true;
+var mobileFilePath = '';
+window.manualDelete = false;
+window.reupload = false;
+var viewBase64 = '';
+var curImgObj = {};
+var curImgIndex = '';
+var selectedScrId = "UploadDocuments";
+var PhotoAndSign = "PhotoSign";
+var PleaseSelect = "Please Select";
+var AddressProofList = 'addressProofList ul';
+var LastChild = 'li:last-child';
+var IdentityProofList = 'identityProofList ul';
+var OtherDocsProofList = 'otherProofList ul';
+var FirstChild = 'li:first-child';
+var PhotoSignList = 'photosignList ul';
+var SelectedHilt = 'is-selected hilt';
+var AddressTypeDiv = 'addressType_div ul';
+var IdentityTypeDiv = 'identityType_div ul';
+var srbPriVar2 = 'srb pri var2';
+var srbPriVar1 = 'srb pri var1';
+var ProfileSVG = 'Profile.svg';
+var lFilename;
+var DOC_NO = "";
+window.IS_ADITIONAL_DOC_OPERATION = false;
+window.SELECTED_DOC_APP_ID = '';
+var uploadLookUp = {
+    "PhotoSign": "photoSignDiv",
+    "AddressProof": "addressProofDiv",
+    "IdentityProof": "identityProofDiv",
+    "OtherDocs": "OthersDocsDiv"
+}
+var HeaderLookUp = {
+    "PhotoSign": [{
+        "header1": "photoSignHeader1"
+    }, {
+        "header2": "photoSignHeader2"
+    }],
+    "AddressProof": [{
+        "header1": "addressProofHeader1"
+    }, {
+        "header2": "addressProofHeader2"
+    }],
+    "IdentityProof": [{
+        "header1": "identityProofHeader1"
+    }, {
+        "header2": "identityProofHeader2"
+    }],
+    "OtherDocs": [{
+        "header1": "othdocHeader1"
+    }, {
+        "header2": "othdocHeader2"
+    }],
+};
+var ImgPath = "apps/styles/themes/AppzillonConsumerOnboardingBackOffice/img/";
+var addrProfArr = [];
+var bssAddrProofArr = [];
+var consentArr = [];
+var empProofArr = [];
+var photoArr = [];
+var relatArr = [];
+var continueButton = '#APZCBO__BaseScreens__continue';
+$(continueButton).attr('onclick', '');
+$(continueButton).attr('onClick', 'apz.app.UploadDocuments.DocValidation()');
+window.CURRENT_APPLICANT_DETAILS_INDEX = gApzCOB.currentApplicant - 1;
+var mandatoryPrefilledValues = {
+    "PRIMARY_KYC": "Voter ID",
+    "UDID_ID": "",
+    "BANK_ACCOUNT_PROOF": "",
+    "SECONDARY_KYC": "",
+    "ADDRESS_PROOF": "",
+    "BUSINESS_ADDRESS_PROOF": "",
+    "EMPLOYMENT_PROOF": "",
+    "BUSINESS_PREMISE_PHOTO": "",
+    "CUSTOMER_PHOTOGRAPH": "",
+    "RELATIONSHIP_PROOF": ""
+}
+window.mandatoryDocumentTypes = ['PRIMARY_KYC'];
+window.mandatoryDocwithDropDown = ["AddrProof","bussAddrProof","empProof"];
+window.applicantManddocobj = [];
+apz.app.onShown_UploadDocuments = function() {
+    apz.app.BaseScreens.contactus();
+    apz.app.BaseScreens.hideNshowbackIcon();
+    $("input").attr("autocomplete", "off");
+    if ($('#' + BaseScrId + 'backIcon').hasClass('sno')) {
+        $('#' + UpDocScrId + 'subHeaderRow').addClass('var1')
+    }
+    gApzCOB.userDetails.currentStage = "applicationDocsKyc";
+    apz.app.UploadDocuments.getCommomCodeBasedOnProduct();
+    apz.app.UploadDocuments.commoncodeConf();
+    apz.app.UploadDocuments.setMandatoryDocumentDivs();
+    if (gApzCOB.currentApplicant <= 1) {
+        ApzCOB.showSubHeader("LIT_DOCUMENTS_UPLOAD_HEADER_APP");
+    } else {
+        ApzCOB.showSubHeader("LIT_DOCUMENTS_UPLOAD_HEADER_CO_APP");
+    }
+    window.documentProofObj = {};
+    let docEmptyArray = []
+    if(!apz.isNull(docMaxAndMand)){
+        if(docMaxAndMand.length > 0){
+            docMaxAndMand.forEach(docMax => {
+              let emptyArray = [];
+              window.documentProofObj[docMax.key] = emptyArray;
+            });
+        }
+    }
+    if (apz.isNull(window.inSessionStore.applicationDocumentsWrapperListSess)) {
+        window.inSessionStore.applicationDocumentsWrapperListSess = []
+    }
+    if (!apz.isNull(window.inSessionStore.applicationDocumentsWrapperListSess[CURRENT_APPLICANT_DETAILS_INDEX])) {
+        window.documentProofObj = window.inSessionStore.applicationDocumentsWrapperListSess[CURRENT_APPLICANT_DETAILS_INDEX];
+    }
+        if (apz.deviceType === "WEB") {
+        $('#' + UpDocScrId + 'otherDocsUpload_ul').addClass('sno');
+        $(".cam").addClass('sno');
+        $(".browse").removeClass('sno');
+    } else {
+        $('#' + UpDocScrId + 'otherDocsUpload_ul').removeClass('sno');
+        $(".browse").addClass('sno');
+        $(".cam").removeClass('sno');
+    }
+    if (!apz.isNull(window.inSessionStore.applicationDocumentsWrapperListSess[CURRENT_APPLICANT_DETAILS_INDEX])) {
+    if (!backNav) {
+        apz.app.UploadDocuments.paintFilesNew();
+        apz.data.scrdata.UpDocs__IpaintFileUpload_Res = {};
+        apz.data.scrdata.UpDocs__IpaintFileUpload_Res.otherdocs = [];
+        apz.data.scrdata.UpDocs__IpaintFileUpload_Res.fileDetails = [];
+    } else {
+        apz.app.UploadDocuments.paintFilesNew();
+        apz.data.loadData("IpaintFileUpload", apz.currAppId);
+        apz.app.UploadDocuments.checkDocUploaded();
+    }   
+    } else {
+        if(gApzCOB.currentApplicant == 1 && backNav) {
+            apz.app.UploadDocuments.checkDocUploaded();
+        }
+     apz.app.UploadDocuments.loadDefaultDivs();   
+    }
+    apz.app.UploadDocuments.configureFields();
+    $('#' + UpDocScrId + 'otherdocType').val(PleaseSelect);
+    $('#' + UpDocScrId + 'otherfilebrowser').removeClass('sno');
+    $('#' + UpDocScrId + 'sc_row_20').addClass('var1');
+    $('#' + UpDocScrId + 'otherProofList_row_0').removeClass('ssp');
+    apz.app.UploadDocuments.attachMBclickevents();
+    if (apz.deviceType !== "WEB") {
+        $('span[id*="txtcnt"]:contains("Drag and Drop")').text('Upload');
+        $('#' + UpDocScrId + 'photoSignUpload,#' + UpDocScrId + 'addressUpload,#' + UpDocScrId + 'identityUpload').text('Capture');
+        $("#UpDocs__UploadDocuments__otherDocsUpload").addClass(
+            'upload-btn') //for other docs upload if we add in screen level it is adding to ul tag  so,we using it in script
+        $('#' + UpDocScrId + 'otherfilebrowser').addClass('sno');
+        window.addEventListener("scroll", function() {
+            if ($('#' + UpDocScrId + 'identityType_div').parent().hasClass('is-open')) {
+                $('#' + UpDocScrId + 'identityType').parent().trigger('click');
+            } else if ($('#' + UpDocScrId + 'addressType_div').parent().hasClass('is-open')) {
+                $('#' + UpDocScrId + 'addressType').parent().trigger('click');
+            } else if ($('#' + UpDocScrId + 'otherdocType_div').parent().hasClass('is-open')) {
+                $('#' + UpDocScrId + 'otherdocType').parent().trigger('click');
+            }
+        }, true); // hide dropdown if scrolled to reduce the jerk effect
+    }
+    apz.app.BaseScreens.HeaderFooterData();
+    if (ISPUSHBACKPPL) {
+        $('#' + BaseScrId + 'backIcon').attr('onClick', 'ApzCOB.pushBackNavigationOnBack()');
+    } else {
+        $('#' + BaseScrId + 'backIcon').attr('onClick', 'ApzCOB.backNavigation()');
+    }
+    $('#' + BaseScrId + 'custIDandName').removeClass('sno');
+    if (gApzCOB.LoggedInUserDetails.loginResponse.addInfo1 === "BM") {
+        $('#APZCBO__BaseScreens__backIcon').attr('disabled', true)
+    }
+    $(continueButton).attr('disabled', false)
+    if (isRevAndConfEdit) {
+        ApzCOB.AddOrRemoveDisableFields([`${BaseScrId}backIcon`], true);
+    }
+    if(PUSHBACK_QUERY_STATUS.includes(gApzCOB.userDetails.applicationStatus)){
+    ApzCOB.paintingSourcingQuery();
+    }
+    ApzCOB.scrollToTop()
+}
+apz.app.UploadDocuments.getCommomCodeBasedOnProduct = function() {
+    switch (gApzCOB.product) {
+        case "CASA":
+            upDocsData = ApzCOB.GetCommonCodes("UPLOADDOCS", "CASA")["UPLOADDOCS"];
+            break;
+        case "CARDS":
+            upDocsData = ApzCOB.GetCommonCodes("UPLOADDOCS", "CARD")["UPLOADDOCS"];
+            break;
+        case "LOAN":
+            upDocsData = ApzCOB.GetCommonCodes("UPLOADDOCS", "LOAN_ETB")["UPLOADDOCS"];
+            break;
+        default:
+            break;
+    }
+};
+apz.app.UploadDocuments.configureFields = function() {
+    var lcodeType = '';
+    if (gApzCOB.mainProductGroupCode === 'CARDS') {
+        lcodeType = 'CARD'
+    } else if (gApzCOB.mainProductGroupCode === 'LOAN') {
+        lcodeType = 'LOAN_ETB'
+    } else {
+        lcodeType = 'CASA';
+    }
+    ApzCOB.ConfigureFields([{
+        'fieldName': 'OtherDocs',
+        'fieldId': [UpDocScrId + 'othdocHeader1'],
+        'fieldDivId': [UpDocScrId + 'OthersDocsDiv'],
+    }], 'UPLOADDOCS', 'UPLOADDOCS', 'DOCS', lcodeType);
+}
+apz.app.UploadDocuments.attachMBclickevents = function() {
+    if (apz.deviceType !== "WEB") {
+        $('#' + UpDocScrId + 'photocol').click(function(evt) {
+            apz.app.UploadDocuments.OpenCamGalleryModal('Browse1');
+        });
+        $('#' + UpDocScrId + 'signcol').click(function(evt) {
+            apz.app.UploadDocuments.OpenCamGalleryModal('Browse2');
+        });
+        $('#' + UpDocScrId + 'cameracol').click(function(evt) {
+            apz.app.UploadDocuments.SelectOption("camera");
+        });
+        $('#' + UpDocScrId + 'gallerycol').click(function(evt) {
+            apz.app.UploadDocuments.SelectOption("photo");
+        });
+        $('#' + UpDocScrId + 'frontCol').click(function(evt) {
+            apz.app.UploadDocuments.OpenCamGalleryModal('Browse1');
+        });
+        $('#' + UpDocScrId + 'backCol').click(function(evt) {
+            apz.app.UploadDocuments.OpenCamGalleryModal('Browse2');
+        });
+    }
+};
+apz.app.UploadDocuments.commoncodeConf = function() {
+    var tempArr = [];
+    upDocsData["TYPES"].forEach(function(el) {
+        if (el.split('~')[1] === "Y") {
+            gAllowedFileTypes[el.split('~')[0]] = el.split('~')[0].toLocaleLowerCase();
+        }
+    });
+    upDocsData["DOCS"].forEach(function(el) {
+        Object.getOwnPropertyNames(el).forEach(function(i, k) {
+            Object.getOwnPropertyNames(uploadLookUp).forEach(function(m) {
+                if (Object.getOwnPropertyNames(el)[k].split('~')[1] === "Y" && Object.getOwnPropertyNames(el)[k].split(
+                        '~')[0] === m) {
+                    var type = Object.getOwnPropertyNames(el)[k];
+                    HeaderLookUp[m].forEach(function(p, s) {
+                        Object.keys(upDocsData["DOCS"][0][type]).forEach(function(t) {
+                            tempArr = [];
+                            tempArr.unshift({
+                                "value": PleaseSelect,
+                                "desc": PleaseSelect
+                            });
+                            if (Object.keys(p)[0] === t) {
+                                if (!apz.isNull(upDocsData["DOCS"][0][type]["documents"])) {
+                                    upDocsData["DOCS"][0][type]["documents"].forEach(function(el1) {
+                                        let docVal = el1.split('~')[1];
+                                         let occupation = ApzCOB.getOccupation();
+                                        if(docVal !== "Bank Account Proof" && docVal !== "Business Photographs" && docVal !== "Relationship proof"){
+                                            if(docVal === "Employment Proof"){
+                                               if(occupation === "Salaried"){
+                                                var obj = {
+                                            "val": el1.split('~')[1],
+                                            "desc": el1.split('~')[1]
+                                        };
+                                        tempArr.push(obj);  
+                                            }  
+                                            } else {
+                                              var obj = {
+                                            "val": el1.split('~')[1],
+                                            "desc": el1.split('~')[1]
+                                        };
+                                        tempArr.push(obj);    
+                                            }
+                                        }
+                                    })
+                                }
+                                var litDesc = ApzCOB.getLitsDescfromServer(upDocsData["DOCS"][0][type][
+                                    t
+                                ]);
+                                if (t === "header2") {
+                                    litDesc = ApzCOB.fnDisplayAllowedFiles(upDocsData["TYPES"], litDesc);
+                                }
+                                $('#' + UpDocScrId + Object.values(p)[0]).text(litDesc);
+                                if (type.split('~')[0] === "OtherDocs") {
+                                    apz.populateDropdown(document.getElementById(UpDocScrId +
+                                        'otherdocpri'), tempArr);
+                                }
+                            }
+                        })
+                    })
+                }
+            })
+        })
+    })
+    apz.app.UploadDocuments.commoncodeConfTypesLst();
+}
+apz.app.UploadDocuments.commoncodeConfTypesLst = function() {
+    var tempArrTypes = [];
+    addrProfArr = [];
+    bssAddrProofArr = [];
+    consentArr = [];
+    empProofArr = [];
+    photoArr = [];
+    relatArr = [];
+    bankAccProofArr = [];
+    var doctypearr = upDocsData["DOCS"][0]['OtherDocs~Y~N'].documentstype;
+    for (let i = 0; i < doctypearr.length; i++) {
+        let temptype = doctypearr[i].split('~');
+        if (temptype[2] == 'Address Proof') {
+            var obj = {
+                "val": temptype[1],
+                "desc": temptype[1]
+            };
+            addrProfArr.push(obj);
+        } else if (temptype[2] == 'Business Address Proof') {
+            var obj = {
+                "val": temptype[1],
+                "desc": temptype[1]
+            };
+            bssAddrProofArr.push(obj);
+        } else if (temptype[2] == 'Consent') {
+            var obj = {
+                "val": temptype[1],
+                "desc": temptype[1]
+            };
+            consentArr.push(obj);
+        } else if (temptype[2] == 'Employment Proof') {
+            var obj = {
+                "val": temptype[1],
+                "desc": temptype[1]
+            };
+            empProofArr.push(obj);
+        } else if (temptype[2] == 'Business Photographs') {
+            var obj = {
+                "val": temptype[1],
+                "desc": temptype[1]
+            };
+            photoArr.push(obj);
+        } else if (temptype[2] == 'Relationship proof') {
+            var obj = {
+                "val": temptype[1],
+                "desc": temptype[1]
+            };
+            relatArr.push(obj);
+        } else if (temptype[2] == 'Bank Account Proof') {
+            let obj = {
+                "val": temptype[1],
+                "desc": temptype[1]
+            };
+            bankAccProofArr.push(obj);
+        }
+    }
+}
+apz.app.UploadDocuments.pendingApplnFileType = function(type, docType1) {
+    upDocsData["DOCS"].forEach(function(el) {
+        Object.getOwnPropertyNames(el).forEach(function(i, k) {
+            if (i.split('~')[0] === type) {
+                upDocsData["DOCS"][0][i]["documents"].forEach(function(el3) {
+                    if (el3.split('~')[1] === docType1) {
+                        fileType.AddressProof = el3.split('~')[2]
+                    }
+                })
+            }
+        })
+    })
+}
+apz.app.UploadDocuments.createRequest = function(iSave) {
+    if (apz.isNull(iSave)) {
+            apz.app.UploadDocuments.getAllFiles();
+            var lobj = {};
+            lobj["applicationDocumentsList"] = []
+            gApzCOB["requestNodes"]['applicationDocumentsWrapperList'] = [];
+            let custId = "";
+            if(!apz.isNull(window.inSessionStore.customerDetailsList)){
+                if(gApzCOB.currentApplicant <= 1){
+                    customerData = inSessionStore.customerDetailsList.filter(custData => custData.customerType.toLowerCase() === "applicant");
+                } else {
+                    customerData = inSessionStore.customerDetailsList.filter(custData => custData.customerType.toLowerCase() !== "applicant"); 
+                }
+            }
+            
+            if(customerData.length > 0){
+             custId = customerData[0].custDtlId;
+            }
+            if(apz.isNull(custId)) {
+                custmData = gApzCOB.requestNodes.customerDetailsList.filter(custData => custData.customerType.toLowerCase() === ((gApzCOB.currentApplicant <= 1) ? "applicant" : "co-app"));
+                if (custmData.length > 0) {
+                    custId = custmData[0].custDtlId;
+                }
+                if (apz.isNull(custId)) {
+                    ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_EMPTY_CUSTDTLID"), "E");
+                    return '';
+                }
+            }
+            $.each(finalDocsArr, function(i, k) {
+                var obj = {
+                    "documentId": k.appDocId,
+                    "appDocId": k.appDocId,
+                    "appId": gAppId,
+                    "applicationId": gApzCOB.userDetails.applicationId,
+                    "custDtlId": custId,
+                    "payload": {
+                        "docSide": k.docSide,
+                        "documentFileName": k.filename,
+                        "documentFormat": k.filetype,
+                        "documentType": k.docType,
+                        "documentName": k.docName,
+                        "documentDesc": "",
+                        "documentLoc": k.filelocation,
+                        "screenId": "UploadDocuments",
+                        "issueDate": "",
+                        "expiryDate": "",
+                        "docStatus": "A",
+                        "isPushbackUpload": apz.isNull(k.isPushbackUpload) ? "N" : k.isPushbackUpload,
+                        "isAdiDoc": apz.isNull(k.isAdiDoc) ? "N" : k.isAdiDoc,
+                        "longitude": window.currentGeoCords?.longitude,
+                        "latitude":window.currentGeoCords?.latitude,
+                        "uploadedTs":new Date().toISOString(),
+                        "docLevel": k.docLevel
+                    }
+                }
+                if(ISPUSHBACKPPL){
+                  let checkDocList = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList.filter(docs => parseInt(docs.documentId) === k.appDocId); 
+                  if(checkDocList.length === 0){
+                    obj.payload.isPushbackUpload = "Y";
+                  }
+                }
+                if (apz.isNull(gApzCOB["requestNodes"]['applicationDocumentsWrapperList']) || gApzCOB["requestNodes"][
+                        'applicationDocumentsWrapperList'
+                    ].length === 0) {
+                    lobj["applicationDocumentsList"].push(obj);
+                } else {
+                    if (apz.isNull(k["appDocId"])) {
+                        gApzCOB["requestNodes"]['applicationDocumentsWrapperList'][0]["applicationDocumentsList"].push(obj);
+                    }
+                }
+            })
+            if (!apz.isNull(lobj)) {
+                gApzCOB["requestNodes"]['applicationDocumentsWrapperList'].push(lobj);
+            }
+             if (!apz.isNull(inSessionStore.applicationDocumentsWrapperListSess)) {
+                 if (!apz.isNull(window.inSessionStore.applicationDocumentsWrapperListSess[CURRENT_APPLICANT_DETAILS_INDEX])) {
+                     window.inSessionStore.applicationDocumentsWrapperListSess[CURRENT_APPLICANT_DETAILS_INDEX] = documentProofObj;
+                 }
+             } else {
+                 window.inSessionStore.applicationDocumentsWrapperListSess = [];
+                 window.inSessionStore.applicationDocumentsWrapperListSess.push(documentProofObj);
+             }
+            gApzCOB['requestNodes'].applicationDocumentsWrapperList[0].applicationDocumentsList = [];
+            return gApzCOB['requestNodes'];
+    }
+    return []
+}
+apz.app.UploadDocuments.validateDropDown = function() {
+    var isValid = true;
+        if ($('#' + UpDocScrId + 'otherdocType').val() === PleaseSelect) {
+            isValid = false;
+            ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_UPLOADDOCS_MSG_TXT_SEL_DOC_TYPE"), "E");
+        }
+    return isValid;
+};
+apz.app.UploadDocuments.browsefile = function(fileObj, browseId, type) {
+    selType = $('#'+UpDocScrId+'otherdocpri').val().toLocaleUpperCase().replaceAll(' ','_');
+    selCat = '';
+    dragNdrop = true;
+    FileSideBrowseId = browseId;
+    var fileExtenName = fileObj.value.split('.')[1].toLocaleLowerCase();
+    if (!Object.values(gAllowedFileTypes).includes(fileExtenName)) {
+        ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_UPLOADDOCS_MSG_TXT_UPLOAD_VALID_FILE"), "W");
+        return;
+    }
+    if (apz.app.UploadDocuments.validateDropDown()) {
+        filesObj = fileObj;
+        var fileToUpload = fileObj.files;
+        localFileObj = {}; //localFileObj.appid = apz.getElmValue(pageId + "appId");
+        localFileObj.filename = fileToUpload[0].name;
+        localFileObj.filetype = fileToUpload[0].type;
+        localFileObj.filelocation = apz.appId + "/" + localFileObj.filename;
+        localFileObj.filePath = `${apz.appId}/${groupCode}/${gApzCOB.userDetails.applicationId}`;
+        localFileObj.productGroupCode = groupCode;
+        localFileObj.docType = selType;
+        localFileObj.docSize = fileObj.files[0].size;
+        localFileObj.docSide = "Front";
+        localFileObj.docLevel = 1;
+        localFileObj.fieldID = UpDocScrId + browseId;
+        localFileObj.isAdiDoc = "Y";
+        IS_ADITIONAL_DOC_OPERATION = true;
+        FileSideBrowseId = "Browse1";
+        apz.app.UploadDocuments.LoadUploadDocGetFile();
+        apz.app.UploadDocuments.infoModal(type);
+    }
+    $(fileObj).val('')
+}
+apz.app.UploadDocuments.getAllFiles = function() {
+    finalDocsArr = [];
+    if(!apz.isNull(documentProofObj)){
+    for (let key in documentProofObj) {
+       if(documentProofObj[key].length > 0){
+         documentProofObj[key].map(docs => {
+           finalDocsArr.push(docs)
+         })  
+       }
+    }
+    }
+}
+apz.app.UploadDocuments.resetFileArr = function() {}
+apz.app.UploadDocuments.uploadBtnClick = function(type) {
+    IS_ADITIONAL_DOC_OPERATION = true;
+    uploadClick = true;
+    dragNdrop = false;
+    selType =  $('#'+UpDocScrId+'otherdocpri').val().toLocaleUpperCase().replaceAll(' ','_');
+    selCat = "";
+    if (apz.app.UploadDocuments.validateDropDown()) {
+        if (apz.deviceType !== "WEB") {
+            FileSideBrowseId = 'Browse1';
+            $('#' + UpDocScrId + 'cameracol').click();
+        }
+    }
+}
+apz.app.UploadDocuments.OpenCamGalleryModal = function(browseId) {
+    if (apz.deviceType !== "WEB") {
+        selCat = '';
+        FileSideBrowseId = browseId;
+        ApzCOB.toggleModal(UpDocScrId + "CamGalleryList");
+    }
+};
+apz.app.UploadDocuments.SelectOption = function(captureType) {
+    var strDate = new Date().getTime() + "";
+    if (captureType === 'camera' || captureType === 'photo') {
+        var cameraObj = {
+            "zoomLevel": "20",
+            "targetWidth": "",
+            "targetHeight": "",
+            "crop": "Y", //Y or N
+            "flash": "N",
+            "action": "base64_Save", // save,base64
+            "fileName": 'b' + strDate,
+            "encodingType": "JPG",
+            "quality": "80",
+            "unCompressed": "N",
+            "sourceType": captureType // photo / camera
+        };
+        cameraObj.id = "CAMERA_ID";
+        cameraObj.callBack = apz.app.UploadDocuments.cameraCallback;
+        apz.ns.openCamera(cameraObj);
+        ApzCOB.getGeoCordinatesMobile();
+    } else {
+        var json = {
+            "filter": "",
+            "fileCategory": "EXTERNAL", // AUDIO, VIDEO, PHOTO
+            "location": "docs",
+            "openFile": "N"
+        };
+        json.id = "FILEBROWSER_ID";
+        json.callBack = apz.app.UploadDocuments.getFileCallback;
+        apz.ns.fileBrowser(json);
+    }
+};
+apz.app.UploadDocuments.getFileCallback = function(lparams) {
+    if (apz.isNull(lparams.errorCode)) {
+        var json = {
+            "filePath": lparams.filePath,
+            "id": "FILEREAD_ID",
+            "callBack": apz.app.UploadDocuments.readBase64
+        };
+        mobileFilePath = lparams.filePath;
+        //json.id = "FILEREAD_ID";
+        //json.callBack = apz.app.UploadDocuments.readBase64;
+        apz.ns.fileToBase64(json);
+    } else {
+        ApzCOB.fnDisplayMsg('Operation cancelled', "E", "");
+    }
+};
+apz.app.UploadDocuments.readBase64 = function(lparams) {
+    if (!apz.isNull(lparams.text)) {
+        var curFileObj = {
+            'encodedImage': lparams.text.split('\n').join(''),
+            'path': mobileFilePath,
+            'status': true
+        }
+        apz.app.UploadDocuments.cameraCallback(curFileObj);
+    }
+};
+apz.app.UploadDocuments.cameraCallback = function(lparams) {
+    if (lparams.status) {
+        filesObj = lparams;
+        let docsize = ApzCOB.getBase64FileSizeInBytes(filesObj.encodedImage);
+        groupCode = 'LOAN';
+        localFileObj = {};
+        localFileObj.filename = lparams.path.split('/')[lparams.path.split('/').length - 1];
+        let activeCustType = gApzCOB?.currentApplicant == '1' ? 'A': 'C';
+        let fileExtenName = localFileObj.filename?.split('.')?.pop();
+        // localFileObj.filename = `${activeCustType}_${selType}_${DOC_NO}.${fileExtenName}`;
+        localFileObj.filetype = localFileObj.filename;
+        localFileObj.filelocation = apz.appId + "/" + localFileObj.filename;
+        localFileObj.fieldID = UpDocScrId + selType + FileSideBrowseId;
+        localFileObj.filePath = `${apz.appId}/${groupCode}/${gApzCOB.userDetails.applicationId}`;
+        localFileObj.productGroupCode = groupCode;
+        localFileObj.docSize = docsize;
+        localFileObj.base64Value = filesObj.encodedImage;
+        localFileObj.docCategory = selCat;
+        localFileObj.docType = selType;
+        localFileObj.isAdiDoc = IS_ADITIONAL_DOC_OPERATION ? "Y" : "N";
+        apz.app.UploadDocuments.getFileArrNew();
+        ApzCOB.documentAutoSave(localFileObj,selType);   
+    } else {
+        ApzCOB.fnDisplayMsg(!apz.isNull(lparams.text) ? lparams.text : "Operation cancelled", "E", "");
+    }
+};
+apz.app.UploadDocuments.CheckfileSize = function(lparams) {
+    if (lparams.encodedImage !== undefined && lparams.encodedImage !== null) {
+        //var baseImg = lparams.encodedImage;
+        var json = {
+            "id": "FILETOBASE64",
+            "callBack": apz.app.UploadDocuments.fileSizeCallBack,
+            "filePath": lparams.path
+        };
+        apz.ns.getFileSize(json);
+    }
+};
+apz.app.UploadDocuments.fileSizeCallBack = function(params) {
+    if (params.fileSize > 1001) {
+        ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_UPLOADDOCS_MSG_TXT_FILE_SIZE_LIMIT"), "E");
+        //return;
+    } else {
+        apz.app.UploadDocuments.uploadMBImage();
+    }
+};
+apz.app.UploadDocuments.uploadMBImage = function() {
+    //Service call needs to be added.
+    ApzCOB.toggleModal(UpDocScrId + "CamGalleryList");
+};
+apz.app.UploadDocuments.uploadDoc = function(pthis, browseId, type) { //Upload document
+    apz.startLoader()
+    if (!apz.isNull(type)) {
+        selType = type;
+    }
+    var lvalid = true;
+    if (lvalid) {
+        apz.app.UploadDocuments.fileReader(filesObj,selType)
+        //var json = {};
+        if (localFileObj.filename.substring(localFileObj.filename.lastIndexOf('\.') + 1).toLocaleLowerCase() in gAllowedFileTypes) {
+            //empty block
+        }
+    } else {
+        ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_UPLOADDOCS_MSG_TXT_UPLOAD_VALID_FILE"), "W");
+    }
+};
+apz.app.UploadDocuments.uploadDocCB = function(uploadRes) {
+    apz.stopLoader();
+    try {
+        if (Object.values(uploadRes.successMessage)[0] === "success") {
+            apz.app.UploadDocuments.displayFileName();
+            apz.app.UploadDocuments.downloadFileFromserver();
+        } else {
+            if (Object.values(uploadRes.successMessage)[0] === "failure") {
+                ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_UPLOADDOCS_MSG_TXT_UPLOAD_FAILED"), "E");
+            }
+        }
+    } catch (e) {
+        apz.stopLoader();
+        ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_COMM_ERR_TXT_TECHNICAL"), "E");
+    }
+};
+apz.app.UploadDocuments.updateAppDocId = function(selType1, appDocId) {}
+apz.app.UploadDocuments.updateModifiedFiles = function(lfileArr, flag) {
+    var type = "";
+    var filename = "";
+    var appDocID = "";
+    if (flag === "UPDATE") {
+        type = lfileArr.payload.docType
+    } else {
+        type = lfileArr[0]["docType"];
+        filename = lfileArr[0]["filename"];
+        appDocID = apz.isNull(lfileArr[0].appDocId) ? "" : parseInt(lfileArr[0].appDocId);
+    }
+    apz.app.UploadDocuments.removeDocFromRequest(lfileArr);
+    if(!IS_ADITIONAL_DOC_OPERATION){
+      $("#" + UpDocScrId + selType+"_Image"+DOC_NO).attr('src', 'apps/styles/themes/AppzillonConsumerOnboardingBackOffice/img/Sign.svg');
+    $("#" + UpDocScrId + selType+"_Image"+DOC_NO+"_img").attr('src', 'apps/styles/themes/AppzillonConsumerOnboardingBackOffice/img/Sign.svg');
+    $("#" + UpDocScrId + selType+"_FileName"+DOC_NO).text("");
+    $("#" + UpDocScrId + selType+"_ImageClose"+DOC_NO+"_ul").addClass("sno");
+    $("#" + UpDocScrId + selType+"_Image"+DOC_NO).text("");
+    $("#" + UpDocScrId + selType+"_docAppId"+DOC_NO).text(""); 
+    if(apz.deviceType === "WEB"){
+    $("#" + UpDocScrId + selType+"_ImageClose"+DOC_NO+"_ul").parents('.docDetailsRow').find('.browse').removeClass('sno');
+     $("#" + UpDocScrId + selType+"_ImageClose"+DOC_NO+"_ul").parents('.docDetailsRow').find('.browse').parent().removeClass('sno');
+    } else {
+    $("#" + UpDocScrId + selType+"_ImageClose"+DOC_NO+"_ul").parents('.docDetailsRow').find('.cam').removeClass('sno');
+    $("#" + UpDocScrId + selType+"_ImageClose"+DOC_NO+"_ul").parents('.docDetailsRow').find('.cam').parent().removeClass('sno');
+    }
+      $('#'+UpDocScrId+selType+'_'+DOC_NO).removeClass('DOC_UPLOADED');
+    if(selType !== "PRIMARY_KYC" && selType !== "SECONDARY_KYC"){
+        var dropdownId = UpDocScrId+selType+'_SubHeaderDropDown';
+        if(documentProofObj[selType].length > 0){
+        ApzCOB.addDisableToInput(dropdownId);  
+        } else {
+        ApzCOB.removeDisableToInput(dropdownId)    
+        }   
+        $('#'+dropdownId).attr('readonly','readonly');
+    }  
+    } else {
+       apz.app.UploadDocuments.LoadFileNamesForOtherDoc();   
+    }
+    
+}
+apz.app.UploadDocuments.displayFileName = function() {
+    switch (selType) {
+        case "OtherDocs":
+            apz.app.UploadDocuments.LoadFileNamesForOtherDoc();
+            break;
+        default:
+            break;
+    }
+}
+apz.app.UploadDocuments.downloadFileFromserver = function(obj) {
+    var flocation = "";
+    $.each(fileArr, function(i, k) {
+        //var flname = k.filename
+        flocation = gAppId
+        //fieldID = k.fieldID
+        //  }
+    })
+    apz.startLoader();
+    var json = {
+        "callBack": apz.app.UploadDocuments.downloadFileFromserverCB,
+        "fileName": flname,
+        "base64": "Y",
+        "filePath": flocation,
+        "destinationPath": ""
+    };
+    apz.ns.downloadFile(json);
+    apz.stopLoader();
+};
+/**** Callback function will be called only if bsae64 image is requested *********/
+apz.app.UploadDocuments.downloadFileFromserverCB = function(params) {
+    apz.stopLoader();
+    if (!apz.isNull(params.base64)) {
+        localFileObj.imgSrc = params.base64
+        fileArr.pop();
+        fileArr.push(localFileObj);
+    }
+};
+apz.app.UploadDocuments.fileClick = function(obj, selType3, type) {
+ IS_ADITIONAL_DOC_OPERATION = true;
+ var flname = $(obj).parents('.uploaded-file-detail').find('.FileName').text();
+ var docID = $(obj).parents('.uploaded-file-detail').find('.appDocID').text();
+ var docType = $(obj).parents('.uploaded-file-detail').find('.docType').text();
+ var tempFileArr = documentProofObj[docType].filter(doc => (parseInt(doc.appDocId) === parseInt(docID) && doc.isAdiDoc === "Y"));
+ if(tempFileArr.length > 0){
+     SELECTED_DOC_APP_ID = parseInt(docID);
+        viewBase64 = tempFileArr[0].imgSrc;
+        curImgObj = tempFileArr[0];
+        curImgIndex = 0;
+        apz.app.UploadDocuments.noBase64(flname, tempFileArr[0], 0);   
+ }
+};
+apz.app.UploadDocuments.noBase64 = function(flname, k, i) {
+    if (apz.isNull(viewBase64)) {
+        var json = {
+            "destinationPath": "",
+            "filePath": (gAppId).concat("/").concat(gApzCOB.product).concat("/").concat(gApzCOB.userDetails.applicationId),
+            "sessionReq": "N" //Y or N
+        };
+        json.destinationPath = "docs";
+        json.fileName = flname;
+        json.base64 = "Y";
+        json.filePath = (gAppId).concat("/").concat(gApzCOB.product).concat("/").concat(gApzCOB.userDetails.applicationId);
+        json.id = "";
+        json.callBack = apz.app.UploadDocuments.noBase64CB;
+        apz.startLoader();
+        setTimeout(() => {
+         apz.ns.downloadFile(json);   
+        },1000)
+    } else {
+        apz.app.UploadDocuments.showDoc(flname, k, i);
+    }
+};
+apz.app.UploadDocuments.noBase64CB = function(params) {
+    apz.stopLoader();
+    if (!apz.isNull(params.base64)) {
+        viewBase64 = params.base64;
+        apz.app.UploadDocuments.showDoc('', curImgObj, curImgIndex);
+    }
+};
+apz.app.UploadDocuments.showDoc = function(flname, k, i) {
+    var fileType = apz.isNull(ApzCOB.getFileExtension(k.filetype)) ? k.filetype.split('/')[1] : ApzCOB.getFileExtension(k.filetype);
+    if (fileType === 'png' || fileType === 'jpeg' || fileType === 'jpg') {
+        apz.data.scrdata.UpDocs__IpaintUploadedFile_Res = {};
+        apz.data.scrdata.UpDocs__IpaintUploadedFile_Res.fileDetails = {
+            'imgSrc': viewBase64,
+            'imgName': apz.isNull(flname) ? k.filename : flname
+        };
+        apz.data.loadData("IpaintUploadedFile", apz.currAppId);
+        let id = "#UpDocs__IpaintUploadedFile__o__fileDetails__imgSrc";
+        if (Object.keys(window.ImageLocationDetails).length > 0) {
+            apz.app.BaseScreens.paintImageLocationDetails(id, window.ImageLocationDetails);
+        }
+        ApzCOB.toggleModal(UpDocScrId + "viewUploadedFileModal");
+        var functionAdder = k.docType === 'OtherDocs' ? '(this,' + i + ');' : '()';
+        $('#' + UpDocScrId + 'viewFileDeleteBtn').attr('onclick', 'apz.app.UploadDocuments.deleteDocument("'+selType+'",'+k.appDocId+')');
+    } else if (fileType === 'pdf') {
+        var a = document.createElement("a");
+        a.href = "data:application/octet-stream;base64," + viewBase64;
+        a.download = apz.isNull(flname) ? k.filename : flname
+        a.click();
+    }
+    apz.stopLoader();
+}
+apz.app.UploadDocuments.infoModal = function(type, id) {
+    var tempArr = [];
+    apz.data.scrdata.UpDocs__IpaintInfo_Res = {};
+    upDocsData["DOCS"].forEach(function(el) {
+        Object.getOwnPropertyNames(el).forEach(function(i, k) {
+            if (Object.getOwnPropertyNames(el)[k].split('~')[1] === "Y" && Object.getOwnPropertyNames(el)[k].split('~')[0] ===
+                type) {
+                if (!apz.isNull(el[i]["documents"])) {
+                    el[i]["documents"].forEach(function(p) {
+                        var obj = {
+                            "images": p.split('~')[0],
+                            "value": p.split('~')[1]
+                        };
+                        tempArr.push(obj)
+                    })
+                }
+            }
+        })
+    })
+    apz.data.scrdata.UpDocs__IpaintInfo_Res.infoList = tempArr;
+    apz.data.scrdata.UpDocs__IpaintInfo_Res.docList = tempArr;
+    if (!apz.isNull(id)) {
+        $('#' + id).click(function() {
+            apz.data.loadData("IpaintInfo", apz.currAppId);
+        })
+    } else {
+        apz.data.loadData("IpaintInfo", apz.currAppId);
+    }
+}
+apz.app.UploadDocuments.closePopover = function(pthis) {
+    $('#' + UpDocScrId + 'uploadDocDiv').trigger('click')
+}
+apz.app.UploadDocuments.fileReader = function(fileObj,type) {
+    var FR = new FileReader();
+    FR.readAsDataURL(fileObj.files[0]);
+    FR.onload = function(e) {
+        encodedImage = "";
+        encodedImage = e.target.result.substr(e.target.result.indexOf(',') + 1, e.target.result.length);
+        if (!apz.isNull(encodedImage)) {
+            if (isValid) {
+                localFileObj.imgSrc = encodedImage;
+                document.getElementById(localFileObj.fieldID).value = "";
+                localFileObj.base64Value = encodedImage;
+                ApzCOB.documentAutoSave(localFileObj, type); 
+            }
+        }
+    }
+}
+apz.app.UploadDocuments.StoreAppDocID = function(appDocID,storelatitude,storelongitude) {
+    localFileObj.appDocId = appDocID;
+    localFileObj.latitude = storelatitude;
+    localFileObj.longitude = storelongitude;
+    localFileObj.isPushbackUpload = "N";
+    if (ISPUSHBACKPPL) {
+        localFileObj.isPushbackUpload = "Y";
+    }
+    apz.app.UploadDocuments.displayFileNameNew();//filenotfound fix
+}
+apz.app.UploadDocuments.deleteOtherDocs = function(pthis) {
+    let docType = $(pthis).parents('.uploaded-file-detail').find('.docType span').text();
+    SELECTED_DOC_APP_ID = parseInt($(pthis).parents('.uploaded-file-detail').find('.appDocID span').text());
+    IS_ADITIONAL_DOC_OPERATION = true;
+    apz.app.UploadDocuments.deleteDocument(docType,SELECTED_DOC_APP_ID)
+}
+apz.app.UploadDocuments.deleteOtherDocsCB = function(param) {
+    if (!apz.isNull(param) && param.choice === true) {
+        selCat = '';
+        ApzCOB.deleteDocument("OtherDocs", "", param.thisObj);
+    }
+    if ($('#' + UpDocScrId + "viewUploadedFileModal").is(':visible')) {
+        ApzCOB.toggleModal(UpDocScrId + "viewUploadedFileModal");
+        deleteRowNo = param;
+        ApzCOB.deleteDocument("OtherDocs", "");
+    }
+};
+apz.app.UploadDocuments.manualDelete = function() {
+    if (window.manualDelete) {
+        apz.app.UploadDocuments.fileReader(filesObj,selType)
+        apz.app.UploadDocuments.displayFileNameNew();
+        window.manualDelete = false;
+    }
+}
+apz.app.UploadDocuments.LoadUploadDocGetFile = function() {
+    if (apz.app.UploadDocuments.getFileArrNew()) {
+        apz.app.UploadDocuments.uploadDoc(null, FileSideBrowseId,selType);
+    }
+};
+apz.app.UploadDocuments.LoadDragNdrop = function() {
+    if (dragNdrop) {
+        dragNdrop = false;
+        ApzCOB.toggleModal(UpDocScrId + "DragDropPhotoSignList");
+    } else {
+        ApzCOB.toggleModal(UpDocScrId + "photoSignList");
+    }
+};
+apz.app.UploadDocuments.LoadFileNamesForOtherDoc = function() {
+    let additionalDocs = [];
+    if(!apz.isNull(documentProofObj)){
+         for (let key in documentProofObj) {
+          if(documentProofObj[key].length > 0){
+            documentProofObj[key].map(docs => {
+                if(docs.isAdiDoc === "Y") {
+                 additionalDocs.push(docs);
+                }
+            })  
+          } 
+         }
+    }
+    if (additionalDocs.length > 0) {
+        $('#' + UpDocScrId + 'OthersUploadedDocsRow').removeClass('sno');
+        apz.data.scrdata.UpDocs__IpaintFileUpload_Res = {};
+        apz.data.scrdata.UpDocs__IpaintFileUpload_Res.otherdocs = [];
+        for (var i = 0; i < additionalDocs.length; i++) {
+            $('#' + UpDocScrId + 'otherProofList_row_' + i).addClass('uploaded');
+            $('#' + UpDocScrId + 'otherProgress_' + i).css(ActiveprogressBar);
+            apz.data.scrdata.UpDocs__IpaintFileUpload_Res.otherdocs.push(additionalDocs[i]);
+            lFilename = additionalDocs[i]["filename"];
+            if (!apz.isNull(additionalDocs[i]["imgSrc"])) {
+                lFileSize = ApzCOB.fnGetImageSize(additionalDocs[i]["imgSrc"]);
+            }
+            apz.data.scrdata.UpDocs__IpaintFileUpload_Res.otherdocs[i]['filename'] = additionalDocs[i]["filename"]
+        }
+        apz.data.loadData("IpaintFileUpload", apz.currAppId);
+        for (var m = 0; m < $('#' + UpDocScrId + OtherDocsProofList).children().length; m++) {
+            if ($('#' + UpDocScrId + 'otherProofList_row_' + m).hasClass('sno') || $('#' + UpDocScrId + 'otherProofList_row_' + m).hasClass(
+                'ssp')) {
+                apz.data.deleteRow(UpDocScrId + "otherProofList", m)
+            }
+        }
+        $('#' + UpDocScrId + 'otherdocpri').val(PleaseSelect).change();
+        $('#' + UpDocScrId + 'otherdocType').val(PleaseSelect).change();
+        $('#' + UpDocScrId + 'identityType').val(PleaseSelect);
+    } else {
+    $('#' + UpDocScrId + 'OthersUploadedDocsRow').addClass('sno');    
+    }
+    IS_ADITIONAL_DOC_OPERATION = false;
+}
+apz.app.UploadDocuments.onChangeDocumentTypepri = function(pthis) {
+    let temparrtype = '';
+    temparrtype = $(pthis).val();
+    if (temparrtype == 'Address Proof') {
+        if (addrProfArr[0].desc !== PleaseSelect) {
+            addrProfArr.unshift({
+                "val": PleaseSelect,
+                "desc": PleaseSelect
+            });
+        }
+        let addressMandatoryDrop = [];
+        if (!apz.isNull(currentAddressProofDocMap)) {
+            if (currentAddressProofDocMap.length > 0) {
+                const sessionAddressProof = ['As per KYC document', 'As per Voter ID'].includes(mandatoryPrefilledValues.ADDRESS_PROOF) ? 'As per Voter ID' : mandatoryPrefilledValues.ADDRESS_PROOF;
+                addressMandatoryDrop = currentAddressProofDocMap[0][sessionAddressProof];
+            }
+        }
+        let addressProofArray = [];
+        if (addressMandatoryDrop.length > 0) {
+            addrProfArr.forEach((addressType) => {
+                if (!addressMandatoryDrop.includes(addressType.val)) {
+                    addressProofArray.push(addressType);
+                }
+            })
+        } else {
+            addrProfArr.forEach((addressType) => {
+                addressProofArray.push(addressType);
+            })
+        }
+        apz.populateDropdown(document.getElementById(UpDocScrId + 'otherdocType'), addressProofArray);
+    } else if (temparrtype == 'Business Address Proof') {
+        if (bssAddrProofArr[0].desc !== PleaseSelect) {
+            bssAddrProofArr.unshift({
+                "val": PleaseSelect,
+                "desc": PleaseSelect
+            });
+        }
+        let busAddressMandatoryDrop = [];
+        if (!apz.isNull(businessAddressProofDocMap)) {
+            if (businessAddressProofDocMap.length > 0) {
+                const sessionBusAddressProof = ['As per KYC document', 'As per Voter ID'].includes(mandatoryPrefilledValues.BUSINESS_ADDRESS_PROOF) ? 'As per Voter ID' : mandatoryPrefilledValues.BUSINESS_ADDRESS_PROOF;
+                busAddressMandatoryDrop = businessAddressProofDocMap[0][sessionBusAddressProof];
+            }
+        }
+        let businessAddressProofArray = [];
+        if (!apz.isNull(busAddressMandatoryDrop)) {
+            if (busAddressMandatoryDrop.length > 0) {
+                bssAddrProofArr.forEach((busAddressType) => {
+                    if (!busAddressMandatoryDrop.includes(busAddressType.val)) {
+                        businessAddressProofArray.push(busAddressType)
+                    }
+                })
+            }
+        } else {
+            bssAddrProofArr.forEach((busAddressType) => {
+                    businessAddressProofArray.push(busAddressType)
+            })
+        }
+        apz.populateDropdown(document.getElementById(UpDocScrId + 'otherdocType'), businessAddressProofArray);
+    } else if (temparrtype == 'Employment Proof') {
+        if (empProofArr[0].desc !== PleaseSelect) {
+            empProofArr.unshift({
+                "value": PleaseSelect,
+                "desc": PleaseSelect
+            });
+        }
+        let employmentMandatoryDrop = [];
+ if(!apz.isNull(employmentProofDocMap)){
+     if(employmentProofDocMap.length > 0){
+         employmentMandatoryDrop = employmentProofDocMap[0][mandatoryPrefilledValues.EMPLOYMENT_PROOF];
+     }
+ }
+  let employmentProofArray = [];
+ if(employmentMandatoryDrop.length > 0){
+              empProofArr.forEach((empProofType) => {
+              if(!employmentMandatoryDrop.includes(empProofType.val)) {
+                employmentProofArray.push(empProofType)
+              }
+           })   
+ }
+        apz.populateDropdown(document.getElementById(UpDocScrId + 'otherdocType'), employmentProofArray);
+    } else if(temparrtype == "Please Select"){
+        let opArray = [];
+        opArray.unshift({
+                "value": PleaseSelect,
+                "desc": PleaseSelect
+            });
+            apz.populateDropdown(document.getElementById(UpDocScrId + 'otherdocType'), opArray);
+    }
+}
+apz.app.UploadDocuments.DocValidation = function() {
+    document.body.classList.remove("ajs-no-overflow");
+    let documentValidation = false;
+    let app_document_validation = false;
+    if(gApzCOB.currentApplicant == 1 && mandatoryDocumentTypes.length > 0) {
+    //   window.app_document_validation = apz.app.UploadDocuments.checkDocUploaded();
+      documentValidation = true;
+      if(window.isRevAndConfEdit === true && window.isRevAndConfEditCustType === 1) {
+            app_document_validation = apz.app.UploadDocuments.checkDocUploaded();
+            documentValidation = apz.app.UploadDocuments.checkDocUploaded();
+      }
+    } else if(gApzCOB.currentApplicant !== 1 && mandatoryDocumentTypes.length > 0){
+        app_document_validation = apz.app.UploadDocuments.checkprevDocVal();
+        documentValidation = apz.app.UploadDocuments.checkDocUploaded();
+        // if(app_document_validation === true) {
+        //     documentValidation = apz.app.UploadDocuments.checkDocUploaded();
+        // } else {
+        //     documentValidation = false;
+        //     // ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_APPDOCVALIDERROR"), "E", "");
+        // }
+    } else {
+      documentValidation = true;  
+    }
+    if (documentValidation && app_document_validation) {
+        ApzCOB.createLoan();
+    } else if(gApzCOB.currentApplicant == 1 && documentValidation) {
+        ApzCOB.createLoan();
+    } else {
+        if (app_document_validation == false && documentValidation == true) {
+            ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_APPDOCVALIDERROR"), "E", "");
+        } else if (app_document_validation == true && documentValidation == false) {
+            ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_COAPPDOCVALIDERROR"), "E", "");
+        } else if (documentValidation == false && app_document_validation == false) {
+            ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_APPCOAPPDOCVALIDERROR"), "E", "");
+        }
+    }
+    $('body').removeClass('ajs-no-overflow')
+};
+apz.app.UploadDocuments.checkDocUploaded = function(){
+    window.documentProofObj = window.inSessionStore.applicationDocumentsWrapperListSess[CURRENT_APPLICANT_DETAILS_INDEX];
+    let isValid = false;
+    let mandateRefArray = [...mandatoryDocumentTypes];
+  mandatoryDocumentTypes.map(docs => {
+      let docTypeOnMand = "";
+    let docDivId = docs+"_Div";
+    let docMinCount = parseInt(docMaxAndMand.filter(docM => docM.key === docs)[0]['value'].split('~')[1]);
+     let errMsg = "";
+    if(!apz.isNull(documentProofObj)){
+      if(documentProofObj[docs].length >= docMinCount){
+          $('#'+UpDocScrId+docDivId).removeClass('docErrBorder'); 
+          mandateRefArray.splice(mandateRefArray.indexOf(docs), 1);
+         $('.'+docs+'_ERR label.var1').text(errMsg);
+         $('.'+docs+'_ERR').addClass('sno');
+      } else {
+          errMsg = "Please upload minimum "+docMinCount+ " "+docs.replaceAll('_',' ')+" documents.!";
+          $('.'+docs+'_ERR label.var1').text(errMsg);
+          $('.'+docs+'_ERR').removeClass('sno');
+         $('#'+UpDocScrId+docDivId).addClass('docErrBorder'); 
+      } 
+    }
+  })  
+  if(mandateRefArray.length === 0){
+    isValid = true;  
+  } else {
+      isValid = false;
+    document.getElementById(UpDocScrId + mandateRefArray[0]+"_Div").scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+          inline: "center"
+      }) 
+
+  }
+   return isValid;
+}
+/*custom code starts*/
+apz.app.UploadDocuments.uploadBtnClickNew = function(fileObj, browseId, type,docCat) {
+    IS_ADITIONAL_DOC_OPERATION = false;
+    window.browseFileElem = fileObj;
+    selType = type;
+    if ($('#' + UpDocScrId + selType+'_SubHeaderDropDown').val() === PleaseSelect) {
+    ApzCOB.fnDisplayMsg("Please select "+selType+ " document type", "E");  
+    return false;  
+    } else {
+    selCat = docCat;
+    FileSideBrowseId = browseId;
+    var browseAttr = $(fileObj).attr('id');
+    DOC_NO =  browseAttr.split('Camera')[1];
+    apz.app.UploadDocuments.SelectOption('camera');  
+    }
+};
+
+apz.app.UploadDocuments.browsefileNew = function(fileObj, browseId, type, docCat) {
+    groupCode = inSessionStore?.applicationMaster?.productGroupCode ?? 'LOAN';
+    selType = type;
+    if ($('#' + UpDocScrId + selType + '_SubHeaderDropDown').val() === PleaseSelect) {
+        ApzCOB.fnDisplayMsg("Please select " + selType + " document type", "E");
+        return false;
+    } else {
+        FileSideBrowseId = browseId;
+        selCat = docCat;
+        var browseAttr = $(fileObj).attr('id');
+        DOC_NO = browseAttr.split('Browse')[1];
+        var fileExtenName = fileObj.value.split('.')[1].toLocaleLowerCase();
+        window.browseFileElem = fileObj;
+        if (!Object.values(gAllowedFileTypes).includes(fileExtenName)) {
+            ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_UPLOADDOCS_MSG_TXT_UPLOAD_VALID_FILE"), "W");
+            return;
+        }
+        let sizeInBytes = maxDocUploadSize * 1024; //fileSize should be in kb
+        if (fileObj.files[0].size > sizeInBytes) {
+            ApzCOB.fnDisplayMsg("File size should be below " + ApzCOB.formatSize(sizeInBytes) + "." + "<br/>" + "Currently uploaded file size: " + ApzCOB.formatSize(fileObj.files[0].size), "E");
+            return;
+        }
+        filesObj = fileObj;
+        var fileToUpload = fileObj.files;
+        localFileObj = {}; //localFileObj.appid = apz.getElmValue(pageId + "appId");
+        localFileObj.filename = fileToUpload[0].name;
+        let activeCustType = gApzCOB?.currentApplicant == '1' ? 'A': 'C';
+        fileExtenName = localFileObj.filename?.split('.')?.pop();
+        // localFileObj.filename = `${activeCustType}_${selType}_${DOC_NO}.${fileExtenName}`;
+        localFileObj.filetype = fileToUpload[0].type;
+        localFileObj.filelocation = apz.appId + "/" + localFileObj.filename;
+        localFileObj.filePath = `${apz.appId}/${groupCode}/${gApzCOB.userDetails.applicationId}`;
+        localFileObj.productGroupCode = groupCode;
+        localFileObj.docType = selType;
+        localFileObj.docSize = fileObj.files[0].size;
+        localFileObj.docSide = browseId === "Browse2" ? "Back" : "Front";
+        localFileObj.isAdiDoc = "N";
+        localFileObj.docLevel = parseInt(DOC_NO);
+        IS_ADITIONAL_DOC_OPERATION = false;
+        localFileObj.fieldID = UpDocScrId + type + "_" + browseId;
+        if (!apz.isNull(docCat)) {
+            localFileObj.fieldID = UpDocScrId + docCat + browseId;
+        }
+        localFileObj.docCategory = selCat;
+        FileSideBrowseId = browseId;
+        apz.app.UploadDocuments.LoadUploadDocGetFile();
+        //apz.app.UploadDocuments.infoModal(type);
+      
+    }
+      $(fileObj).val('')
+}
+apz.app.UploadDocuments.getTypeBasedDoc = function(docType,DocId){
+ let filteredData = [];   
+ if(!apz.isNull(documentProofObj)){
+    if(!apz.isNull(documentProofObj[selType])){
+      if(documentProofObj[selType].length > 0){
+        filteredData = documentProofObj[selType].filter(docs => docs.docType === docType && docs.appDocId === parseInt(DocId))  
+      }  
+    }    
+ }
+ return filteredData;
+}
+apz.app.UploadDocuments.displayFileNameNew = function() {
+    if(!IS_ADITIONAL_DOC_OPERATION){
+      var docData = [];
+    docData = apz.app.UploadDocuments.getTypeBasedDoc(selType,appDocID);
+    if(docData.length > 0){
+      $("#" + UpDocScrId + selType+"_Image"+DOC_NO+"_ul").removeClass("sno");
+       $("#" + UpDocScrId + selType+"_Image"+DOC_NO+"_ul").parent().removeClass("sno");
+      $("#" + UpDocScrId + selType+"_Image"+DOC_NO+"_img").attr('src', "data:image/jpg;base64," + docData[0]["imgSrc"]);
+      $("#" + UpDocScrId + selType+"_FileName"+DOC_NO).text(docData[0]["docName"]);
+      $("#" + UpDocScrId + selType+"_ImageClose"+DOC_NO+"_ul").removeClass("sno");
+      $("#" + UpDocScrId + selType+"_Image"+DOC_NO).text(docData[0]["filename"]);
+      $("#" + UpDocScrId + selType+"_docAppId"+DOC_NO).text(docData[0]["appDocId"]);  
+      $('#'+UpDocScrId+selType+'_'+DOC_NO).addClass('DOC_UPLOADED');
+    }
+    var dropdownId = UpDocScrId+selType+'_SubHeaderDropDown';
+    if(documentProofObj[selType].length > 0){
+     ApzCOB.addDisableToInput(dropdownId);  
+    } else {
+     ApzCOB.removeDisableToInput(dropdownId)    
+    }  
+    $('#'+dropdownId).attr('readonly','readonly');
+    if(apz.deviceType === "WEB"){
+     $('#'+UpDocScrId+selType+'_Browse'+DOC_NO+'_ul').parent().addClass('sno');   
+     $('#'+UpDocScrId+selType+'_Browse'+DOC_NO).parents('.docErrBorder').removeClass('docErrBorder');
+    } else {
+     $('#'+UpDocScrId+selType+'_Camera'+DOC_NO+'_ul').parent().addClass('sno');  
+     $('#'+UpDocScrId+selType+'_Camera'+DOC_NO).parents('.docErrBorder').removeClass('docErrBorder');
+    }
+    $('.'+selType+'_ERR label.var1').text("");
+    $('.'+selType+'_ERR').addClass('sno');
+    } else {
+     apz.app.UploadDocuments.LoadFileNamesForOtherDoc();   
+    }
+}
+apz.app.UploadDocuments.getFileArrNew = function() {
+    var isValid3 = true;
+    var tempFileArr = [];
+    finalDocsArr = [];
+    localFileObj.docSide = "Front";
+    localFileObj.docNo = (!apz.isNull(DOC_NO)) ? parseInt(DOC_NO) : "";
+    if(IS_ADITIONAL_DOC_OPERATION){
+    localFileObj.docName = $('#' + UpDocScrId +"otherdocType").val();  
+    localFileObj.docCategory = apz.getElmValue(UpDocScrId + 'otherdocpri');
+    } else {
+    localFileObj.docName = $('#' + UpDocScrId + selType+'_SubHeaderDropDown').val();
+    }
+    localFileObj.docLevel = parseInt(DOC_NO);
+    let hasDocLevel2 = documentProofObj[selType]?.some(
+        obj => parseInt(obj.docLevel) === 2
+    );
+    if (hasDocLevel2) {
+        localFileObj.docLevel = 1;
+    } else {
+        localFileObj.docLevel = parseInt(DOC_NO);
+    }
+    documentProofObj[selType].push(localFileObj);
+    documentProofObj[selType].sort((doc1, doc2) => doc1.docLevel - doc2.docLevel);
+    tempFileArr = documentProofObj[selType];
+    return tempFileArr;
+}
+apz.app.UploadDocuments.paintFilesNew = function() {
+    if(!apz.isNull(documentProofObj)){
+    for (let key in documentProofObj) {
+        let docList = documentProofObj[key].filter(item => item.isAdiDoc !== 'Y');
+    //   let docList = documentProofObj[key];
+       if(docList.length > 0){
+         let docDivLength = $('#'+UpDocScrId+key+'_form .docItemRow:not(.sno)').length;
+         if (docDivLength <= 1) {
+             docList.map((doc, index) => {
+                    //  let addRowId = $(pthis).parents('.docItemRow').attr('id');
+                     let idString = UpDocScrId + key + "_0"
+                     let rowIndex = $('#' + UpDocScrId + key + '_form  .docItemRow').length
+                     let cloneStatus = apz.app.UploadDocuments.addDocumentRowClone(key, document.querySelector('#' + idString), $('#' +
+                         UpDocScrId + key + '_form'), rowIndex);
+                     if (!apz.isNull(cloneStatus)) {
+                         if(index !== 0){
+                         $('#' + UpDocScrId + key + '_AddDocBtn'+index).addClass('sno');
+                         }
+                     }
+                 let indexToPaint = index + 1;
+                if(apz.deviceType === "WEB"){
+                $('#' + UpDocScrId + key+'_Browse'+indexToPaint+'_ul').addClass('sno');   
+                } else {
+                $('#' + UpDocScrId + key+'_Camera'+indexToPaint+'_ul').addClass('sno');   
+                }
+                $("#" + UpDocScrId + key+"Image"+indexToPaint).attr('src', "data:image/jpg;base64," + doc.imgSrc);
+                $("#" + UpDocScrId + key+"_Image"+indexToPaint+"_img").attr('src', "data:image/jpg;base64," + doc.imgSrc);
+                $("#" + UpDocScrId + key+"_FileName"+indexToPaint).text(doc.docName);
+                $("#" + UpDocScrId + key+"_ImageClose"+indexToPaint+"_ul").removeClass("sno");
+                $("#" + UpDocScrId + key+"_Image"+indexToPaint).text(doc.filename);
+                $("#" + UpDocScrId + key+"_Image"+indexToPaint+"_ul").removeClass("sno");
+                $("#" + UpDocScrId + key+"_Image"+indexToPaint+"_ul").parent().removeClass("sno");
+                $("#" + UpDocScrId + key+"_docAppId"+indexToPaint).text(doc.appDocId); 
+                $("#" + UpDocScrId + key+"_"+indexToPaint).addClass('DOC_UPLOADED');
+                var dropdownId = UpDocScrId+key+'_SubHeaderDropDown';
+                ApzCOB.addDisableToInput(dropdownId);
+                $('#'+dropdownId).val(doc.docName).change()
+                $('#'+dropdownId).attr('readonly','readonly');
+             })
+         }
+       } else {
+           if(mandatoryDocumentTypes.includes(key)){
+             apz.app.UploadDocuments.loadDefaultDivs(key);
+           }
+       }
+    }  
+    apz.app.UploadDocuments.LoadFileNamesForOtherDoc();
+    }
+};
+apz.app.UploadDocuments.fileClickNew = function(obj, selType3, type,cat) {
+    IS_ADITIONAL_DOC_OPERATION = false;
+     window.viewDocBtn = obj;
+    window.docAction = "view";
+    var flname = $(obj).text();
+    selCat = cat;
+    selType = selType3;
+    DOC_NO = parseInt(window.viewDocBtn.id.split('Image')[1]);
+    SELECTED_DOC_APP_ID = parseInt($(obj).parents('.docItemRow').find('.appDocID label.pri').text());
+    var tempFileArr = apz.app.UploadDocuments.getTypeBasedDoc(selType,SELECTED_DOC_APP_ID);
+    if(tempFileArr.length > 0){
+            viewBase64 = tempFileArr[0].imgSrc;
+            curImgObj = tempFileArr[0];
+            curImgIndex = SELECTED_DOC_APP_ID;
+            window.ImageLocationDetails = {
+                latitude: tempFileArr[0].latitude || "",
+                longitude: tempFileArr[0].longitude || "",
+                uploadedTs: tempFileArr[0].uploadedTs || "",
+                documentFileName: tempFileArr[0].filename || ""
+            };
+            apz.app.UploadDocuments.noBase64(flname, curImgObj, SELECTED_DOC_APP_ID);
+    }
+};
+apz.app.UploadDocuments.setMandatoryDocumentDivs = function() {
+        let personalData = [];
+        let addressData = [];
+        let selectedOccupation = '';
+        let occupationData = [];
+        let bankDetails = [];
+        let primaryKycID = "";
+        let secondaryKycId = "";
+        if (!apz.isNull(inSessionStore)) {
+                if (!apz.isNull(inSessionStore.customerDetailsList) && !apz.isNull(inSessionStore.addressDetailsWrapperList) && !apz.isNull(
+                        inSessionStore.occupationDetailsWrapperList)) {
+                    if (inSessionStore.customerDetailsList.length > 0) {
+                        if (gApzCOB.currentApplicant <= 1) {
+                            personalData = inSessionStore.customerDetailsList.filter(personal => personal.customerType === "Applicant")
+                        } else {
+                            personalData = inSessionStore.customerDetailsList.filter(personal => personal.customerType !== "Applicant")
+                        }
+                        if (personalData.length > 0) {
+                            if (personalData[0].payload?.isDisabled === 'Y') {
+                                mandatoryDocumentTypes.push("UDID_ID");
+                                mandatoryPrefilledValues['UDID_ID'] = 'UDID_ID';
+                                $('#'+UpDocScrId+'UDIDID_NO').text(personalData[0].payload?.UDID);
+                                $('#'+UpDocScrId+ 'UDID_ID_Div').removeClass('sno');
+                                
+                                
+                            }else
+                            {
+                                $('#'+UpDocScrId+ 'UDID_ID_Div').addClass('sno');
+                            }
+                            let secKycType = personalData[0].payload.secondaryKycType;
+                            apz.app.UploadDocuments.updateMandatoryDocsDropvalues(UpDocScrId +'SECONDARY_KYC_SubHeaderDropDown',secondaryKyc)
+                            if (!apz.isNull(secKycType)) {
+                                mandatoryDocumentTypes.push("SECONDARY_KYC");
+                                mandatoryPrefilledValues['SECONDARY_KYC'] = secKycType;
+                                $('#'+UpDocScrId +'SECONDARY_KYC_SubHeaderDropDown').val(secKycType);
+                                 ApzCOB.addDisableToInput(UpDocScrId +'SECONDARY_KYC_SubHeaderDropDown');  
+                                 secondaryKycId = (!apz.isNull(personalData[0].payload.secondaryKycId)) ? personalData[0].payload.secondaryKycId : "";
+                                  $('#'+UpDocScrId+'SECONDARY_KYC_ID').text(secondaryKycId);
+                            }
+                            selectedOccupation = personalData[0].payload.occupation;
+                            primaryKycID = (!apz.isNull(personalData[0].payload.primaryKycId)) ? personalData[0].payload.primaryKycId : "";
+                            let primaryKycEntered = apz.app.UploadDocuments.getValidKycID();
+                            $('#'+UpDocScrId+'primaryKycID').text(primaryKycEntered);
+                             ApzCOB.addDisableToInput(UpDocScrId +'PRIMARY_KYC_SubHeaderDropDown');
+                             let panTypeSts = personalData[0].payload.panNumberStatus;
+                             let panTypenum = personalData[0].payload.panNumber;
+                             if(!apz.isNull(panTypenum) && panTypeSts == 'Verified') {
+                                 mandatoryDocumentTypes.push("PAN_NUMBER_PHOTO");
+                                //  $('#' + UpDocScrId + 'PAN_NUMBER_PHOTO_Div').removeClass('sno');
+                             }
+                        }
+                    }
+                    if (inSessionStore.addressDetailsWrapperList.length > 0) {
+                        if (!apz.isNull(inSessionStore.addressDetailsWrapperList[0].addressDetailsList) && inSessionStore.addressDetailsWrapperList[0]
+                            .addressDetailsList.length > 0) {
+                            let sessionAddressData = inSessionStore.addressDetailsWrapperList[0].addressDetailsList;
+                            if (gApzCOB.currentApplicant <= 1) {
+                                addressData = sessionAddressData.filter(address => parseInt(address.custDtlId) === parseInt(gApzCOB.userDetails
+                                    .custDtlId) && address.addressType === "Personal");
+                            } else {
+                                addressData = sessionAddressData.filter(address => parseInt(address.custDtlId) === parseInt(gApzCOB.userDetails
+                                    .CoApplicantCustomerId) && address.addressType === "Personal");
+                            }
+                            if (addressData.length > 0) {
+                                let presentAddressArray = addressData[0].payload.addressList.filter(currentAddress => currentAddress.addressType === "Present");
+                            
+                                if (presentAddressArray.length > 0) {
+                                    let currentResidencePrrofVal = presentAddressArray[0].currentAddressProof;
+                                    let effectiveProofVal = currentResidencePrrofVal === "As per KYC document" ? "As per Voter ID" : currentResidencePrrofVal;
+                                    if (!apz.isNull(effectiveProofVal) && effectiveProofVal.toLowerCase() !== "as per voter id") {
+                                        mandatoryDocumentTypes.push("ADDRESS_PROOF");
+                                        mandatoryPrefilledValues['ADDRESS_PROOF'] = currentResidencePrrofVal;
+                            
+                                        if (currentAddressProofDocMap.length > 0) {
+                                            let dropdownValues = currentAddressProofDocMap[0][effectiveProofVal];
+                                            if (dropdownValues && dropdownValues.length > 0) {
+                                                apz.app.UploadDocuments.updateMandatoryDocsDropvalues(
+                                                    UpDocScrId + 'ADDRESS_PROOF_SubHeaderDropDown',
+                                                    dropdownValues
+                                                );
+                                            }
+                                        }
+                                    } else {
+                                        mandatoryPrefilledValues['ADDRESS_PROOF'] = currentResidencePrrofVal;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if (!apz.isNull(selectedOccupation) && selectedOccupation.toLocaleLowerCase() !== "homemaker") {
+                        if (inSessionStore.occupationDetailsWrapperList.length > 0) {
+                            let sessionOccupationData = inSessionStore.occupationDetailsWrapperList;
+                            if (gApzCOB.currentApplicant <= 1) {
+                                occupationData = sessionOccupationData.filter(occupation => parseInt(occupation.occupationDetails.custDtlId) === parseInt(gApzCOB
+                                    .userDetails.custDtlId));
+                            } else {
+                                occupationData = sessionOccupationData.filter(occupation => parseInt(occupation.occupationDetails.custDtlId) === parseInt(gApzCOB
+                                    .userDetails.CoApplicantCustomerId));
+                            }
+                            if (occupationData.length > 0) {
+                                if (selectedOccupation.toLocaleLowerCase() === "salaried") {
+                                    let employmentPrrofVal = occupationData[0].occupationDetails.payload.employmentProof;
+                                    if (!apz.isNull(employmentPrrofVal)) {
+                                        mandatoryDocumentTypes.push("EMPLOYMENT_PROOF");
+                                        mandatoryPrefilledValues['EMPLOYMENT_PROOF'] = employmentPrrofVal;
+                                        if(employmentProofDocMap.length > 0){
+                                          let empProofDropdownValues = employmentProofDocMap[0][employmentPrrofVal];
+                                          if(empProofDropdownValues.length > 0){
+                                           apz.app.UploadDocuments.updateMandatoryDocsDropvalues(UpDocScrId +'EMPLOYMENT_PROOF_SubHeaderDropDown',empProofDropdownValues)   
+                                          }
+                                        }
+                                    }
+                                }
+                                    let businessAddressProofVal = occupationData[0].occupationDetails.payload.businessAddressProof;
+                                    let BAeffectiveProofVal = businessAddressProofVal === "As per KYC document" ? "As per Voter ID" : businessAddressProofVal;
+                                    if (!apz.isNull(businessAddressProofVal)  && BAeffectiveProofVal.toLowerCase() !== "as per voter id") {
+                                        mandatoryDocumentTypes.push("BUSINESS_ADDRESS_PROOF");
+                                        mandatoryPrefilledValues['BUSINESS_ADDRESS_PROOF'] = businessAddressProofVal;
+                                    }
+
+                                    if (businessAddressProofVal !== 'As per Voter ID') {
+                                        if (businessAddressProofDocMap.length > 0) {
+                                            let businessDropdownValues = businessAddressProofDocMap[0][businessAddressProofVal];
+                                            if (businessDropdownValues && businessDropdownValues.length > 0) {
+                                                apz.app.UploadDocuments.updateMandatoryDocsDropvalues(
+                                                    UpDocScrId + 'BUSINESS_ADDRESS_PROOF_SubHeaderDropDown',
+                                                    businessDropdownValues
+                                                );
+                                            }
+                                        }
+                                        $(`#${UpDocScrId}BUSINESS_ADDRESS_PROOF_SubHeaderDropDown`).parent().removeClass('sno')  
+                                    } else{
+                                      $(`#${UpDocScrId}BUSINESS_ADDRESS_PROOF_SubHeaderDropDown`).parent().addClass('sno')  
+                                    }
+                                    
+                                    } 
+                            }
+                            mandatoryDocumentTypes.push("BUSINESS_PREMISE_PHOTO");
+                            /*if(!apz.isNull(inSessionStore.bankDetailsWrapperList)){
+                                                      if (inSessionStore.bankDetailsWrapperList.length > 0) {
+                                                          bankDetails = inSessionStore.bankDetailsWrapperList.filter(bankData => parseInt(bankData
+                                                              .bankDetails.custDtlId) === parseInt(gApzCOB.userDetails.custDtlId));
+                                                          if (bankDetails.length > 0) {
+                                                              let bankDataEditable = bankDetails[0].bankDetails.payload.editBankDetails;
+                                                            
+                                                          }
+                                                      }      }*/
+                            if (gApzCOB.currentApplicant <= 1) {
+                                apz.populateDropdown(document.getElementById(UpDocScrId + "BANK_ACCOUNT_PROOF_SubHeaderDropDown"), bankAccProofArr);
+                                mandatoryDocumentTypes.push("BANK_ACCOUNT_PROOF");
+                            }
+                        } else if (selectedOccupation.toLocaleLowerCase() === "homemaker" && gApzCOB.currentApplicant <= 1) {
+                            apz.populateDropdown(document.getElementById(UpDocScrId+"BANK_ACCOUNT_PROOF_SubHeaderDropDown"), bankAccProofArr);
+                            mandatoryDocumentTypes.push("BANK_ACCOUNT_PROOF");
+                        }
+                    }
+                    if (gApzCOB.currentApplicant <= 1) {
+                    mandatoryDocumentTypes.push("RELATIONSHIP_PROOF");
+                    mandatoryPrefilledValues['RELATIONSHIP_PROOF'] = "Relationship Proof";
+                    //  if (relatArr[0].desc !== PleaseSelect) {
+                    // relatArr.unshift({
+                    // "val": PleaseSelect,
+                    // "desc": PleaseSelect
+                    // });
+                    //  }
+
+                    apz.populateDropdown(document.getElementById(UpDocScrId +'RELATIONSHIP_PROOF_SubHeaderDropDown'), relatArr);
+                    }
+                        mandatoryDocumentTypes.push("CUSTOMER_PHOTOGRAPH");
+                        mandatoryDocumentTypes.push("RESIDENCE_PREMISE_PHOTO");
+                     apz.app.UploadDocuments.hideAndShowMandatoryDocumentDivs();
+        }
+}
+apz.app.UploadDocuments.hideAndShowMandatoryDocumentDivs = function() {
+    if (mandatoryDocumentTypes.length > 0) {
+        mandatoryDocumentTypes.map(mand => {
+              $('#' + UpDocScrId + mand+"_Div").removeClass('sno');  
+        })
+        for (let key in mandatoryPrefilledValues) {
+            if (mandatoryPrefilledValues.hasOwnProperty(key)) {
+                 $('#' + UpDocScrId + key+"_Div" + ' .docSubHeader label').text(mandatoryPrefilledValues[key])   
+            }
+        }
+    }
+}
+apz.app.UploadDocuments.updateMandatoryDocsDropvalues = function(dropdownId,docTypes){
+apz.populateDropdown(document.getElementById(dropdownId), ApzCOB.formatDropDownforArray(docTypes));    
+}
+apz.app.UploadDocuments.duplicateAndChangeId = function(selectElement,parentElement,index) {
+    const originalDiv = selectElement;
+    let newId =  "";
+    if (originalDiv) {
+        const clonedDiv = originalDiv.cloneNode(true);
+        newId = 'UpDocs__UploadDocuments__photograph_' + (index + 1);
+        clonedDiv.id = newId;
+       parentElement.append(clonedDiv);
+    } else {
+    }
+    return newId;
+}
+apz.app.UploadDocuments.addDocumentRow = function(docType,pthis){
+ let addRowId = $(pthis).attr('id');
+ let idString = UpDocScrId+docType+"_0";
+ let rowIndex = $('#'+UpDocScrId+docType+'_form  .docItemRow').length;
+ let rowId = parseInt(addRowId.split('AddDocBtn')[1]);
+ let isValid = apz.app.UploadDocuments.addDocumentRowValidation(docType,rowId);
+ if(isValid){
+  let cloneStatus = apz.app.UploadDocuments.addDocumentRowClone(docType,document.querySelector('#'+idString),$('#'+UpDocScrId+docType+'_form'),(rowId+ 1));
+ if(!apz.isNull(cloneStatus)){
+    $(pthis).addClass('sno'); 
+ }   
+ }
+}
+apz.app.UploadDocuments.addDocumentRowValidation = function(docType,rowId){
+  let valid = true;
+  for(var i = 1; i <= rowId; i++){
+    if(!$('#'+UpDocScrId+docType+'_'+i).hasClass('DOC_UPLOADED')){
+      valid = false;  
+    }
+  }
+  if(valid){
+      let maxDocAllowed = parseInt(docMaxAndMand.filter(docM => docM.key === docType)[0]['value'].split('~')[0]);
+    if(rowId >= maxDocAllowed){
+     ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_DOC_MAX_DOC_LIMIT_REACHED"), "E");
+     valid = false;    
+    }    
+  }
+ return valid;
+}
+apz.app.UploadDocuments.addDocumentRowClone = function(docType,selectElement,parentElement,rowIndex){
+    const originalDiv = selectElement;
+    let newId =  "";
+    if (originalDiv) {
+        const clonedDiv = originalDiv.cloneNode(true);
+        newId = UpDocScrId+docType+"_"+rowIndex;
+        clonedDiv.id = newId;
+       parentElement.append(clonedDiv);
+    apz.app.UploadDocuments.commmonElementsUpdate(newId,'Browse',false,docType,rowIndex);
+    apz.app.UploadDocuments.commmonElementsUpdate(newId,'Camera',false,docType,rowIndex);
+    apz.app.UploadDocuments.commmonElementsUpdate(newId,'Image',false,docType,rowIndex);
+    apz.app.UploadDocuments.commmonElementsUpdate(newId,'ImageClose',false,docType,rowIndex);
+    apz.app.UploadDocuments.commmonElementsUpdate(newId,'FileName',true,docType,rowIndex);
+    apz.app.UploadDocuments.commmonElementsUpdate(newId,'AddDocBtn',true,docType,rowIndex);
+    apz.app.UploadDocuments.commmonElementsUpdate(newId,'docAppId',true,docType,rowIndex);
+    $('#'+newId+' #'+UpDocScrId+docType+'_Image0_svg').attr('id',UpDocScrId+docType+'_Image'+rowIndex+'_svg');
+    $('#'+newId+' #'+UpDocScrId+docType+'_ImageClose'+rowIndex).attr('onclick', 'apz.app.UploadDocuments.deleteDocumentOnType("'+docType+'",'+rowIndex+')');
+       $('#'+newId).removeClass('sno');
+    } else {
+    }
+    return newId;  
+}
+apz.app.UploadDocuments.commmonElementsUpdate = function(newDivId,elementName,isText,docType,rowIndex){
+  $('#'+newDivId+' #'+UpDocScrId+docType+'_'+elementName+'0_ul').attr('id',UpDocScrId+docType+'_'+elementName+rowIndex+'_ul');
+  $('#'+newDivId+' #'+UpDocScrId+docType+'_'+elementName+'0_li').attr('id',UpDocScrId+docType+'_'+elementName+rowIndex+'_li');
+  $('#'+newDivId+' #'+UpDocScrId+docType+'_'+elementName+'0').attr('id',UpDocScrId+docType+'_'+elementName+rowIndex);
+  if(isText){
+  $('#'+newDivId+' #'+UpDocScrId+docType+'_'+elementName+'0_txtcnt').attr('id',UpDocScrId+docType+'_'+elementName+rowIndex+'_txtcnt');  
+  }
+}
+apz.app.UploadDocuments.deleteDocumentOnType = function(docType, docNo){
+  if(!apz.isNull(docNo)){
+    SELECTED_DOC_APP_ID = parseInt($('#'+UpDocScrId+docType+'_docAppId'+docNo).text());
+  }
+  DOC_NO = docNo;
+  apz.app.UploadDocuments.deleteDocument(docType,SELECTED_DOC_APP_ID);
+}
+apz.app.UploadDocuments.deleteDocument = function(DocType,docId){
+  if ($('#' + UpDocScrId + "viewUploadedFileModal").is(':visible')) {
+        ApzCOB.toggleModal(UpDocScrId + "viewUploadedFileModal");
+    }
+    selType = DocType;
+    var filteredData = [];
+    if(!apz.isNull(documentProofObj)){
+    if(!apz.isNull(documentProofObj[DocType])){
+      if(documentProofObj[DocType].length > 0){
+             filteredData = documentProofObj[selType].filter(docs => docs.docType === DocType && docs.appDocId === parseInt(docId)); 
+      }  
+    }    
+ }
+ if(filteredData.length > 0){
+   ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_UPLOADDOCS_MSG_TXT_DELETE_FILE_CONF"), "C", apz.app.UploadDocuments.deleteDocumentCB);  
+ }
+}
+apz.app.UploadDocuments.deleteDocumentCB = function(param) {
+    selCat = '';
+    if (!apz.isNull(param) && param.choice === true) {
+        ApzCOB.deleteDocument(selType, SELECTED_DOC_APP_ID);
+        apz.app.UploadDocuments.manualDelete();
+    }
+    if ($('#' + UpDocScrId + "viewUploadedFileModal").is(':visible')) {
+        ApzCOB.toggleModal(UpDocScrId + "viewUploadedFileModal");
+        ApzCOB.deleteDocument(deleteDocument, DOC_NO);
+    }
+};
+apz.app.UploadDocuments.removeDocFromRequest = function(docArray) {
+    let reqAppDocId = '';
+    if (docArray.length > 0) {
+        reqAppDocId = docArray[0].appDocId;
+    } else {
+        reqAppDocId = !apz.isNull(docArray.appDocId) ? docArray.appDocId : '';
+    }
+    if (!apz.isNull(reqAppDocId)) {
+        if (documentProofObj[selType].length > 0) {
+            documentProofObj[selType].forEach(function(e, i) {
+                if (e.appDocId === reqAppDocId) {
+                    documentProofObj[selType].splice(i, 1)
+                }
+            });
+        }
+        if (!apz.isNull(gApzCOB.requestNodes.applicationDocumentsWrapperList)) {
+            if (gApzCOB.requestNodes.applicationDocumentsWrapperList.length > 0) {
+                if (gApzCOB["requestNodes"]['applicationDocumentsWrapperList'][0].applicationDocumentsList.length > 0) {
+                    gApzCOB["requestNodes"]['applicationDocumentsWrapperList'][0].applicationDocumentsList.forEach(function(e, i) {
+                        if (e.payload.appDocId === reqAppDocId) {
+                            gApzCOB["requestNodes"]['applicationDocumentsWrapperList'][0].applicationDocumentsList.splice(i, 1)
+                        }
+                    });
+                }
+            }
+        }
+    }
+}
+apz.app.UploadDocuments.loadDefaultDivs = function(docType){
+    if(apz.isNull(docType)){
+       if(!apz.isNull(documentProofObj)){
+       for (let key in documentProofObj) {
+               let docDivLength = $('#' + UpDocScrId + key + '_form .docItemRow:not(.sno)').length;
+               if (docDivLength === 0) {
+                   let idString = UpDocScrId + key + "_0"
+                   let cloneStatus = apz.app.UploadDocuments.addDocumentRowClone(key, document.querySelector('#' + idString), $('#' +
+                               UpDocScrId + key + '_form'), 1);
+               }  
+       }  
+ }    
+    } else {
+   let docDivLength = $('#' + UpDocScrId + docType + '_form .docItemRow:not(.sno)').length;
+   if (docDivLength === 0) {
+       let idString = UpDocScrId + docType + "_0"
+       let cloneStatus = apz.app.UploadDocuments.addDocumentRowClone(docType, document.querySelector('#' + idString), $('#' +
+                   UpDocScrId + docType + '_form'), 1);
+   }    
+    }
+}
+apz.app.UploadDocuments.getValidKycID = function(){
+    let custData = [];
+    let kycID = "";
+if(!apz.isNull(inSessionStore)){
+    if(!apz.isNull(inSessionStore.customerDetailsList)){
+      if(inSessionStore.customerDetailsList.length > 0){
+        if(gApzCOB.currentApplicant <= 1){
+            custData =  inSessionStore.customerDetailsList.filter(cust => cust.custDtlId === parseInt(gApzCOB.userDetails.custDtlId));
+        }  else {
+            custData =  inSessionStore.customerDetailsList.filter(cust => cust.custDtlId === parseInt(gApzCOB.userDetails.CoApplicantCustomerId)); 
+        }
+      }  
+    }
+}
+if (custData.length > 0) {
+    if (custData[0].payload.primaryKycIdValStatus.toLocaleLowerCase() === "verified") {
+        kycID = custData[0].payload.primaryKycId;
+    } else if (custData[0].payload.alternateVoterIdValStatus.toLocaleLowerCase() === "verified") {
+        kycID = custData[0].payload.alternateVoterId;
+    }
+}
+ return kycID;
+}
+apz.app.UploadDocuments.collectMandatoryApplicantDocumentDivs = function() {
+    let personalData = [];
+    let addressData = [];
+    let selectedOccupation = '';
+    let occupationData = [];
+    let bankDetails = [];
+    let finDocList = ['PRIMARY_KYC'];
+    applicantManddocobj = [];
+    let applicant_code = 1;
+    
+    if (!apz.isNull(inSessionStore)) {
+        if (!apz.isNull(inSessionStore.customerDetailsList) && !apz.isNull(inSessionStore.addressDetailsWrapperList) && !apz.isNull(inSessionStore
+                .occupationDetailsWrapperList)) {
+            if (inSessionStore.customerDetailsList.length > 0) {
+                personalData = inSessionStore.customerDetailsList.filter(personal => personal.customerType === "Applicant")
+                if (personalData.length > 0) {
+                    let secKycType = personalData[0].payload.secondaryKycType;
+                    if (!apz.isNull(secKycType)) {
+                        finDocList.push("SECONDARY_KYC");
+                    }
+                    selectedOccupation = personalData[0].payload.occupation;
+                    let panTypeSts = personalData[0].payload.panNumberStatus;
+                    let panTypenum = personalData[0].payload.panNumber;
+                    if(!apz.isNull(panTypenum) && panTypeSts == 'Verified') {
+                        finDocList.push("PAN_NUMBER_PHOTO");
+                    }
+                }
+            }
+            if (inSessionStore.addressDetailsWrapperList.length > 0) {
+                if (!apz.isNull(inSessionStore.addressDetailsWrapperList[0].addressDetailsList) && inSessionStore.addressDetailsWrapperList[0]
+                    .addressDetailsList.length > 0) {
+                    let sessionAddressData = inSessionStore.addressDetailsWrapperList[0].addressDetailsList;
+                    if (applicant_code <= 1) {
+                        addressData = sessionAddressData.filter(address => parseInt(address.custDtlId) === parseInt(gApzCOB.userDetails
+                            .custDtlId) && address.addressType === "Personal");
+                    } else {
+                        addressData = sessionAddressData.filter(address => parseInt(address.custDtlId) === parseInt(gApzCOB.userDetails
+                            .CoApplicantCustomerId) && address.addressType === "Personal");
+                    }
+                    if (addressData.length > 0) {
+                        let presentAddressArray = addressData[0].payload.addressList.filter(currentAddress => currentAddress.addressType ===
+                            "Present");
+                        if (presentAddressArray.length > 0) {
+                            let currentResidencePrrofVal = presentAddressArray[0].currentAddressProof;
+                            let effectiveProofVal = currentResidencePrrofVal === "As per KYC document" ? "As per Voter ID" :
+                                currentResidencePrrofVal;
+                            if (!apz.isNull(effectiveProofVal) && effectiveProofVal.toLowerCase() !== "as per voter id") {
+                                finDocList.push("ADDRESS_PROOF");
+                            }
+                        }
+                    }
+                }
+            }
+            if (!apz.isNull(selectedOccupation) && selectedOccupation.toLocaleLowerCase() !== "homemaker") {
+                if (inSessionStore.occupationDetailsWrapperList.length > 0) {
+                    let sessionOccupationData = inSessionStore.occupationDetailsWrapperList;
+                    if (applicant_code <= 1) {
+                        occupationData = sessionOccupationData.filter(occupation => parseInt(occupation.occupationDetails.custDtlId) === parseInt(
+                            gApzCOB.userDetails.custDtlId));
+                    }
+                    if (occupationData.length > 0) {
+                        if (selectedOccupation.toLocaleLowerCase() === "salaried") {
+                            let employmentPrrofVal = occupationData[0].occupationDetails.payload.employmentProof;
+                            if (!apz.isNull(employmentPrrofVal)) {
+                                finDocList.push("EMPLOYMENT_PROOF");
+                            }
+                        }
+                        let businessAddressProofVal = occupationData[0].occupationDetails.payload.businessAddressProof;
+                        let BAeffectiveProofVal = businessAddressProofVal === "As per KYC document" ? "As per Voter ID" : businessAddressProofVal;
+                        if (!apz.isNull(businessAddressProofVal) && BAeffectiveProofVal.toLowerCase() !== "as per voter id") {
+                            finDocList.push("BUSINESS_ADDRESS_PROOF");
+                        }
+                    }
+                }
+                finDocList.push("BUSINESS_PREMISE_PHOTO");
+                if (applicant_code <= 1) {
+                    finDocList.push("BANK_ACCOUNT_PROOF");
+                }
+            } else if (selectedOccupation.toLocaleLowerCase() === "homemaker" && gApzCOB.currentApplicant <= 1) {
+                finDocList.push("BANK_ACCOUNT_PROOF");
+            }
+        }
+        if (applicant_code <= 1) {
+            finDocList.push("RELATIONSHIP_PROOF");
+        }
+        finDocList.push("CUSTOMER_PHOTOGRAPH");
+        finDocList.push("RESIDENCE_PREMISE_PHOTO");
+        
+    }
+   
+        applicantManddocobj = JSON.parse(JSON.stringify(finDocList));
+    
+        
+    return applicantManddocobj;
+}
+apz.app.UploadDocuments.checkprevDocVal = function() {
+    let isValid = false;
+    let manobjs = apz.app.UploadDocuments.collectMandatoryApplicantDocumentDivs();
+    let mandDocRefArray = [...manobjs];
+    if (inSessionStore.customerDetailsList[1].payload.gkCustomerType === "Applicant" && inSessionStore.customerDetailsList[1].payload.panNumberStatus == '') {
+        mandDocRefArray = mandDocRefArray.filter(item => item !== "PAN_NUMBER_PHOTO");
+    }
+    let applicantdocobj = inSessionStore.applicationDocumentsWrapperListSess[0];
+    manobjs.map(docs => {
+        let docTypeOnMand = "";
+        let docMinCount = parseInt(docMaxAndMand.filter(docM => docM.key === docs)[0]['value'].split('~')[1]);
+        if (!apz.isNull(applicantdocobj)) {
+            if (applicantdocobj[docs].length >= docMinCount) {
+                mandDocRefArray.splice(mandDocRefArray.indexOf(docs), 1);
+            }
+        }
+    })
+    if (mandDocRefArray.length === 0) {
+        isValid = true;
+    } else {
+        isValid = false;
+    }
+    return isValid;
+};

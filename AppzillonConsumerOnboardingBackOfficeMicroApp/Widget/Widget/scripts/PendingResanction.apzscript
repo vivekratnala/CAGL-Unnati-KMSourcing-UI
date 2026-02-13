@@ -1,0 +1,245 @@
+var PendingResanctionWidgetId = 'Widget__PendingResanction__',
+    ApplsBasedOnConf = [],
+    growNo = "";
+apz.app.onLoad_PendingResanction = function(params) {
+    apz.app.PendingResanction.loadWidgetData(params);
+}
+apz.app.PendingResanction.loadWidgetData = function(params) {
+    apz.startLoader();
+    if (gApzCOB.WidgetPendingResanction.length > 0) {
+        $("#" + PendingResanctionWidgetId + "PendingResanctionForm").addClass("sno");
+        $("#" + PendingResanctionWidgetId + "PendingResanctionList").removeClass("sno");
+        $("#" + PendingResanctionWidgetId + "viewAllPendingResanction").removeClass("sno");
+        apz.data.scrdata.Widget__IPaintWidgetPendingResanction_Res = {
+            WidgetData: gApzCOB.WidgetPendingResanction,
+        };
+        apz.app.PendingResanction.configureFields();
+        apz.data.loadData('IPaintWidgetPendingResanction', apz.currAppId);
+        apz.app.PendingResanction.loadArrayData();
+    }
+    if (gApzCOB.WidgetPendingResanction.length === 0 || ApplsBasedOnConf.length === 0) {
+        $("#" + PendingResanctionWidgetId + "PendingResanctionForm").removeClass("sno");
+        $("#" + PendingResanctionWidgetId + "PendingResanctionList").addClass("sno");
+        $("#" + PendingResanctionWidgetId + "viewAllPendingResanction").addClass("sno");
+    }
+    apz.stopLoader();
+};
+apz.app.PendingResanction.loadArrayData = function() {
+    ApplsBasedOnConf = [];
+    apz.data.scrdata.Widget__IPaintWidgetPendingResanction_Res = {};
+    gApzCOB.WidgetPendingResanction.forEach(function(widgetData, index) {
+        if (apz.isNull(window.selectedDashboProduct) || window.selectedDashboProduct === 'ALL' || widgetData.productGroupCode === window.selectedDashboProduct) {
+            if (!apz.isNull(new Date(widgetData.applicationDate).format('d M').split(' ')[1])) {
+                widgetData.applicationDate = new Date(widgetData.applicationDate).format('d M');
+            }
+            widgetData.productIcon = apz.app.BaseScreens.getProductIcon(widgetData.productGroupCode);
+            if (apz.isNull(widgetData.createdBy)) {
+                widgetData.createdBy = 'Customer'
+            }
+            ApplsBasedOnConf.push(widgetData);
+        }
+    });
+    apz.data.scrdata.Widget__IPaintWidgetPendingResanction_Res = {
+        WidgetData: ApplsBasedOnConf,
+    };
+    apz.data.loadData('IPaintWidgetPendingResanction', apz.currAppId);
+}
+apz.app.PendingResanction.viewAllPendingResanction = function() {
+    window.PendingResanctionVIEWALL = true;
+    ApzCOB.launchMicroApp('Dashbo', 'viewallapplication', gAppId + '__BaseScreens__BaseDIV', {
+        "screenType": "PendingResanction"
+    });
+};
+apz.app.PendingResanction.clickList = function(ev) {
+    window.viewAllClicked = false;
+    window.clickList = true;
+    window.ISPendingResanctionPPL = true;
+    growNo = $(ev).attr('rowno');
+    window.pendingApplication = true;
+    gApzCOB.requestNodes = [];
+    PendingResanctionWidgetData = apz.data.scrdata.Widget__IPaintWidgetPendingResanction_Res.WidgetData[growNo];
+    gApzCOB.userDetails.appId = PendingResanctionWidgetData.appId;
+    gApzCOB.userDetails.applicationId = PendingResanctionWidgetData.applicationId;
+    gApzCOB.userDetails.versionNum = PendingResanctionWidgetData.versionNum;
+    gApzCOB.userDetails.applicationStatus = PendingResanctionWidgetData.applicationStatus;
+    gApzCOB.userDetails.createdBy = PendingResanctionWidgetData.createdBy;
+    gApzCOB.queueStatus = PendingResanctionWidgetData.queueStatus;
+    gApzCOB.mainProductGroupCode = PendingResanctionWidgetData.productGroupCode;
+    gApzCOB.product = PendingResanctionWidgetData.productGroupCode;
+    gApzCOB.ExistingCustomer = PendingResanctionWidgetData.applicationType === 'ETB' ? true : false;
+    gApzCOB.userDetails.customerId = PendingResanctionWidgetData.customerId;
+    gApzCOB.userDetails.workitemNo = PendingResanctionWidgetData.workitemNo;
+    apz.app.BaseScreens.getCommomCodeBasedOnProduct();
+    if (gApzCOB.mainProductGroupCode === 'CASA') {
+        apz.app.PendingResanction.LoadOnClickForCASAProducts();
+    } else if (gApzCOB.mainProductGroupCode === 'DEPOSIT') {
+        apz.app.PendingResanction.LoadOnClickForDepositProducts();
+    } else if (gApzCOB.mainProductGroupCode === 'LOAN') {
+        apz.app.PendingResanction.LoadOnClickForLoanProducts();
+    } else if (gApzCOB.mainProductGroupCode === 'CARDS') {
+        if (apz.isNull(window.CURRENT_STAGE_NAME) && !apz.isNull(gApzCOB.userDetails.customerId)) {
+            ApzCOB.FetchCustomerDetailsForcards(growNo);
+        } else {
+            ApzCOB.CardsFetchApplication(growNo);
+        }
+    } else {
+        if (apz.isNull(window.CURRENT_STAGE_NAME) && !apz.isNull(gApzCOB.userDetails.customerId)) {
+            ApzCOB.FetchCustomerDetails(growNo);
+        } else {
+            ApzCOB.FetchApplication(growNo);
+        }
+    }
+};
+apz.app.PendingResanction.getWidgetData = function() {
+    let WidgetData = gApzCOB.WidgetPendingResanction.map(function(widgetData, index) {
+        let listValue = {
+            appId: widgetData.appId,
+            id: widgetData.applicationId,
+            mobileNum: widgetData.mobileNumber,
+            createdAt: widgetData.createdBy,
+            subDate: new Date(widgetData.createTs).format('d M'),
+            product: "Savings Account",
+            refNo: widgetData.applicationId,
+            iconCode: "Webcam.svg",
+            versionNum: widgetData.versionNum,
+            memberId: widgetData.memberId,
+            workitemNo: widgetData.workitemNo,
+            customerName: widgetData.customerName
+        };
+        return listValue;
+    });
+    return WidgetData;
+}
+apz.app.PendingResanction.configureFields = function() {
+    let fieldMapArray = [];
+    let a = {
+        'fieldName': 'applicationDate',
+        //'fieldId': [PendingResanctionWidgetId + 'title'],
+        'fieldDivId': [PendingResanctionWidgetId + 'applicationDateDIV_row']
+    };
+    let b = {
+        'fieldName': 'applicationId',
+        //'fieldId': [paintKYCId + 'name'],
+        'fieldDivId': [PendingResanctionWidgetId + 'applicationIdDIV_row']
+    };
+    let c = {
+        'fieldName': 'applicationStatus',
+        //'fieldId': [paintKYCId + 'dob'],
+        'fieldDivId': [PendingResanctionWidgetId + 'applicationStatusDIV_row']
+    };
+    let d = {
+        'fieldName': 'queueStatus',
+        //'fieldId': [paintKYCId + 'gender'],
+        'fieldDivId': [PendingResanctionWidgetId + 'queueStatusDIV_row']
+    };
+    let e = {
+        'fieldName': 'createdBy',
+        //'fieldId': [paintKYCId + 'mobNum'],
+        'fieldDivId': [PendingResanctionWidgetId + 'createdByDIV_row']
+    };
+    let f = {
+        'fieldName': 'emailId',
+        //'fieldId': [PendingResanctionWidgetId + 'email'],
+        'fieldDivId': [PendingResanctionWidgetId + 'emailIdDIV_row']
+    };
+    let g = {
+        'fieldName': 'mobileNumber',
+        // 'fieldId': [paintKYCId + 'addressasPerAadhar'],
+        'fieldDivId': [PendingResanctionWidgetId + 'mobileNumberDIV_row']
+    };
+    let h = {
+        'fieldName': 'pan',
+        // 'fieldId': [PendingResanctionWidgetId + 'addressType'],
+        'fieldDivId': [PendingResanctionWidgetId + 'panDIV_row']
+    };
+    let i = {
+        'fieldName': 'productCode',
+        //'fieldId': [PendingResanctionWidgetId + 'pin'],
+        'fieldDivId': [PendingResanctionWidgetId + 'productCodeDIV_row']
+    };
+    let j = {
+        'fieldName': 'productGroupCode',
+        //'fieldId': [PendingResanctionWidgetId + 'state'],
+        'fieldDivId': [PendingResanctionWidgetId + 'productGroupCodeDIV_row']
+    };
+    let k = {
+        'fieldName': 'searchCode1',
+        //'fieldId': [PendingResanctionWidgetId + 'city'],
+        'fieldDivId': [PendingResanctionWidgetId + 'searchCode1DIV_row']
+    };
+    let l = {
+        'fieldName': 'customerId',
+        //'fieldId': [PendingResanctionWidgetId + 'customerId'],
+        'fieldDivId': [PendingResanctionWidgetId + 'customerIdDIV_row']
+    };
+    let m = {
+        'fieldName': 'workItemId',
+        //'fieldId': [PendingResanctionWidgetId + 'workItemId'],
+        'fieldDivId': [PendingResanctionWidgetId + 'workItemIdDIV_row']
+    };
+    let n = {
+        'fieldName': 'memberName',
+        //'fieldId': [PendingResanctionWidgetId + 'memberName'],
+        'fieldDivId': [PendingResanctionWidgetId + 'memberNameDIV_row']
+    };
+    fieldMapArray.push(a, b, c, d, e, f, g, h, i, j, k, l, m, n);
+    let CONFCODE = ApzCOB.GetCommonCodes("WIDGETSBO")["WIDGETSBO"][0]["Pending"]["displayFields"]
+    fieldMapArray.forEach(function(m, i) {
+            CONFCODE.forEach(function(elm1, ind) {
+                //  e.fieldName.forEach(function(a, b) {
+                if (typeof(elm1) === 'object') {
+                    Object.getOwnPropertyNames(elm1).forEach(function(n) {
+                        ApzCOB.ConfigureFieldsObjectType(m, n);
+                    })
+                } else {
+                    ApzCOB.ConfigureFieldsNonObjectType(m, elm1);
+                }
+                // })
+            })
+        })
+}
+apz.app.PendingResanction.paintPayeeImageText = function() {
+    apz.data.scrdata.Widget__IPaintWidgetPendingResanction_Res.WidgetData.forEach(function(a, b) {
+        if (apz.isNull(a.iconCode)) {
+            $('#' + ViewAllAppScrId + "nameIcon" + '_' + b).addClass('sno');
+            $('#' + ViewAllAppScrId + "nameIconText" + '_' + b).removeClass('sno');
+            $('#' + ViewAllAppScrId + "nameIconText" + '_' + b + '_txtcnt').text(a.createdBy.substring(0, 1).toLocaleUpperCase());
+        } else {
+            if (apz.data.scrdata.Dashbo__ViewAllApplication_Res[b].iconCode.indexOf('data:image/jpg;base64,data:image/jpg;base64,') > -1) {
+                let imgstr = apz.data.scrdata.Dashbo__ViewAllApplication_Res[b].iconCode;
+                imgstr = imgstr.replace('data:image/jpg;base64,data:image/jpg;base64,', 'data:image/jpg;base64,');
+                $("#" + ViewAllAppScrId + "nameIcon" + "_" + b)[0].src = imgstr;
+            } else {
+                $("#" + ViewAllAppScrId + "nameIcon" + "_" + b)[0].src = apz.data.scrdata.Dashbo__ViewAllApplication_Res[b].iconCode;
+            }
+            $('#' + ViewAllAppScrId + "nameIconText" + '_' + b).addClass('sno');
+        }
+    });
+    apz.data.loadData('ViewAllApplication', 'Dashbo');
+};
+apz.app.PendingResanction.LoadOnClickForCASAProducts = function() {
+    if (apz.isNull(window.CURRENT_STAGE_NAME) && !apz.isNull(gApzCOB.userDetails.customerId)) {
+        ApzCOB.FetchCustomerDetails(growNo);
+    } else {
+        ApzCOB.FetchApplication(growNo);
+    }
+}
+apz.app.PendingResanction.LoadOnClickForDepositProducts = function() {
+    if (apz.isNull(window.CURRENT_STAGE_NAME) && !apz.isNull(gApzCOB.userDetails.customerId)) {
+        ApzCOB.FetchCustomerDetails(growNo);
+    } else {
+        if (gApzCOB.ExistingCustomer) {
+            ApzCOB.DepositFetchApplication(growNo);
+        } else {
+            ApzCOB.FetchApplication(growNo);
+        }
+    }
+}
+apz.app.PendingResanction.LoadOnClickForLoanProducts = function() {
+    ApzCOB.PendingResanctionFetchApplication(growNo);
+}
+apz.app.PendingResanction.viewAllInProgress = function() {
+    ApzCOB.launchMicroApp('Dashbo', 'viewallapplication', gAppId + '__BaseScreens__BaseDIV', {
+        "screenType": "PendingResanction",
+    });
+};

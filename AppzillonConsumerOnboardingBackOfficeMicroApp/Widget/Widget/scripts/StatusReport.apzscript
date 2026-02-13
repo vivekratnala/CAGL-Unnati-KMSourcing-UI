@@ -1,0 +1,211 @@
+apz.app.StatusReport = {};
+var StatusReportDur = ApzCOB.GetCommonCodes("CALENDARDURATION")['StatusReport'][0],
+    StatusReportScrId = 'Widget__StatusReport__',
+    Status = "",
+    WidgetId = 'Widget__Approvals__',
+    CompletedWidgetId = 'Widget__Completed__',
+    InProgressWidgetId = 'Widget__InProgress__',
+    RejectedWidgetId = 'Widget__Rejected__',
+    ApplnStatus = []
+    dt = new Date(),
+    dateID = "Widget__StatusReport__date",
+    StatusReportRes = [],
+    widgetCountsRes = [],
+    Fromperiodval = '',
+    Toperiodval = '',
+    NoOfDaysinmonth = '';
+apz.app.onLoad_StatusReport = function(params) {
+    //do nothing;
+};
+apz.app.onShown_StatusReport = function(params) {
+    Status = params.status;
+    apz.app.StatusReport.populateTransDates();
+    if (!apz.isNull(params.date)) {
+        $('#' + dateID + '_div ul').find('li').removeClass("is-selected hilt");
+        $('li[id^=' + dateID + '_option_' + params.date + ']').addClass("is-selected hilt");
+        $('#' + dateID).val(params.date);
+    }
+};
+apz.app.StatusReport.fn_SetGraphData = function() {
+    let data = [];
+    data[0] = {};
+    data[0].label = "In Progress";
+    data[0].value = !apz.isNull(assetsdata[0].InProgressCount) ? assetsdata[0].InProgressCount : 0;
+    data[1] = {};
+    data[1].label = "Pending";
+    data[1].value = !apz.isNull(assetsdata[1].ApprovalCount) ? assetsdata[1].ApprovalCount : 0;
+    data[2] = {};
+    data[2].label = "Rejected";
+    data[2].value = !apz.isNull(assetsdata[2].RejectedCount) ? assetsdata[2].RejectedCount : 0;
+    data[3] = {};
+    data[3].label = "Completed";
+    data[3].value = !apz.isNull(assetsdata[3].CompletedCount) ? assetsdata[3].CompletedCount : 0;
+    data[0].label = "In Progress" + " (" + data[0].value + ")";
+    data[1].label = "Pending" + " (" + data[1].value + ")";
+    data[2].label = "Rejected" + " (" + data[2].value + ")";
+    data[3].label = "Completed" + " (" + data[3].value + ")";
+    return data;
+};
+apz.app.StatusReport.ondateChange = function(pthis) {
+    let period = $("#" + dateID).val();
+    apz.app.StatusReport.FetchStatusReport(period);
+};
+apz.app.StatusReport.populateTransDates = function() {
+    let dateArr = [];
+    let str = StatusReportDur.value;
+    str = str.replace(/\D/g, "");
+    for (let i = 0; i < parseInt(str); i++) {
+        let obj = {};
+        obj.value = i;
+        obj.desc = ApzCOB.dateformatter(new Date().addMonths(-parseInt(i)), 'M Y');
+        dateArr.push(obj);
+    }
+    apz.populateDropdown(document.getElementById(StatusReportScrId + 'date'), dateArr);
+    let period = $("#" + dateID).val();
+    apz.app.StatusReport.FetchStatusReport(period);
+};
+apz.app.StatusReport.getFistLastDate = function(selectMonth) { // GET THE FIRST AND LAST DATE OF THE MONTH.
+    let month = apz.app.StatusReport.getMonthFromString(selectMonth),
+        year = dt.getFullYear();
+    Fromperiodval = apz.app.StatusReport.formatDate(new Date(year, month - 1, 1))
+    Toperiodval = apz.app.StatusReport.formatDate(new Date(year, month, 0))
+};
+apz.app.StatusReport.getMonthFromString = function(mon) { //get month(2) from string(Feb)
+    let d = Date.parse(mon + "1," + dt.getFullYear());
+    if (!isNaN(d)) {
+        return new Date(d).getMonth() + 1;
+    }
+    return -1;
+};
+apz.app.StatusReport.formatDate = function(date) { //for dateformat //yyyy-mm-dd
+    let d = new Date(date),
+        month = '' + (d.getMonth() + 1),
+        day = '' + d.getDate(),
+        year = d.getFullYear();
+    if (month.length < 2) {
+        month = '0' + month;
+    }
+    if (day.length < 2) {
+        day = '0' + day;
+    }
+    return [year, month, day].join('-');
+};
+apz.app.StatusReport.getApplnByDate = function(change) {
+    let from = Date.parse(window.FirstDay);
+    let to = Date.parse(window.LastDay);
+    let totalbal = 0;
+    ApplnStatus = [];
+    gApzCOB.Widget.forEach(function(el) {
+        let check = Date.parse(el.map.applicationDate);
+        if ((check <= to && check >= from)) {
+            let index = ApplnStatus.length > 0 ? ApplnStatus.indexOf(el.map.applicationStatus) : -1;
+            if (index < 0) {
+                ApplnStatus.push(el.map.applicationStatus);
+            }
+            totalbal++;
+        }
+    })
+    if (totalbal === 0) {
+        ApzCOB.launchMicroApp('Widget', 'StatusReport', 'Dashbo__dashboard__Widget0', {
+            "status": true,
+            "date": $('#' + dateID).val()
+        });
+    } else {
+        if (change) {
+            ApzCOB.launchMicroApp('Widget', 'StatusReport', 'Dashbo__dashboard__Widget0', {
+                "status": false,
+                "date": $('#' + dateID).val()
+            });
+        }
+    }
+    return totalbal;
+}
+apz.app.StatusReport.FetchStatusReport = function(period) {
+    Fromperiodval = '', Toperiodval = '', NoOfDaysinmonth = '';
+    let month = period.split(' ')[0];
+    let year = period.split(' ')[1];
+    apz.app.StatusReport.getFistLastDate(period.split(' ')[0])
+    if (typeof InstallTrigger !== 'undefined') {
+        let periodMonth = period.split(' ')[0];
+        let periodYear = period.split(' ')[1];
+        let monthStr = "";
+        let monthIndex = gMonthArr.indexOf(periodMonth) + 1;
+        if (monthIndex < 10) {
+            monthStr = "0" + monthIndex;
+        } else {
+            monthStr = "" + monthIndex;
+        }
+    }
+    let req = {
+        "apiRequest": {
+            "interfaceName": "",
+            "appId": gAppId,
+            "requestObj": {
+                "startDate": Fromperiodval,
+                "endDate": Toperiodval,
+                "userId": apz.userId,
+                "productGroupCode": window.selectedDashboProduct === 'ALL' ? "" : window.selectedDashboProduct
+            }
+        }
+    }
+    ApzCOB.serverBuildParam("Dashbo", "FetchStatusReport", "N", "N", req, true, apz.app.StatusReport.FetchStatusReportCB);
+};
+apz.app.StatusReport.FetchStatusReportCB = function(params) {
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            if (!apz.isNull(params.res.Dashbo__FetchStatusReport_Res.apiResponse.ResponseBody.responseObj)) {
+                if (!apz.isNull(params.res.Dashbo__FetchStatusReport_Res.apiResponse.ResponseBody.responseObj)) {
+                    StatusReportRes = JSON.parse(params.res.Dashbo__FetchStatusReport_Res.apiResponse.ResponseBody.responseObj).statusReportCounts;
+                    apz.app.StatusReport.paintassetsdata();
+                    apz.stopLoader();
+                }
+                if (!apz.isNull(params.res.Dashbo__FetchStatusReport_Res.apiResponse.ResponseBody.responseObj)) {
+                    widgetCountsRes = JSON.parse(params.res.Dashbo__FetchStatusReport_Res.apiResponse.ResponseBody.responseObj).widgetCounts;
+                    apz.app.StatusReport.paintWidgetCount();
+                    apz.stopLoader();
+                }
+            } else {
+                apz.stopLoader();
+            }
+        } else {
+            apz.stopLoader();
+        }
+    } catch (e) {
+        apz.stopLoader();
+    }
+};
+apz.app.StatusReport.paintassetsdata = function() {
+    window.assetsdata = [];
+    assetsdata[0] = {};
+    assetsdata[1] = {};
+    assetsdata[2] = {};
+    assetsdata[3] = {};
+    StatusReportRes.forEach(function(el) {
+        if (el.applicationStatus === "PENDING") {
+            assetsdata[1].ApprovalCount = el.statusCount;
+        } else if (el.applicationStatus === "APPROVED") {
+            assetsdata[3].CompletedCount = el.statusCount;
+        } else if (el.applicationStatus === "INPROGRESS") {
+            assetsdata[0].InProgressCount = el.statusCount;
+        } else if (el.applicationStatus === "REJECTED") {
+            assetsdata[2].RejectedCount = el.statusCount;
+        }
+    });
+    apz.data.scrdata.Widget__IPaintStatusReport_Res = "";
+    apz.data.scrdata.Widget__IPaintStatusReport_Res = assetsdata;
+    apz.data.loadData('IPaintStatusReport', "Widget");
+};
+apz.app.StatusReport.paintWidgetCount = function() {
+    widgetCountsRes.forEach(function(el) {
+        $("#" + WidgetId + "count").removeClass("sno");
+        if (el.applicationStatus === "PENDING") {
+            $("#" + WidgetId + "count").text('(' + el.statusCount + ')');
+        } else if (el.applicationStatus === "APPROVED") {
+            $("#" + CompletedWidgetId + "count").text('(' + el.statusCount + ')');
+        } else if (el.applicationStatus === "INPROGRESS") {
+            $("#" + InProgressWidgetId + "count").text('(' + el.statusCount + ')');
+        } else if (el.applicationStatus === "REJECTED") {
+            $("#" + RejectedWidgetId + "count").text('(' + el.statusCount + ')');
+        }
+    });
+};

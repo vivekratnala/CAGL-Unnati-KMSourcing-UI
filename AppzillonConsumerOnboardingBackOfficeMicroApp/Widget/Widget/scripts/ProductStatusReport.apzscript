@@ -1,0 +1,247 @@
+apz.app.ProductStatusReport = {};
+var StatusReportDur = ApzCOB.GetCommonCodes("CALENDARDURATION")['StatusReport'][0],
+    ProductStatusReportScrId = 'Widget__ProductStatusReport__',
+    productStatusdateID = "Widget__ProductStatusReport__date",
+    Status = "",
+    ApplnStatus = [],
+    dt = new Date(),
+    ProductStatusReportRes = [],
+    ProductWidgetCountsRes = [],
+    Fromperiodval = '',
+    Toperiodval = '',
+    NoOfDaysinmonth = '';
+apz.app.onLoad_ProductStatusReport = function(params) {
+    //do nothing;
+};
+apz.app.onShown_ProductStatusReport = function(params) {
+    Status = params.status;
+    apz.app.ProductStatusReport.populateTransDates();
+    if (!apz.isNull(params.date)) {
+        $('#' + productStatusdateID + '_div ul').find('li').removeClass("is-selected hilt");
+        $('li[id^=' + productStatusdateID + '_option_' + params.date + ']').addClass("is-selected hilt");
+        $('#' + productStatusdateID).val(params.date);
+    }
+};
+apz.app.ProductStatusReport.fn_SetGraphData = function() {
+    let data = [];
+    productassetsdata.filter(function(o, p) {
+        data[p] = {};
+        data[p].label = o.productGroupCode;
+        if (o.productGroupCode === 'CASA') {
+            data[p].value = o.CasaCount;
+        } else if (o.productGroupCode === 'DEPOSIT') {
+            data[p].value = o.DepositCount;
+        } else if (o.productGroupCode === 'LOAN') {
+            data[p].value = o.LoanCount;
+        } else if (o.productGroupCode === 'CARDS') {
+            data[p].value = o.CardsCount;
+        } else if (o.productGroupCode === 'INSURANCE') {
+            data[p].value = o.InsuranceCount;
+        } else if (o.productGroupCode === 'INVESTMENT') {
+            data[p].value = o.InvestmentCount;
+        }
+        data[p].label = o.productGroupCode + " (" + data[p].value + ")";
+    })
+    return data;
+};
+apz.app.ProductStatusReport.ondateChange = function(pthis) {
+    let period = $("#" + productStatusdateID).val();
+    apz.app.ProductStatusReport.FetchStatusReport(period);
+};
+apz.app.ProductStatusReport.populateTransDates = function() {
+    let dateArr = [];
+    let str = StatusReportDur.value;
+    str = str.replace(/\D/g, "");
+    for (let i = 0; i < parseInt(str); i++) {
+        let obj = {};
+        obj.value = i;
+        obj.desc = ApzCOB.dateformatter(new Date().addMonths(-parseInt(i)), 'M Y');
+        dateArr.push(obj);
+    }
+    apz.populateDropdown(document.getElementById(ProductStatusReportScrId + 'date'), dateArr);
+    let period = $("#" + productStatusdateID).val();
+    apz.app.ProductStatusReport.FetchStatusReport(period);
+};
+apz.app.ProductStatusReport.getFistLastDate = function(selectMonth) { // GET THE FIRST AND LAST DATE OF THE MONTH.
+    let month = apz.app.ProductStatusReport.getMonthFromString(selectMonth),
+        year = dt.getFullYear();
+    Fromperiodval = apz.app.ProductStatusReport.formatDate(new Date(year, month - 1, 1))
+    Toperiodval = apz.app.ProductStatusReport.formatDate(new Date(year, month, 0))
+};
+apz.app.ProductStatusReport.getMonthFromString = function(mon) { //get month(2) from string(Feb)
+    let d = Date.parse(mon + "1," + dt.getFullYear());
+    if (!isNaN(d)) {
+        return new Date(d).getMonth() + 1;
+    }
+    return -1;
+};
+apz.app.ProductStatusReport.formatDate = function(date) { //for dateformat //yyyy-mm-dd
+    let d = new Date(date),
+        month = '' + (d.getMonth() + 1),
+        day = '' + d.getDate(),
+        year = d.getFullYear();
+    if (month.length < 2) {
+        month = '0' + month;
+    }
+    if (day.length < 2) {
+        day = '0' + day;
+    }
+    return [year, month, day].join('-');
+};
+apz.app.ProductStatusReport.getApplnByDate = function(change) {
+    let from = Date.parse(window.FirstDay);
+    let to = Date.parse(window.LastDay);
+    let totalbal = 0;
+    ApplnStatus = [];
+    gApzCOB.Widget.forEach(function(el) {
+        let check = Date.parse(el.map.applicationDate);
+        if ((check <= to && check >= from)) {
+            let index = ApplnStatus.length > 0 ? ApplnStatus.indexOf(el.map.applicationStatus) : -1;
+            if (index < 0) {
+                ApplnStatus.push(el.map.applicationStatus);
+            }
+            totalbal++;
+        }
+    })
+    if (totalbal === 0) {
+        ApzCOB.launchMicroApp('Widget', 'ProductStatusReport', 'Dashbo__dashboard__Widget1', {
+            "status": true,
+            "date": $('#' + productStatusdateID).val()
+        });
+    } else {
+        if (change) {
+            ApzCOB.launchMicroApp('Widget', 'ProductStatusReport', 'Dashbo__dashboard__Widget1', {
+                "status": false,
+                "date": $('#' + productStatusdateID).val()
+            });
+        }
+    }
+    return totalbal;
+}
+apz.app.ProductStatusReport.FetchStatusReport = function(period) {
+    Fromperiodval = ''; 
+    Toperiodval = '';
+    NoOfDaysinmonth = '';
+    let month = period.split(' ')[0];
+    let year = period.split(' ')[1];
+    apz.app.ProductStatusReport.getFistLastDate(period.split(' ')[0])
+    if (typeof InstallTrigger !== 'undefined') {
+        let periodMonth = period.split(' ')[0];
+        let periodYear = period.split(' ')[1];
+        let monthStr = "";
+        let monthIndex = gMonthArr.indexOf(periodMonth) + 1;
+        if (monthIndex < 10) {
+            monthStr = "0" + monthIndex;
+        } else {
+            monthStr = "" + monthIndex;
+        }
+    }
+    let req = {
+        "apiRequest": {
+            "interfaceName": "",
+            "appId": gAppId,
+            "requestObj": {
+                "startDate": Fromperiodval,
+                "endDate": Toperiodval,
+                "userId": apz.userId,
+                "productGroupCode": window.selectedDashboProduct === 'ALL' ? "" : window.selectedDashboProduct
+            }
+        }
+    }
+    ApzCOB.serverBuildParam("Dashbo", "FetchStatusReport", "N", "N", req, true, apz.app.ProductStatusReport.FetchStatusReportCB);
+};
+apz.app.ProductStatusReport.FetchStatusReportCB = function(params) {
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            if (!apz.isNull(params.res.Dashbo__FetchStatusReport_Res.apiResponse.ResponseBody.responseObj)) {
+                if (!apz.isNull(params.res.Dashbo__FetchStatusReport_Res.apiResponse.ResponseBody.responseObj)) {
+                    ProductStatusReportRes = JSON.parse(params.res.Dashbo__FetchStatusReport_Res.apiResponse.ResponseBody.responseObj).statusReportCountsProduct;
+                    apz.app.ProductStatusReport.paintassetsdata();
+                    apz.stopLoader();
+                }
+            } else {
+                apz.stopLoader();
+            }
+        } else {
+            apz.stopLoader();
+        }
+    } catch (e) {
+        apz.stopLoader();
+    }
+};
+apz.app.ProductStatusReport.paintassetsdata = function() {
+    window.productassetsdata = [];
+    let casaFlag = false;
+    let depositFlag = false;
+    let loanFlag = false;
+    let cardsFlag = false;
+    let insuranceFlag = false;
+    let investmentFlag = false;
+    let lobj = {};
+    let a = ProductStatusReportRes.filter(function(o) {
+        $("#" + WidgetId + "count").removeClass("sno");
+        let obj = {};
+        obj.productGroupCode = o.productGroupCode;
+        if (o.productGroupCode === 'CASA') {
+            casaFlag = true;
+            obj.CasaCount = o.productCount;
+        } else if (o.productGroupCode === 'DEPOSIT') {
+            depositFlag = true;
+            obj.DepositCount = o.productCount;
+        } else if (o.productGroupCode === 'LOAN') {
+            loanFlag = true;
+            obj.LoanCount = o.productCount;
+        } else if (o.productGroupCode === 'CARDS') {
+            cardsFlag = true;
+            obj.CardsCount = o.productCount;
+        } else if (o.productGroupCode === 'INSURANCE') {
+            insuranceFlag = true;
+            obj.InsuranceCount = o.productCount;
+        } else if (o.productGroupCode === 'INVESTMENT') {
+            investmentFlag = true;
+            obj.InvestmentCount = o.productCount;
+        }
+        //$("#" + WidgetId + "count").text('(' + o.productCount + ')');
+        productassetsdata.push(obj);
+        return a
+    })
+    if (!casaFlag) {
+        lobj = {};
+        lobj.productGroupCode = 'CASA';
+        lobj.CasaCount = 0;
+        productassetsdata.push(lobj);
+    }
+    if (!depositFlag) {
+        lobj = {};
+        lobj.productGroupCode = 'DEPOSIT';
+        lobj.DepositCount = 0;
+        productassetsdata.push(lobj);
+    }
+    if (!loanFlag) {
+        lobj = {};
+        lobj.productGroupCode = 'LOAN';
+        lobj.LoanCount = 0;
+        productassetsdata.push(lobj);
+    }
+    if (!cardsFlag) {
+        lobj = {};
+        lobj.productGroupCode = 'CARDS';
+        lobj.CardsCount = 0;
+        productassetsdata.push(lobj);
+    }
+    if (!insuranceFlag) {
+        lobj = {};
+        lobj.productGroupCode = 'INSURANCE';
+        lobj.InsuranceCount = 0;
+        productassetsdata.push(lobj);
+    }
+    if (!investmentFlag) {
+        lobj = {};
+        lobj.productGroupCode = 'INVESTMENT';
+        lobj.InvestmentCount = 0;
+        productassetsdata.push(lobj);
+    }
+    apz.data.scrdata.Widget__IPaintProductStatusReport_Res = "";
+    apz.data.scrdata.Widget__IPaintProductStatusReport_Res = productassetsdata;
+    apz.data.loadData('IPaintProductStatusReport', "Widget");
+};

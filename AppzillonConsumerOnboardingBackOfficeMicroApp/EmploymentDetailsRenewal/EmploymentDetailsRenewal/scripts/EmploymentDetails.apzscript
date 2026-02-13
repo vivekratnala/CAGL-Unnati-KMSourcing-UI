@@ -1,0 +1,2940 @@
+var EmpDetscrId = 'EmpDRE__EmploymentDetails__';
+var addNomineeDetails = '';
+var curAddrDetails = {};
+var arrIndex = "";
+// var payloadIndex = -1;
+var data = '';
+if ($("#EmpDRE__EmploymentDetails__wsh_nominee").is(":checked") === true) {
+    addNomineeDetails = 'Y'
+} else {
+    addNomineeDetails = 'N'
+}
+var stateVal = [],
+    stateDesc = []
+var cityVal = [],
+    cityDesc = []
+var PleaseSelect = ApzCOB.getDescfromLitCode("LIT_COMM_MSG_PLEASE_SELECT");
+var disabDetId ='#EmpDRE__EmploymentDetails__disabilityFieldsForm';
+var insDetId = '#EmpDRE__EmploymentDetails__insurDetFieldsForm';
+var bankDetId = '#EmpDRE__EmploymentDetails__bankDetFieldsForm';
+var occDetId = '#EmpDRE__EmploymentDetails__occupDetFieldsForm';
+var offAddrId = '#EmpDRE__EmploymentDetails__addrDetFieldsForm';
+var checkedValues = [];
+var curindex,currCusDtlId;
+var disabilityFlag = false;
+var insLoanFlag = false;
+var bankDetFLag = false;
+var occDetFlag = false;
+var offAddrFlag = false;
+var annualIncomeTag = `${EmpDetscrId}annualIncome`;
+window.populatedropdownScrID = EmpDetscrId;
+var coAppInsurance = '';
+var localFileObj = {};
+upDocsData = "";
+var gAllowedFileTypes = {};
+var selType = "";
+var filesObj = '';
+var encodedImage = "";
+var isValidDoc = true;
+var ActionFlag = '';
+var DisabilityHideShow = ["typImpairDiv", "percentImpairDiv", "udidDiv"];
+var InsurHideShow = ["insuranceForDiv", "nomineeForInsurDiv", "relationWithNomineeDiv", "dobNomineeDiv", "ageOfNomineeDiv"];
+var officeAddrFields = [`#${EmpDetscrId}addressLine1`, `#${EmpDetscrId}addressLine2`, `#${EmpDetscrId}addressLine3`, `#${EmpDetscrId}pin`, `#${EmpDetscrId}el_inp_2`];
+var otherOfficeAddrFields = [`#${EmpDetscrId}city`, `#${EmpDetscrId}district`, `#${EmpDetscrId}state`, `#${EmpDetscrId}country`,
+    `#${EmpDetscrId}el_inp_3`,`#${EmpDetscrId}location`, `#${EmpDetscrId}el_inp_2`
+];
+var businessAddrFields = [EmpDetscrId + 'addressLine1', EmpDetscrId + 'addressLine2', EmpDetscrId + 'addressLine3', EmpDetscrId + 'pin',
+    EmpDetscrId + 'city', EmpDetscrId + 'district', EmpDetscrId + 'state', EmpDetscrId + 'country', EmpDetscrId + 'el_inp_2',
+    EmpDetscrId + 'el_inp_3', EmpDetscrId + 'officeAddrSameAs_option_Present', EmpDetscrId + 'officeAddrSameAs_option_Permanent',
+    EmpDetscrId + 'officeAddrSameAs_option_Other'
+];
+var occupationFields = [EmpDetscrId + 'typbssEmpent', EmpDetscrId + 'profession', EmpDetscrId + 'typeOfEmployer', EmpDetscrId + 'bssEmpAcc',
+    EmpDetscrId + 'employerName', EmpDetscrId + 'designation', EmpDetscrId + 'retirementAge', EmpDetscrId + 'lastEmployerName',
+    EmpDetscrId + 'busiEmpStartDatInput', EmpDetscrId + 'busiEmpVintageInput', EmpDetscrId + 'bssAddrProof', EmpDetscrId + 'empProof',
+    EmpDetscrId + 'bssPerOwn', EmpDetscrId + 'freqOfInc', EmpDetscrId + 'annualIncome', EmpDetscrId + 'othSrcInc',
+    EmpDetscrId + 'otherSrcInc', EmpDetscrId + 'streetVendor', EmpDetscrId + 'othSrcAnnInc'
+];
+var fields = [EmpDetscrId + 'employerName', EmpDetscrId + 'lastEmployerName', EmpDetscrId + 'busiEmpStartDatInput', EmpDetscrId +
+    'busiEmpVintageInput', EmpDetscrId + 'annualIncome', EmpDetscrId + 'otherSrcInc', EmpDetscrId + 'othSrcAnnInc', EmpDetscrId + 'addressLine1',
+    EmpDetscrId + 'addressLine2', EmpDetscrId + 'addressLine3', EmpDetscrId + 'pin',
+    EmpDetscrId + 'city', EmpDetscrId + 'district', EmpDetscrId + 'state', EmpDetscrId + 'country', EmpDetscrId + 'el_inp_2',
+    EmpDetscrId + 'el_inp_3'
+];
+var dropdowns = [EmpDetscrId + 'typbssEmpent', EmpDetscrId + 'profession', EmpDetscrId + 'typeOfEmployer', EmpDetscrId + 'bssEmpAcc',
+    EmpDetscrId + 'designation', EmpDetscrId + 'retirementAge', EmpDetscrId + 'bssAddrProof', EmpDetscrId + 'empProof', EmpDetscrId + 'bssPerOwn',
+    EmpDetscrId + 'freqOfInc', EmpDetscrId + 'othSrcInc'
+];
+var radioFeilds = [EmpDetscrId + 'officeAddrSameAs_option_Present', EmpDetscrId + 'officeAddrSameAs_option_Permanent', EmpDetscrId +
+    'officeAddrSameAs_option_Other', EmpDetscrId + 'streetVendor_option_Yes', EmpDetscrId + 'streetVendor_option_NO'
+];
+var coOrdinateInputTag = "EmpDRE__EmploymentDetails__location";
+var BANK_DETAILS_EDIT_OPTION = false;
+var filesObj = '';
+window.CURRENT_APPLICANT_DETAILS_INDEX = gApzCOB.currentApplicant - 1;
+//onload function
+apz.app.onLoad_EmploymentDetails = function() {
+    custType = gApzCOB.currentApplicant == 1 ? 'Applicant' : 'Co-App';
+    apz.app.BaseScreens.contactus();
+    apz.app.BaseScreens.hideNshowbackIcon();
+    apz.app.EmploymentDetails.onLoadCollapseAll();
+    if (apz.isNull(gStates)) {
+        ApzCOB.FetchStates();
+    } else {
+        ApzCOB.stateDropDown(EmpDetscrId, 'state');
+        ApzCOB.citydropDown(EmpDetscrId, "state", "city");
+    }
+    $('#' + EmpDetscrId + 'wsh_nominee').attr('disabled', true)
+    var nominee = STAGES.filter(function(e) {
+        return e.split('~')[0] === "NOMINEEDETAILS"
+    })
+    if (nominee.length > 0) {
+        addNomineeDetails = 'Y'
+        $('#' + EmpDetscrId + 'wsh_nominee').prop('checked', true)
+    } else {
+        addNomineeDetails = 'N'
+        $('#' + EmpDetscrId + 'wsh_nominee').prop('checked', false)
+    }
+    $('#' + EmpDetscrId + 'profession').val(gApzCOB.selLeadDtls.occupation);
+    apz.populateDropdown(document.getElementById(EmpDetscrId + 'designation'), ApzCOB.formatDropDownforArray(designation));
+    apz.populateDropdown(document.getElementById(EmpDetscrId + 'relationWithNominee'), ApzCOB.formatDropDownforArray(ApzCOB.filterRelns(nomineeRel)));
+    apz.populateDropdown(document.getElementById(EmpDetscrId + 'typeOfEmployer'), ApzCOB.formatDropDownforArray(typeOfEmp));
+    apz.populateDropdown(document.getElementById(EmpDetscrId + 'retirementAge'), ApzCOB.formatDropDownforArray(retirementAge));
+    apz.populateDropdown(document.getElementById(EmpDetscrId + 'profession'), ApzCOB.formatDropDownforArray(natureOfEmp));
+    apz.populateDropdown(document.getElementById(EmpDetscrId + 'currentBusinessYrs'), ApzCOB.formatDropDownforArray(resMn));
+    apz.populateDropdown(document.getElementById(EmpDetscrId + 'currentBusinessMonths'), ApzCOB.formatDropDownforArray(resMn));
+    apz.populateDropdown(document.getElementById(EmpDetscrId + 'prevBusinessYrs'), ApzCOB.formatDropDownforArray(resMn));
+    apz.populateDropdown(document.getElementById(EmpDetscrId + 'prevBusinessMonths'), ApzCOB.formatDropDownforArray(resMn));
+    apz.populateDropdown(document.getElementById(EmpDetscrId + 'yrsOfExp'), ApzCOB.formatDropDownforArray(resMn));
+    apz.populateDropdown(document.getElementById(EmpDetscrId + 'monOfExp'), ApzCOB.formatDropDownforArray(resMn));
+    apz.populateDropdown(document.getElementById(EmpDetscrId + 'typbssEmpent'), ApzCOB.formatDropDownforArray(typbssEmpent));
+    apz.populateDropdown(document.getElementById(EmpDetscrId + 'bssEmpAcc'), ApzCOB.formatDropDownforArray(businessActivity));
+    apz.populateDropdown(document.getElementById(EmpDetscrId + 'bssAddrProof'), ApzCOB.formatDropDownforArray(bssAddrProof));
+    apz.populateDropdown(document.getElementById(EmpDetscrId + 'empProof'), ApzCOB.formatDropDownforArray(empProof));
+    apz.populateDropdown(document.getElementById(EmpDetscrId + 'bssPerOwn'), ApzCOB.formatDropDownforArray(bssPerOwn));
+    apz.populateDropdown(document.getElementById(EmpDetscrId + 'freqOfInc'), ApzCOB.formatDropDownforArray(freqOfInc));
+    apz.populateDropdown(document.getElementById(EmpDetscrId + 'othSrcInc'), ApzCOB.formatDropDownforArray(othSrcInc));
+    apz.populateDropdown(document.getElementById(EmpDetscrId + 'typeOfAcc'), ApzCOB.formatDropDownforArray(accTypes));
+    // $('#APZCBO__BaseScreens__continue').attr('disabled', true);
+    ApzCOB.addDisableToInput('APZCBO__BaseScreens__continue');
+    ['disbDown', 'insurUp', "bankUp", "occupUp", "officeUp"].hide();
+    if (apz.deviceType === "WEB") {
+        $('#EmpDRE__EmploymentDetails__browseHyp_txtcnt').text('Browse');
+    } else {
+        $('#EmpDRE__EmploymentDetails__browseHyp_txtcnt').text('Capture');
+    }
+    $(`#${EmpDetscrId}profession`).change();
+}
+//on shown function
+apz.app.onShown_EmploymentDetails = function() {
+    if (gApzCOB.currentApplicant <= 1) {
+        ApzCOB.showSubHeader("LIT_EMPLOYMENT_DETAILS_HEADER");
+    } else {
+        $(`#${EmpDetscrId}el_label_1`).html('Is Co-Applicant Disable');
+        ApzCOB.showSubHeader("LIT_EMPLOYMENT_DETAILS_HEADER_CO_APP");
+    }
+    window.scroll(0, 0);
+    ApzCOB.AddOrRemoveDisableFields([`${BaseScrId}backIcon`], false);
+    window.bankdocProofObj = {
+        "BankProof": []
+    };
+    $("input").attr("autocomplete", "off");
+    if ($('#' + BaseScrId + 'backIcon').hasClass('sno')) {
+        $('#' + EmpDetscrId + 'OccupationDetailsHeader').addClass('var1')
+    }
+    $('#' + EmpDetscrId + 'currentBusinessYrs').datepicker("option", "maxDate", Date.parse(DATE_TODAY));
+    $('#' + EmpDetscrId + 'currentBusinessYrs').datepicker("option", "yearRange", "-100:+0");
+    $('#' + EmpDetscrId + 'dobNominee').datepicker("option", "maxDate", Date.parse(DATE_TODAY));
+    $('#' + EmpDetscrId + 'dobNominee').datepicker("option", "yearRange", "-100:+0");
+    $('#' + EmpDetscrId + 'busiEmpStartDatInput').datepicker("option", "maxDate", Date.parse(DATE_TODAY));
+    $('#' + EmpDetscrId + 'busiEmpStartDatInput').datepicker("option", "yearRange", "-100:+0");
+    $('#' + EmpDetscrId + 'dob').datepicker("option", "maxDate", Date.parse(DATE_TODAY));
+    $('#' + EmpDetscrId + 'dob').datepicker("option", "yearRange", "-100:+0");
+    $('.arrow-up').attr('onclick', 'apz.app.EmploymentDetails.onclickCollapseUp(this)');
+    $('.arrow-down').attr('onclick', 'apz.app.EmploymentDetails.onclickExpandDown(this)');
+    apz.app.EmploymentDetails.configureFields();
+    apz.app.EmploymentDetails.hideHeader();
+    apz.app.BaseScreens.HeaderFooterData();
+    apz.app.EmploymentDetails.populateData();
+    var Occdetails = (!apz.isNull(window.inSessionStore.occupationDetailsWrapperList) && window.inSessionStore.occupationDetailsWrapperList
+        .length !== 0);
+    if (Occdetails /*|| Occdetails1*/ ) {
+        // $('#APZCBO__BaseScreens__continue').attr('disabled', false);
+        ApzCOB.removeDisableToInput('APZCBO__BaseScreens__continue');
+        apz.app.EmploymentDetails.paintDetails();
+    }
+    apz.data.scrdata.EmpDRE__IpaintEmploymentDetails_Res = {};
+    ApzCOB.setMinMaxLength([{
+        'fieldName': 'Income',
+        'fieldId': EmpDetscrId + 'annualIncome'
+    }, {
+        'fieldName': 'Income',
+        'fieldId': EmpDetscrId + 'othSrcAnnInc'
+    }, {
+        'fieldName': 'Name',
+        'fieldId': EmpDetscrId + 'insuranceFor'
+    }, {
+        'fieldName': 'Name',
+        'fieldId': EmpDetscrId + 'nomineeForInsur'
+    }, {
+        'fieldName': 'Dob',
+        'fieldId': EmpDetscrId + 'dobNominee'
+    }, {
+        'fieldName': 'Age',
+        'fieldId': EmpDetscrId + 'ageOfNominee'
+    }, {
+        'fieldName': 'Name',
+        'fieldId': EmpDetscrId + 'accHolderName'
+    }, {
+        'fieldName': 'IFSC',
+        'fieldId': EmpDetscrId + 'ifscCode'
+    }, {
+        'fieldName': 'BankName',
+        'fieldId': EmpDetscrId + 'bankName'
+    }, {
+        'fieldName': 'BankName',
+        'fieldId': EmpDetscrId + 'branchName'
+    }, {
+        'fieldName': 'AccountNumber',
+        'fieldId': EmpDetscrId + 'accNumber'
+    }, {
+        'fieldName': 'Name',
+        'fieldId': EmpDetscrId + 'employerName'
+    }, {
+        'fieldName': 'Name',
+        'fieldId': EmpDetscrId + 'lastEmployerName'
+    }, {
+        'fieldName': 'AddressLine1',
+        'fieldId': EmpDetscrId + 'addressLine1'
+    }, {
+        'fieldName': 'AddressLine2',
+        'fieldId': EmpDetscrId + 'addressLine2'
+    }, {
+        'fieldName': 'AddressLine3',
+        'fieldId': EmpDetscrId + 'addressLine3'
+    }, {
+        'fieldName': 'Pincode',
+        'fieldId': EmpDetscrId + 'pin'
+    }, {
+        'fieldName': 'City',
+        'fieldId': EmpDetscrId + 'city'
+    }, {
+        'fieldName': 'District',
+        'fieldId': EmpDetscrId + 'district'
+    }, {
+        'fieldName': 'State',
+        'fieldId': EmpDetscrId + 'state'
+    }, {
+        'fieldName': 'Country',
+        'fieldId': EmpDetscrId + 'country'
+    }, {
+        'fieldName': 'Name',
+        'fieldId': EmpDetscrId + 'nameAsperAddr'
+    }, {
+        'fieldName': 'Dob',
+        'fieldId': EmpDetscrId + 'dob'
+    }, {
+        'fieldName': 'AddressType',
+        'fieldId': EmpDetscrId + 'el_inp_1' //AddressType
+    }, {
+        'fieldName': 'Landmark',
+        'fieldId': EmpDetscrId + 'el_inp_2' //Landmark
+    }, {
+        'fieldName': 'Area',
+        'fieldId': EmpDetscrId + 'el_inp_3' //Area
+    },{
+        'fieldName': 'BussinessLocationCoordinate',
+        'fieldId': EmpDetscrId + 'location' 
+    }, {
+        'fieldName': 'UDID_Num',
+        'fieldId': EmpDetscrId + 'UDID_Num' //UDID_Num
+    }, {
+        'fieldName': 'UDID_Num',
+        'fieldId': EmpDetscrId + 'UDID_Num' //UDID_Num
+    }, {
+        'fieldName': 'impariOthTextArea',
+        'fieldId': EmpDetscrId + 'others_input_impair' //UDID_Num
+    }]);
+    /*ApzCOB.setMinMaxLength([{
+        'fieldName': 'Name',
+        'fieldId': EmpDetscrId + 'employerName'
+    }, {
+        'fieldName': 'Income',
+        'fieldId': EmpDetscrId + 'grossIncome'
+    }, {
+        'fieldName': 'Income',
+        'fieldId': EmpDetscrId + 'monthlyTakeHome'
+    }, {
+        'fieldName': 'LandlineNumber',
+        'fieldId': EmpDetscrId + 'landlineNo'
+    }, {
+        'fieldName': 'EmailId',
+        'fieldId': EmpDetscrId + 'companyEmail'
+    }, {
+        'fieldName': 'EmployeeId',
+        'fieldId': EmpDetscrId + 'employeeId'
+    }, {
+        'fieldName': 'Income',
+        'fieldId': EmpDetscrId + 'annualIncome'
+    }, {
+        'fieldName': 'Pincode',
+        'fieldId': EmpDetscrId + 'pin'
+    }, {
+        'fieldName': 'AddressLine1',
+        'fieldId': EmpDetscrId + 'addressLine1'
+    }, {
+        'fieldName': 'Dob',
+        'fieldId': EmpDetscrId + 'currentBusinessYrs'
+    }, {
+        'fieldName': 'AddressLine2',
+        'fieldId': EmpDetscrId + 'addressLine2'
+    }, {
+        'fieldName': 'Landmark',
+        'fieldId': EmpDetscrId + 'landMark'
+    }]);*/
+    apz.app.EmploymentDetails.isReinitiateCase();
+    var curFuncToExe = ConfigureScrJson.filter(function(e, i) {
+        return e.MicroAppID === apz.currAppId && window.allowedUnSave.indexOf(apz.currAppId) !== -1
+    })[0].requestFunc.split('.');
+    window.beforeBack = window[curFuncToExe[0]][curFuncToExe[1]][curFuncToExe[2]][curFuncToExe[3]]('triggerdSave');
+    window.inSessionStoreEnabled = false; //dont save by default, ask everytime
+    window.afterBack = {};
+    if (gApzCOB.product === "LOAN" || gApzCOB.product === "CARDS") {
+        apz.app.EmploymentDetails.paintLoanEmpDetails();
+    }
+    $('#' + EmpDetscrId + 'currentBusinessYrs').attr('placeholder', apz.dateFormat);
+    // ApzCOB.showLanguageSelect();
+    apz.app.EmploymentDetails.hideAndShowBankDetailsSec();
+    if (!backNav) {
+        apz.app.EmploymentDetails.onShownPaintDetails();
+    }
+    if (gApzCOB.applicationType !== 'Single Account') {
+        if (gApzCOB.currentApplicant > 1) {
+            $('#' + EmpDetscrId + 'coapplicInsRow').addClass('sno');
+        } else {
+            $('#' + EmpDetscrId + 'coapplicInsRow').removeClass('sno');
+        }
+    } else {
+        $('#' + EmpDetscrId + 'coapplicInsRow').addClass('sno');
+    }
+    let accType = "";
+    let custData = [];
+    if(gApzCOB.currentApplicant <= 1) {
+      custData =   inSessionStore.customerDetailsList.filter(cust => parseInt(cust.custDtlId) === parseInt(gApzCOB.userDetails.custDtlId) &&  cust.customerType.toLocaleLowerCase() === 'applicant')
+    } else {
+        custData =   inSessionStore.customerDetailsList.filter(cust => parseInt(cust.custDtlId) === parseInt(gApzCOB.userDetails.CoApplicantCustomerId) && cust.customerType.toLocaleLowerCase() !== 'applicant')
+    }
+    if (custData.length > 0) {
+        accType = custData[0].payload.occupation;
+        apz.app.EmploymentDetails.setAnnualIncomeValue();
+    }
+    if (accType == 'Salaried') {
+        //$('#' + EmpDetscrId + 'bssAddrProofRow').addClass('sno');
+        $('#' + EmpDetscrId + 'empProofRow').removeClass('sno');
+    } else {
+        $('#' + EmpDetscrId + 'empProofRow').addClass('sno')
+    }
+    var applicantOccupation = custData[0].payload.occupation;
+    if (applicantOccupation === 'Salaried') {
+        $('#' + EmpDetscrId + 'el_txt_25').text('Office Address Details');
+    } else {
+        $('#' + EmpDetscrId + 'el_txt_25').text('Business Address Details');
+    }
+    if (accType == 'Self Employed') {
+        //$('#' + EmpDetscrId + 'bssAddrProofRow').removeClass('sno');
+        $('#' + EmpDetscrId + 'empProofRow').addClass('sno');
+        $('#' + EmpDetscrId + 'bssPerOwnRow').removeClass('sno');
+        $('#' + EmpDetscrId + 'streetVendorDiv').removeClass('sno');
+    } else {
+        $('#' + EmpDetscrId + 'streetVendorDiv').addClass('sno');
+        $('#' + EmpDetscrId + 'bssPerOwnRow').addClass('sno')
+    }
+    // if (accType == 'Homemaker') {
+    //     $('#' + EmpDetscrId + 'typBssEmpentRow').addClass('sno');
+    //     $('#' + EmpDetscrId + 'bssEmpAcctRow').addClass('sno');
+    //     $('#' + EmpDetscrId + 'bssAddrProofRow').addClass('sno');
+    //     $('#' + EmpDetscrId + 'freqOfIncRow').addClass('sno');
+    //     $('#' + EmpDetscrId + 'annualIncomeRow').addClass('sno');
+    //     $('#' + EmpDetscrId + 'othSrcIncRow').addClass('sno');
+    // } else {
+    //     $('#' + EmpDetscrId + 'typBssEmpentRow').removeClass('sno');
+    //     $('#' + EmpDetscrId + 'bssEmpAcctRow').removeClass('sno');
+    //     $('#' + EmpDetscrId + 'bssAddrProofRow').removeClass('sno');
+    //     $('#' + EmpDetscrId + 'freqOfIncRow').removeClass('sno');
+    //     $('#' + EmpDetscrId + 'annualIncomeRow').removeClass('sno');
+    //     $('#' + EmpDetscrId + 'othSrcIncRow').removeClass('sno');
+    // }
+    // if (accType == 'Salaried') {
+    //     $('#' + EmpDetscrId + 'empProofRow').removeClass('sno');
+    // } else {
+    //     $('#' + EmpDetscrId + 'empProofRow').addClass('sno');
+    // }
+    // if (accType == 'Self Employed') {
+    //     $('#' + EmpDetscrId + 'bssPerOwnRow').removeClass('sno');
+    //     $('#' + EmpDetscrId + 'streetVendorDiv').removeClass('sno');
+    // } else {
+    //     $('#' + EmpDetscrId + 'bssPerOwnRow').addClass('sno');
+    //     $('#' + EmpDetscrId + 'streetVendorDiv').addClass('sno');
+    // }
+    if (accType === "Homemaker") {
+        ['gr_row_8', 'gr_row_11'].hide();
+        occDetFlag = true;
+        offAddrFlag = true;
+    } else if (accType === "Wage earner") {
+        ['gr_row_8'].show();
+        ['gr_row_11'].hide();
+    occDetFlag = offAddrFlag = true;
+    } else {
+        ['gr_row_8', 'gr_row_11'].show();
+        occDetFlag = offAddrFlag = false;
+    }
+    let mandatoryFieldArray = [];
+    if (accType !== "Homemaker") {
+        mandatoryFieldArray = $('#' + EmpDetscrId + 'occupDetFieldsForm').find('.allOcc input');
+        if (accType === "Salaried") {
+            let salariedArray = $('#' + EmpDetscrId + 'occupDetFieldsForm').find('.salaried input');
+            mandatoryFieldArray = [...mandatoryFieldArray, ...salariedArray];
+        } else if (accType === "Self Employed") {
+            let selfEmpArray = $('#' + EmpDetscrId + 'occupDetFieldsForm').find('.selfEmp input');
+            mandatoryFieldArray = [...mandatoryFieldArray, ...selfEmpArray];
+        } else {
+            mandatoryFieldArray = [...mandatoryFieldArray];
+        }
+    }
+    if (mandatoryFieldArray.length > 0) {
+        let mandatoryInputIds = mandatoryFieldArray.map((elem) => elem.id);
+        ApzCOB.addFieldMandatory(mandatoryInputIds);
+    }
+    upDocsData = ApzCOB.GetCommonCodes("UPLOADDOCS", "CASA")["UPLOADDOCS"];
+    upDocsData["TYPES"].forEach(function(el) {
+        if (el.split('~')[1] === "Y") {
+            gAllowedFileTypes[el.split('~')[0]] = el.split('~')[0].toLocaleLowerCase();
+        }
+    });
+    // $(`#${EmpDetscrId}ApplInsRadio_option_N`).attr("checked", true);
+    // $(`#${EmpDetscrId}ApplInsRadio_option_N`).trigger('onchange');
+    InsurHideShow.hide();
+    //DisabilityHideShow.hide();
+    $(`#${EmpDetscrId}ct_frm_2`).find('.ett-inpt').attr("disabled", true);
+    $(`#${EmpDetscrId}AccDetRadio_option_N`).attr("checked", true);
+    $(`#${EmpDetscrId}uploadDocRow`).addClass("sno"); //hide UploadRow
+    /*temporary for Field validation*/
+    //$(`#${EmpDetscrId}ifscCode`).val("CITI0000004").trigger("onblur");
+    // $(`#${EmpDetscrId}accNumber`).val('987654321098765');
+    // $(`#${EmpDetscrId}pin`).attr('onblur', 'apz.app.EmploymentDetails.onchangepincode(this)');
+    /*temporary for Field validation*/
+    const id = ["el_inp_3", "city", "district", "state", "country", "typeOfAcc"]
+    id.forEach(function(val) {
+        $('#' + EmpDetscrId + val).prop('disabled', true);
+    })
+    if (gApzCOB.currentApplicant > 1) {
+        $(`#${EmpDetscrId}el_inp_3`).attr('disabled', false);
+        $(`#${EmpDetscrId}ApplInsRadioRow`).addClass("sno");
+        var data = window.inSessionStore.insuranceDetailsWrapperList;
+        var radioBtn;
+        //radioBtn = window.inSessionStore.insuranceDetailsWrapperList[0].insuranceDetails.payload.coApplicantInsurance;
+        data.forEach(function(i, k) {
+            if (parseInt(data[k].insuranceDetails.custDtlId) === parseInt(gApzCOB.userDetails.custDtlId)) {
+                radioBtn = window.inSessionStore.insuranceDetailsWrapperList[k].insuranceDetails.payload.coApplicantInsurance
+                return;
+            }
+        })
+        if (radioBtn === 'Y' || radioBtn === 'Yes') {
+            InsurHideShow.show();
+        }
+        if (radioBtn === 'No' || radioBtn === 'N') {
+            $(`#${EmpDetscrId}gr_row_2`).addClass("sno");
+            occDetFlag = true;
+            $(occDetId).removeClass('sno');
+            $(`#${EmpDetscrId}gr_row_8`).addClass('active');
+        }
+        //['ocuupationTagDiv'].show();
+        var occupation1, occupation2;
+        inSessionStore.customerDetailsList.forEach(function(el, index) {
+            if (el.customerType === "Applicant") {
+                occupation1 = el.payload.occupation
+                return
+            }
+            if (el.customerType === "Co-App") {
+                occupation2 = el.payload.occupation
+                return
+            }
+        })
+        if (occupation1 === occupation2) {
+            ['ocuupationTagDiv'].show();
+        }
+    }
+    let insRadio = "";
+    var ApplData = "";
+    if (!apz.isNull(window.inSessionStore.insuranceDetailsWrapperList)) {
+        // insRadio = window.inSessionStore.insuranceDetailsWrapperList[0].insuranceDetails.payload.insuranceReqd
+        ApplData = window.inSessionStore.insuranceDetailsWrapperList.filter(custdata => custdata.insuranceDetails.custDtlId === gApzCOB.userDetails.custDtlId);
+        if (!apz.isNull(ApplData)) {
+            insRadio = ApplData[0].insuranceDetails.payload.insuranceReqd;
+        }
+    }
+    var coAppIns = "#EmpDRE__EmploymentDetails__coAppInsuranceRadio input[name='EmpDRE__EmploymentDetails__coAppInsuranceRadio_']";
+    if (!apz.isNull(insRadio)) {
+        if (insRadio === 'Y') {
+            $(coAppIns).attr('disabled', false);
+            InsurHideShow.show();
+        } else {
+            $("#" + EmpDetscrId + "coAppInsuranceRadio_option_N").attr("checked", true);
+            $(coAppIns).attr('disabled', true);
+        }
+        $(`#${EmpDetscrId}ApplInsRadio_option_` + insRadio).attr("checked", true).change();
+    } else {
+        $(`#${EmpDetscrId}ApplInsRadio_option_Y`).attr("checked", true).change();
+        InsurHideShow.show();
+        $(`#${EmpDetscrId}coAppInsuranceRadio_option_Y`).attr("checked", true);
+    }
+    if (gApzCOB.currentApplicant <= 1) {
+        apz.app.EmploymentDetails.paintBankDetails();
+        apz.app.EmploymentDetails.onchangecoapplicIns();
+       /* if (isRejectedInKMSourcing && !accisVerified) {
+            inSessionStore.bankDetailsWrapperList[0].bankDetails.payload.accntVerified = "";
+            // $("#APZCBO__BaseScreens__continue").attr("disabled", true);
+            // $("#APZCBO__BaseScreens__continue").addClass("disabled");
+            ApzCOB.addDisableToInput('APZCBO__BaseScreens__continue');
+            accisVerified = false;
+        }*/
+        if (accisVerified && !isRPC) {
+            $("#" + EmpDetscrId + "verifyAccount").addClass("sno");
+            $("#" + EmpDetscrId + "accountVerified_ul").removeClass("sno");
+        }
+    }
+    ApzCOB.getToggleOnClickEventObj(EmpDetscrId);
+    $('#' + BaseScrId + 'custIDandName').removeClass('sno');
+    if (gApzCOB.currentApplicant <= 1) {
+        apz.app.EmploymentDetails.checkBankDocument();
+    }
+    if (isRevAndConfEdit) {
+        ApzCOB.AddOrRemoveDisableFields([`${BaseScrId}backIcon`], true);
+        // $('#APZCBO__BaseScreens__continue').attr('disabled', true);
+        ApzCOB.addDisableToInput('APZCBO__BaseScreens__continue');
+        ApzCOB.addDisableToInput(`${EmpDetscrId}bssAddrProof`);
+        ApzCOB.addDisableToInput(`${EmpDetscrId}empProof`);
+    }
+    if (PUSHBACK_QUERY_STATUS.includes(gApzCOB.userDetails.applicationStatus)) {
+        ApzCOB.paintingSourcingQuery();
+    }
+    $('input.hasDatepicker').each(function(index, element) {
+        $(element).prop('disabled', true);
+    })
+    if(!reIntiatedAcc){
+    apz.app.EmploymentDetails.rejectedintiatedAcc();
+    }
+    apz.app.EmploymentDetails.bankvalidationStatus();
+    if (IS_REINITIATE_APPLICATION && accntStatus !== 'Verified') {
+        accisVerified = false;
+        $("#" + EmpDetscrId + "verifyAccount").removeClass("sno");
+        $("#" + EmpDetscrId + "accountVerified_ul").addClass("sno");
+    }
+    if (gApzCOB.currentApplicant == 1) {
+        if (accisVerified) {
+            // $('#APZCBO__BaseScreens__continue').attr('disabled', false);
+            // $("#APZCBO__BaseScreens__continue").removeClass("disabled");
+            ApzCOB.removeDisableToInput('APZCBO__BaseScreens__continue');
+        } else {
+            // $("#APZCBO__BaseScreens__continue").attr("disabled", true);
+            // $("#APZCBO__BaseScreens__continue").addClass("disabled");
+            ApzCOB.addDisableToInput('APZCBO__BaseScreens__continue');
+        }
+    }
+    $('#' + EmpDetscrId + 'bankDetForm').attr('onclick', 'apz.app.EmploymentDetails.onclickbank(this)');
+    $('#' + EmpDetscrId + 'occupDetForm').attr('onclick', 'apz.app.EmploymentDetails.onclickoccup(this)');
+    $('#' + EmpDetscrId + 'officeAddressForm').attr('onclick', 'apz.app.EmploymentDetails.onclickoffAddr(this)');
+    ApzCOB.removeFieldMandatory(EmpDetscrId + 'accHolderName');
+    ApzCOB.removeFieldMandatory(EmpDetscrId + 'bankName');
+    ApzCOB.removeFieldMandatory(EmpDetscrId + 'branchName');
+}
+apz.app.EmploymentDetails.rejectedintiatedAcc = function(){
+    if (isRejectedInKMSourcing && !rejectverifiedflag) {
+        // Fetch payload safely
+        window.checkAccdata = inSessionStore?.bankDetailsWrapperList?.[0]?.bankDetails?.payload;
+        // Determine verification status
+        if (checkAccdata?.accntVerified === "Verified") {
+          accisVerified = false;
+        } else {
+          accisVerified = true;
+        }
+        // UI logic based on verification + reject flag
+        if (!accisVerified && !rejectverifiedflag) {
+            if (checkAccdata) {
+                checkAccdata.accntVerified = "";
+            }
+            ApzCOB.addDisableToInput('APZCBO__BaseScreens__continue');
+            $("#" + EmpDetscrId + "verifyAccount").removeClass("sno");
+            $("#" + EmpDetscrId + "accountVerified_ul").addClass("sno");
+            $("#" + EmpDetscrId + "invaildAccount_ul").addClass("sno");
+            window.rejectverifiedflag = false;
+        } else if (accisVerified && rejectverifiedflag) {
+            window.reIntiatedAcc = true;
+            window.rejectverifiedflag = true;
+            $("#" + EmpDetscrId + "accountVerified_ul").removeClass("sno");
+            $("#" + EmpDetscrId + "verifyAccount").addClass("sno");
+            $("#" + EmpDetscrId + "invaildAccount_ul").addClass("sno");
+        }
+    }
+}
+apz.app.EmploymentDetails.bankvalidationStatus = function() {
+    if (!apz.isNull(inSessionStore.bankDetailsWrapperList)) {
+        window.accntStatus = inSessionStore?.bankDetailsWrapperList?.[0]?.bankDetails?.payload.accntVerified;
+        if (accntStatus == 'Verified') {
+            accisVerified = true;
+            $("#" + EmpDetscrId + "verifyAccount").addClass("sno");
+            $("#" + EmpDetscrId + "accountVerified_ul").removeClass("sno");
+        } else {
+            accisVerified = false;
+            $("#" + EmpDetscrId + "verifyAccount").removeClass("sno");
+            $("#" + EmpDetscrId + "accountVerified_ul").addClass("sno");
+        }
+    }
+}
+apz.app.EmploymentDetails.isReinitiateCase = function() {
+    let timeline = inSessionStore.applicationTimelineDtl;
+    window.isRejectedInKMSourcing = false;
+    // loop through array
+    $.each(timeline, function(i, item) {
+        if (item.actionTaken === "Initiated By" && item.stage === "KM Sourcing") {
+            // check if any later record has Rejected By with empty stage
+            for (var j = i + 1; j < timeline.length; j++) {
+                var next = timeline[j];
+                if (next.actionTaken === "Rejected By" && (next.stage === "" || next.stage == null)) {
+                    isRejectedInKMSourcing = true;
+                    return false; // break both loops
+                }
+            }
+        }
+        if (isRejectedInKMSourcing) return false; // break outer loop
+    });
+}
+apz.app.EmploymentDetails.populateData = function() {
+    var data = [];
+    data = inSessionStore.customerDetailsList.filter(cust => cust.customerType === (gApzCOB.currentApplicant <= 1 ? "Co-App" : "Applicant"));
+    if (data.length > 0) {
+        currCusDtlId = ApzCOB.getCustDetailID(gApzCOB.currentApplicant === 1 ? 'Applicant' : 'Co-App');
+        curindex = inSessionStore.customerDetailsList.findIndex(el => el.custDtlId === currCusDtlId);
+        var payloaddata = inSessionStore.customerDetailsList[curindex].payload;
+        if (payloaddata.UDID && payloaddata.UDID.trim() !== "") {
+            var disaSts = inSessionStore.customerDetailsList[curindex].payload.isDisabled;
+            apz.setElmValue(EmpDetscrId + "ApplDisaRadio", disaSts);
+            apz.setElmValue(EmpDetscrId + "UDID_Num", inSessionStore.customerDetailsList[curindex].payload.UDID);
+            apz.setElmValue(EmpDetscrId + "percentageOfImp", inSessionStore.customerDetailsList[curindex].payload.disabilityPercentage);
+            apz.setElmValue(EmpDetscrId + "others_input_impair", inSessionStore.customerDetailsList[curindex].payload.disabliltyOtherValue);
+            var selectedList = inSessionStore.customerDetailsList[curindex].payload.disabilityList;
+            if (disaSts == 'Y' || disaSts == 'Yes') {
+                DisabilityHideShow.show();
+                $('input[type="checkbox"]').each(function() {
+                    var chkVal = $(this).attr('checkedval'); // read the custom attribute
+                    if (selectedList.includes(chkVal)) {
+                        $(this).prop('checked', true); // check it
+                    } else {
+                        $(this).prop('checked', false); // uncheck it
+                    }
+                });
+            } else {
+                DisabilityHideShow.hide();
+            }
+        } else {
+            var disaSts = inSessionStore.customerDetailsList[curindex].payload.isDisabled;
+            apz.setElmValue(EmpDetscrId + "ApplDisaRadio", disaSts);
+            DisabilityHideShow.hide();
+        }
+        //$(`#${EmpDetscrId}nomineeForInsur`).val(data[0].customerName ?? '');
+        $(`#${EmpDetscrId}nomineeForInsur`).val(ApzCOB.getSubstrValue(`#${EmpDetscrId}nomineeForInsur`, data[0].customerName ?? '')).trigger("onblur");
+        $(`#${EmpDetscrId}dobNominee`).val(new Date(data[0].payload.dob ?? '').$format('d/m/Y')).change();
+        if (gApzCOB.currentApplicant <= 1) {
+            $(`#${EmpDetscrId}relationWithNominee`).val(data[0].payload.relationShipWithApplicant ?? PleaseSelect);
+        } else {
+            $(`#${EmpDetscrId}relationWithNominee`).val(PleaseSelect);
+        }
+    } else {
+        DisabilityHideShow.hide();
+    }
+}
+apz.app.EmploymentDetails.paintBankDetails = function() {
+    if (!apz.isNull(window.inSessionStore.bankDetailsWrapperList) && !apz.isNull(window.inSessionStore.bankDetailsWrapperList.length > 0)) {
+        let currIndex = ApzCOB.getIndexforBankWrapper("Applicant");
+        let bankData = window.inSessionStore.bankDetailsWrapperList[currIndex]?.bankDetails;
+        let bankDataEditOption = bankData.payload.editBankDetails === "Yes" ? "Y" : "N";
+        $("#" + EmpDetscrId + "AccDetRadio_option_" + bankDataEditOption).attr("checked", true);
+        apz.app.EmploymentDetails.onChangeAccDetRadio()
+    }
+}
+apz.app.EmploymentDetails.onShownPaintDetails = function() {
+    var EmpDtls = gApzCOB.selLeadDtls;
+    var insuredName = EmpDtls.nameAsPerBankAcc;
+    if (gApzCOB.currentApplicant <= 1) {
+        $(`#${EmpDetscrId}insuranceFor`).val("Applicant").attr("disabled", true);
+    } else {
+        $(`#${EmpDetscrId}insuranceFor`).val("Co-Applicant").attr("disabled", true);
+    }
+    $(`#${EmpDetscrId}accHolderName`).val(ApzCOB.getSubstrValue(`#${EmpDetscrId}accHolderName`, insuredName));
+    $(`#${EmpDetscrId}typeOfAcc`).val(EmpDtls.typeOfAcc);
+    $(`#${EmpDetscrId}ifscCode`).val(ApzCOB.getSubstrValue(`#${EmpDetscrId}ifscCode`, EmpDtls.ifscCode));
+    $(`#${EmpDetscrId}accNumber`).val(ApzCOB.getSubstrValue(`#${EmpDetscrId}accNumber`, EmpDtls.accNumber));
+    $(`#${EmpDetscrId}bankName`).val(ApzCOB.getSubstrValue(`#${EmpDetscrId}bankName`, EmpDtls.bankName));
+    $(`#${EmpDetscrId}branchName`).val(ApzCOB.getSubstrValue(`#${EmpDetscrId}branchName`, EmpDtls.branchName));
+}
+apz.app.EmploymentDetails.hideAndShowBankDetailsSec = function() {
+    if (gApzCOB.currentApplicant > 1) {
+        bankDetFLag = true;
+        $(bankDetId).addClass("sno");
+        $('#EmpDRE__EmploymentDetails__gr_row_5').removeClass('active');
+        $('#EmpDRE__EmploymentDetails__gr_row_5').addClass('sno');
+        if (gApzCOB.userDetails.insurenceReqForCoApp !== 'Yes') {
+            insLoanFlag = true;
+            $(insDetId).addClass("sno");
+            $('#EmpDRE__EmploymentDetails__gr_row_2').removeClass('active');
+            $('#EmpDRE__EmploymentDetails__gr_row_2').addClass('sno');
+        }
+    }
+}
+//to set value to global variable on click of toggle nominee
+apz.app.EmploymentDetails.toggleNomineeAdd = function() {
+    if ($("#EmpDRE__EmploymentDetails__wsh_nominee").is(":checked") === true) {
+        addNomineeDetails = 'Y'
+    } else {
+        addNomineeDetails = 'N'
+    }
+}
+/*Hide and show fields based on configuration
+        fieldName - Commoncode table fieldName respective to stage.
+        fieldId - Id of the respective field.
+        fieldDivId - Id of the complete row.
+        */
+apz.app.EmploymentDetails.configureFields = function() {
+    var a = {
+        fieldName: 'OccupationType',
+        fieldId: [EmpDetscrId + 'profession'],
+        fieldDivId: [EmpDetscrId + 'professionDiv']
+    };
+    var b = {
+        fieldName: 'YrsOfExp',
+        fieldId: [EmpDetscrId + 'yrsOfExp', EmpDetscrId + 'monOfExp'],
+        fieldDivId: [EmpDetscrId + 'yrsOfExpDiv']
+    };
+    var c = {
+        fieldName: 'CurrEmployerName',
+        fieldId: [EmpDetscrId + 'employerName'],
+        fieldDivId: [EmpDetscrId + 'employerNameDiv']
+    };
+    var d = {
+        fieldName: 'LastEmployerName',
+        fieldId: [EmpDetscrId + 'lastEmployerName'],
+        fieldDivId: [EmpDetscrId + 'lastEmployerNameDiv']
+    };
+    var e = {
+        fieldName: 'Designation',
+        fieldId: [EmpDetscrId + 'designation'],
+        fieldDivId: [EmpDetscrId + 'designationDiv']
+    };
+    var f = {
+        fieldName: 'CurrEmploymentYrs',
+        fieldId: [EmpDetscrId + 'currentBusinessYrs', EmpDetscrId + 'currentBusinessMonths'],
+        fieldDivId: [EmpDetscrId + 'currentBusinessYrsDiv']
+    }
+    var g = {
+        fieldName: 'InsuranceFor',
+        fieldId: [EmpDetscrId + 'insuranceFor'],
+        fieldDivId: [EmpDetscrId + 'insuranceForDiv']
+    };
+    var h = {
+        fieldName: 'NomineeForInsurance',
+        fieldId: [EmpDetscrId + 'nomineeForInsur'],
+        fieldDivId: [EmpDetscrId + 'nomineeForInsurDiv']
+    };
+    var i = {
+        fieldName: 'AgeOfNominee',
+        fieldId: [EmpDetscrId + 'ageOfNominee'],
+        fieldDivId: [EmpDetscrId + 'ageOfNomineeDiv']
+    };
+    var j = {
+        fieldName: 'Pincode',
+        fieldId: [EmpDetscrId + 'pin'],
+        fieldDivId: [EmpDetscrId + 'pincodeDiv']
+    };
+    var k = {
+        fieldName: 'State',
+        fieldId: [EmpDetscrId + 'state'],
+        fieldDivId: [EmpDetscrId + 'stateDiv']
+    };
+    var l = {
+        fieldName: 'City',
+        fieldId: [EmpDetscrId + 'city'],
+        fieldDivId: [EmpDetscrId + 'cityDiv']
+    };
+    var m = {
+        fieldName: 'AddressLine1',
+        fieldId: [EmpDetscrId + 'addressLine1'],
+        fieldDivId: [EmpDetscrId + 'AddressLine1Div']
+    };
+    var n = {
+        fieldName: 'AddressLine2',
+        fieldId: [EmpDetscrId + 'addressLine2'],
+        fieldDivId: [EmpDetscrId + 'AddressLine2Div']
+    };
+    var o = {
+        fieldName: 'AddressLine3',
+        fieldId: [EmpDetscrId + 'addressLine3'],
+        fieldDivId: [EmpDetscrId + 'AddressLine3Div']
+    };
+    var p = {
+        fieldName: 'AccountNum',
+        fieldId: [EmpDetscrId + 'accNumber'],
+        fieldDivId: [EmpDetscrId + 'accNumberDiv']
+    };
+    var q = {
+        fieldName: 'AccHolderName',
+        fieldId: [EmpDetscrId + 'accHolderName'],
+        fieldDivId: [EmpDetscrId + 'accHolderNameDiv']
+    };
+    var r = {
+        fieldName: 'RelationWithNominee',
+        fieldId: [EmpDetscrId + 'relationWithNominee'],
+        fieldDivId: [EmpDetscrId + 'relationWithNomineeDiv']
+    };
+    var s = {
+        fieldName: 'DOBNominee',
+        fieldId: [EmpDetscrId + 'dobNominee'],
+        fieldDivId: [EmpDetscrId + 'dobNomineeDiv']
+    };
+    var t = {
+        fieldName: 'TypeOfAcc',
+        fieldId: [EmpDetscrId + 'typeOfAcc'],
+        fieldDivId: [EmpDetscrId + 'typeOfAccDiv']
+    };
+    var u = {
+        fieldName: 'IFSC',
+        fieldId: [EmpDetscrId + 'ifscCode'],
+        fieldDivId: [EmpDetscrId + 'ifscCodeDiv']
+    };
+    var v = {
+        fieldName: 'BankName',
+        fieldId: [EmpDetscrId + 'bankName'],
+        fieldDivId: [EmpDetscrId + 'bankNameDiv']
+    };
+    var w = {
+        fieldName: 'BranchName',
+        fieldId: [EmpDetscrId + 'branchName'],
+        fieldDivId: [EmpDetscrId + 'branchNameDiv']
+    };
+    var x = {
+        fieldName: 'TypeOfEmployer',
+        fieldId: [EmpDetscrId + 'typeOfEmployer'],
+        fieldDivId: [EmpDetscrId + 'typeOfEmployerDiv']
+    };
+    var y = {
+        fieldName: 'RetirementAge',
+        fieldId: [EmpDetscrId + 'retirementAge'],
+        fieldDivId: [EmpDetscrId + 'retirementAgeDiv']
+    };
+    var z = {
+        fieldName: 'PrevEmploymentYrs',
+        fieldId: [EmpDetscrId + 'prevBusinessYrs', EmpDetscrId + 'prevBusinessMonths'],
+        fieldDivId: [EmpDetscrId + 'previousBusinessYrsDiv']
+    };
+    var aa = {
+        fieldName: 'District',
+        fieldId: [EmpDetscrId + 'district'],
+        fieldDivId: [EmpDetscrId + 'districtDiv']
+    };
+    var ab = {
+        fieldName: 'Country',
+        fieldId: [EmpDetscrId + 'country'],
+        fieldDivId: [EmpDetscrId + 'countryDiv']
+    };
+    var ac = {
+        fieldName: 'NameAsperAddr',
+        fieldId: [EmpDetscrId + 'nameAsperAddr'],
+        fieldDivId: [EmpDetscrId + 'nameAsperAddrDiv']
+    };
+    var ad = {
+        fieldName: 'DOBasPerAddr',
+        fieldId: [EmpDetscrId + 'dob'],
+        fieldDivId: [EmpDetscrId + 'dobDiv']
+    };
+    var ae = {
+        fieldName: 'TypbssEmpent',
+        fieldId: [EmpDetscrId + 'typbssEmpent'],
+        fieldDivId: [EmpDetscrId + 'typBssEmpentRow']
+    };
+    var af = {
+        fieldName: 'BssEmpAcc',
+        fieldId: [EmpDetscrId + 'bssEmpAcc'],
+        fieldDivId: [EmpDetscrId + 'bssEmpAcctRow']
+    };
+    var ag = {
+        fieldName: 'BssAddrProof',
+        fieldId: [EmpDetscrId + 'bssAddrProof'],
+        fieldDivId: [EmpDetscrId + 'bssAddrProofRow']
+    };
+    var ah = {
+        fieldName: 'EmpProof',
+        fieldId: [EmpDetscrId + 'empProof'],
+        fieldDivId: [EmpDetscrId + 'empProofRow']
+    };
+    var ai = {
+        fieldName: 'FreqOfInc',
+        fieldId: [EmpDetscrId + 'freqOfInc'],
+        fieldDivId: [EmpDetscrId + 'freqOfIncRow']
+    };
+    var aj = {
+        fieldName: 'AnnualIncome',
+        fieldId: [EmpDetscrId + 'annualIncome'],
+        fieldDivId: [EmpDetscrId + 'annualIncomeRow']
+    };
+    var ak = {
+        fieldName: 'OthSrcInc',
+        fieldId: [EmpDetscrId + 'othSrcInc'],
+        fieldDivId: [EmpDetscrId + 'othSrcIncRow']
+    };
+    var al = {
+        fieldName: 'OthSrcAnnInc',
+        fieldId: [EmpDetscrId + 'othSrcAnnInc'],
+        fieldDivId: [EmpDetscrId + 'othSrcAnnIncRow']
+    };
+    var am = {
+        fieldName: 'AddrsType',
+        fieldId: [EmpDetscrId + 'el_inp_1'],
+        fieldDivId: [EmpDetscrId + 'addrsTypeRow']
+    };
+    var an = {
+        fieldName: 'LandMark',
+        fieldId: [EmpDetscrId + 'el_inp_2'],
+        fieldDivId: [EmpDetscrId + 'landMarkRow']
+    };
+    var ao = {
+        fieldName: 'Area',
+        fieldId: [EmpDetscrId + 'el_inp_3'],
+        fieldDivId: [EmpDetscrId + 'sc_row_246']
+    };
+    var ap = {
+        fieldName: 'ApplIns',
+        fieldId: [EmpDetscrId + 'ApplInsRadio'],
+        fieldDivId: [EmpDetscrId + 'ApplInsRadioRow']
+    };
+    var aq = {
+        fieldName: 'CoApplIns',
+        fieldId: [EmpDetscrId + 'coAppInsuranceRadio'],
+        fieldDivId: [EmpDetscrId + 'coapplicInsRow']
+    };
+    var ar = {
+        fieldName: 'ChangeAccDet',
+        fieldId: [EmpDetscrId + 'AccDetRadio'],
+        fieldDivId: [EmpDetscrId + 'AccDetRadioRow']
+    };
+    var as = {
+        fieldName: 'BusinessEmpStartDate',
+        fieldId: [EmpDetscrId + 'busiEmpStartDatInput'],
+        fieldDivId: [EmpDetscrId + 'busiEmpStartDateDiv']
+    };
+    var at = {
+        fieldName: 'BusinessEmpStartVintageYear',
+        fieldId: [EmpDetscrId + 'busiEmpVintageInput'],
+        fieldDivId: [EmpDetscrId + 'busi_emp_vintageDiv']
+    };
+    var au = {
+        fieldName: 'streetVendor',
+        fieldId: [EmpDetscrId + 'streetVendor'],
+        fieldDivId: [EmpDetscrId + 'streetVendorDiv']
+    };
+    var aw = {
+        fieldName: 'occupationTag',
+        fieldId: [EmpDetscrId + 'ocuupationTag'],
+        fieldDivId: [EmpDetscrId + 'ocuupationTagDiv']
+    };
+    var av = {
+        fieldName: 'OfficeAddrSameAs',
+        fieldId: [EmpDetscrId + 'officeAddrSameAs'],
+        fieldDivId: [EmpDetscrId + 'officeAddrSameAsDiv']
+    };
+    var ax = {
+        fieldName: 'LocationCoord',
+        fieldId: [EmpDetscrId + 'location'],
+        fieldDivId: [EmpDetscrId + 'businessLocationCoordinateRow']
+    };
+    ApzCOB.ConfigureFields([a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z, aa, ab, ac, ad, ae, af, ag, ah, ai, aj,
+        ak, al, am, an, ao, ap, aq, ar, as, at, au,aw, av, ax
+    ], 'OCCUPATIONDETAILS', 'OCCUPATIONDETAILS');
+};
+//function to display address details
+apz.app.EmploymentDetails.paintAddressDetails = function() {
+    arrIndex = "";
+    var payloadIndex = -1;
+    var addressData = "";
+    curAddrDetails = gApzCOB.requestNodes['addressDetailsWrapperList'];
+    //curAddrDetails=apz.isNull(window.dontPaint?beforeBack.addressDetailsWrapperList:window.inSessionStore.addressDetailsWrapperList)
+    //?curAddrDetails:(window.dontPaint?beforeBack.addressDetailsWrapperList:window.inSessionStore.addressDetailsWrapperList);
+    if (!apz.isNull(curAddrDetails) && curAddrDetails.length > 0) {
+        ApzCOB.paintAddreDetails();
+        //  if (!apz.isNull(window.inSessionStore.addressDetailsWrapperList)) {
+        //   var isEmp = apz.currAppId === 'EmpDet' && window.inSessionStore.addressDetailsWrapperList[0].addressDetailsList[0].payload.addressList
+        //       .some(function(e, i) {
+        //           return (e.addressType.indexOf('Occupation') !== -1) //Check if the address array has occupation details
+        //      });
+        //   var isPer = apz.currAppId === 'PerDet' && window.inSessionStore.addressDetailsWrapperList[0].addressDetailsList[0].payload.addressList
+        //       .some(function(e, i) {
+        //           return (e.addressType.indexOf('Permanent') !== -1) //Check if the address array has permanent details
+        //       })
+        //  if (isEmp || isPer) {
+        //      curAddressDetails = window.inSessionStore.addressDetailsWrapperList //If it has anyone of these details then paint from local save
+        //  } else {
+        //      curAddressDetails = gApzCOB.requestNodes['addressDetailsWrapperList'] //If it doesn't then paint from reponse
+        //  }
+        //}
+        curAddrDetails[0]['addressDetailsList'].forEach(function(i, k) {
+            i["payload"]["addressList"].filter(function(m, n) {
+                if (m.addressType === "Occupation") {
+                    /*if (!apz.isNull(i["addressDtlsId"])) {
+                            gApzCOB.userDetails.occAddressDtlsId = i["addressDtlsId"];
+                        }*/
+                    arrIndex = k;
+                    payloadIndex = n;
+                    return;
+                }
+            })
+        })
+        if (payloadIndex > -1) {
+            addressData = curAddrDetails[0]["addressDetailsList"][arrIndex]["payload"]["addressList"][payloadIndex];
+            apz.app.EmploymentDetails.LoadEmpAddrIndex();
+            /*if (window.pendingApplication) {
+                window.EMP_ADDRESS = [];
+                window.EMP_ADDRESS_SAVE = [];
+                var obj = {
+                    "addressDetailsList": []
+                };
+                obj.addressDetailsList.push(curAddrDetails[0]['addressDetailsList'][arrIndex])
+                EMP_ADDRESS.push(obj);
+                window.EMP_ADDRESS_SAVE.push(obj);
+            }*/
+            $('#' + EmpDetscrId + "pin").val(addressData["pinCode"]);
+            $('#' + EmpDetscrId + "state").val(apz.isNull(addressData["state"]) ? PleaseSelect : addressData["state"]).change();
+            $('#' + EmpDetscrId + "city").val(apz.isNull(addressData["city"]) ? PleaseSelect : addressData["city"]);
+            $('#' + EmpDetscrId + "addressLine1").val(ApzCOB.getSubstrValue(`#${EmpDetscrId}addressLine1`, addressData["addressLine1"]));
+            $('#' + EmpDetscrId + "addressLine2").val(ApzCOB.getSubstrValue(`#${EmpDetscrId}addressLine2`, addressData["addressLine2"]));
+            $('#' + EmpDetscrId + "landMark").val(ApzCOB.getSubstrValue(`#${EmpDetscrId}landMark`, addressData["landMark"]));
+        }
+    }
+}
+//paint the details on click of back icon.
+apz.app.EmploymentDetails.paintDetails = function() {
+    apz.app.EmploymentDetails.employeeAddress();
+    apz.app.EmploymentDetails.data();
+    if (!apz.isNull(data)) {
+        //
+        var OccpDtls = data["payload"];
+        $('#' + EmpDetscrId + "profession").val(!apz.isNull(OccpDtls["occupationType"]) ? OccpDtls["occupationType"] :
+        PleaseSelect);
+        var yearofExp = OccpDtls["experience"].split(' ')[0];
+        var monsofExp = OccpDtls["experience"].split(' ')[2];
+        $('#' + EmpDetscrId + "yrsOfExp").val(yearofExp ? yearofExp : PleaseSelect);
+        $('#' + EmpDetscrId + "monOfExp").val(monsofExp ? monsofExp : PleaseSelect);
+        //$('#' + EmpDetscrId + "employerName").val(OccpDtls["employer"]);
+        $(`#${EmpDetscrId}employerName`).val(ApzCOB.getSubstrValue(`#${EmpDetscrId}employerName`, OccpDtls["employer"] ?? '')).trigger("onblur");
+        $('#' + EmpDetscrId + "employeeId").val(OccpDtls["employeeId"]);
+        $('#' + EmpDetscrId + "designation").val(!apz.isNull(OccpDtls["designation"]) ? OccpDtls["designation"] : PleaseSelect);
+        $(`#${EmpDetscrId}typeOfEmployer`).val(!apz.isNull(OccpDtls.typeOfEmployer) ? OccpDtls.typeOfEmployer : PleaseSelect);
+        $(`#${EmpDetscrId}currentBusinessYrs`).val(OccpDtls.employeeSince.split(" ")[0] ? OccpDtls.employeeSince.split(" ")[0] : PleaseSelect);
+        $(`#${EmpDetscrId}currentBusinessMonths`).val(OccpDtls.employeeSince.split(" ")[2] ? OccpDtls.employeeSince.split(" ")[2] : PleaseSelect);
+        $(`#${EmpDetscrId}retirementAge`).val(OccpDtls.retirementAge ? OccpDtls.retirementAge : PleaseSelect);
+        $(`#${EmpDetscrId}lastEmployerName`).val(OccpDtls.lastEmployer ? OccpDtls.lastEmployer : "");
+        $(`#${EmpDetscrId}prevBusinessYrs`).val(OccpDtls.previousJobYears.split(" ")[0] ? OccpDtls.previousJobYears.split(" ")[0] : PleaseSelect);
+        $(`#${EmpDetscrId}prevBusinessMonths`).val(OccpDtls.previousJobYears.split(" ")[2] ? OccpDtls.previousJobYears.split(" ")[2] :
+            PleaseSelect);
+        $(`#${EmpDetscrId}typbssEmpent`).val(!apz.isNull(OccpDtls.typeofbusiness) ? OccpDtls.typeofbusiness : PleaseSelect);
+        $(`#${EmpDetscrId}bssEmpAcc`).val(!apz.isNull(OccpDtls.employeeActivity) ? OccpDtls.employeeActivity : PleaseSelect);
+        $(`#${EmpDetscrId}bssAddrProof`).val(!apz.isNull(OccpDtls.businessAddressProof) ? OccpDtls.businessAddressProof : PleaseSelect);
+        $(`#${EmpDetscrId}empProof`).val(!apz.isNull(OccpDtls.employmentProof) ? OccpDtls.employmentProof : PleaseSelect);
+        $(`#${EmpDetscrId}bssPerOwn`).val(!apz.isNull(OccpDtls.businessPremiseOwnerShip) ? OccpDtls.businessPremiseOwnerShip : PleaseSelect);
+        $(`#${EmpDetscrId}freqOfInc`).val(!apz.isNull(OccpDtls.freqOfIncome) ? OccpDtls.freqOfIncome : PleaseSelect);
+        apz.app.EmploymentDetails.setAnnualIncomeValue(OccpDtls.annualIncome);
+        $(`#${EmpDetscrId}othSrcInc`).val(!apz.isNull(OccpDtls.otherSourceIncome) ? OccpDtls.otherSourceIncome: PleaseSelect);
+        $(`#${EmpDetscrId}othSrcAnnInc`).val(OccpDtls.otherSourceAnnualIncome);
+        $(`#${EmpDetscrId}busiEmpStartDatInput`).val(OccpDtls.businessEmpStartDate);
+        $(`#${EmpDetscrId}busiEmpVintageInput`).val(OccpDtls.businessEmpVintageYear);
+        if (!apz.isNull(OccpDtls.streetVendor)) {
+            $('#' + EmpDetscrId + 'streetVendor_option_' + OccpDtls.streetVendor).attr("checked", true);
+        }
+        //apz.app.EmploymentDetails.paintDetailsOnBackNav();
+        // apz.app.EmploymentDetails.paintAddressDetails();
+        // if (!apz.isNull(occAddress[CURRENT_APPLICANT_DETAILS_INDEX])) {
+        apz.app.EmploymentDetails.paintDetailsOnBackNav();
+        // } 
+    }
+};
+apz.app.EmploymentDetails.paintDetailsOnBackNav = function() {
+    let currentIndex = gApzCOB.currentApplicant - 1;
+    //Insurance Details
+    if (!apz.isNull(inSessionStore.insuranceDetailsWrapperList) && !apz.isNull(inSessionStore.insuranceDetailsWrapperList[
+            CURRENT_APPLICANT_DETAILS_INDEX])) {
+        var InsDtls = '';
+        inSessionStore.insuranceDetailsWrapperList.forEach(function(el, index) {
+            if (gApzCOB.currentApplicant === 1) {
+                if (parseInt(el.insuranceDetails.custDtlId) === parseInt(gApzCOB.userDetails.custDtlId)) {
+                    InsDtls = window.inSessionStore.insuranceDetailsWrapperList[index].insuranceDetails.payload;
+                }
+            } else if (gApzCOB.currentApplicant === 2) {
+                if (parseInt(el.insuranceDetails.custDtlId) === parseInt(gApzCOB.userDetails.CoApplicantCustomerId)) {
+                    InsDtls = window.inSessionStore.insuranceDetailsWrapperList[index].insuranceDetails.payload;
+                }
+            }
+        })
+        //var InsDtls = window.inSessionStore.insuranceDetailsWrapperList[CURRENT_APPLICANT_DETAILS_INDEX].insuranceDetails.payload
+        $(`#${EmpDetscrId}insuranceFor`).val(InsDtls.insuredName === "Applicant" ? 'Applicant' : 'Co-Applicant');
+        let relatn = InsDtls.nomineeRelation;
+        if (relatn.toLocaleLowerCase() === 'spouse') {
+            let applicantData = ApzCOB.getApplicantCustData();
+            if (applicantData.length > 0) {
+                if (applicantData[0].payload.maritalStatus.toLocaleLowerCase() !== "married") {
+                    relatn = PleaseSelect;
+                }
+            }
+        }
+        $(`#${EmpDetscrId}relationWithNominee`).val(relatn ? relatn : PleaseSelect).change();
+        $(`#${EmpDetscrId}dobNominee`).val(InsDtls.nomineeDob ?? '');
+        $(`#${EmpDetscrId}ageOfNominee`).val(InsDtls.age ?? '');
+        //$(`#${EmpDetscrId}nomineeForInsur`).val(InsDtls.nomineeName ?? '');
+        $(`#${EmpDetscrId}nomineeForInsur`).val(ApzCOB.getSubstrValue(`#${EmpDetscrId}nomineeForInsur`, InsDtls.nomineeName ?? '')).trigger("onblur");
+        $(`#${EmpDetscrId}ApplInsRadio`).val(InsDtls.insuranceReqd === "Y" ? $(`#${EmpDetscrId}ApplInsRadio_option_Y`).attr("checked", true) : $(
+            `#${EmpDetscrId}ApplInsRadio_option_N`).attr("checked", true));
+        $(`#${EmpDetscrId}coAppInsuranceRadio`).val(InsDtls.coApplicantInsurance === 'Y' ? $(`#${EmpDetscrId}coAppInsuranceRadio_option_Y`).attr(
+            "checked", true) : $(`#${EmpDetscrId}coAppInsuranceRadio_option_N`).attr("checked", true));
+        if (InsDtls.coApplicantInsurance == 'Yes') {
+            $(`#${EmpDetscrId}coAppInsuranceRadio_option_Y`).prop(`checked`, true);
+        } else if (InsDtls.coApplicantInsurance == 'No') {
+            $(`#${EmpDetscrId}coAppInsuranceRadio_option_N`).prop(`checked`, true);
+        }
+    }
+    // apz.app.EmploymentDetails.ageCalculator();
+    //Office Address Details
+    if (!apz.isNull(inSessionStore.addressDetailsWrapperList)) {
+        // 		let OffAddr = window.inSessionStore.addressDetailsWrapperList;
+        // 		var occAddress = [],
+        // 			personalAddress = [];
+        // 		if (!apz.isNull(OffAddr)) {
+        // 			OffAddr[0].addressDetailsList.forEach(function(i, k) {
+        // 				if (i.addressType === "Occupation") {
+        // 					occAddress.push(OffAddr[0].addressDetailsList[k])
+        // 				} else if (i.addressType === "Personal") {
+        // 					personalAddress.push(OffAddr[0].addressDetailsList[k])
+        // 				}
+        // 			})
+        // 		}
+        var address = inSessionStore.addressDetailsWrapperList[0].addressDetailsList
+        var officelAddress = []
+        if (gApzCOB.currentApplicant === 1) {
+            address.forEach(function(i, k) {
+                if (address[k].addressType === 'Occupation' && parseInt(address[k].custDtlId) === parseInt(gApzCOB.userDetails
+                    .custDtlId)) {
+                    officelAddress.push(address[k])
+                }
+            })
+        } else if (gApzCOB.currentApplicant === 2) {
+            address.forEach(function(i, k) {
+                if (address[k].addressType === 'Occupation' && parseInt(address[k].custDtlId) === parseInt(gApzCOB.userDetails
+                        .CoApplicantCustomerId)) {
+                    officelAddress.push(address[k])
+                }
+            })
+        }
+        if (officelAddress.length > 0) {
+            //var OffAdr = occAddress[CURRENT_APPLICANT_DETAILS_INDEX].payload.addressList[0];
+            var OffAdr = officelAddress[0].payload.addressList[0]
+            $(`#${EmpDetscrId}addressLine1`).val(ApzCOB.getSubstrValue(`#${EmpDetscrId}addressLine1`, OffAdr.addressLine1 ?? ''));
+            $(`#${EmpDetscrId}addressLine2`).val(ApzCOB.getSubstrValue(`#${EmpDetscrId}addressLine2`, OffAdr.addressLine2 ?? ''));
+            $(`#${EmpDetscrId}addressLine3`).val(ApzCOB.getSubstrValue(`#${EmpDetscrId}addressLine3`, OffAdr.addressLine3 ?? ''));
+            $(`#${EmpDetscrId}pin`).val(OffAdr.pinCode ?? '');
+            $(`#${EmpDetscrId}city`).val(OffAdr.city ?? '');
+            $(`#${EmpDetscrId}district`).val(OffAdr.district ?? '');
+            $(`#${EmpDetscrId}state`).val(OffAdr.state ?? '');
+            $(`#${EmpDetscrId}country`).val(OffAdr.country ?? '');
+            $(`#${EmpDetscrId}nameAsperAddr`).val(OffAdr.nameAsperAddressProof ?? '');
+            $(`#${EmpDetscrId}el_inp_1`).val(OffAdr.addressType ?? '');
+            $(`#${EmpDetscrId}el_inp_2`).val(OffAdr.landMark ?? '');
+            $(`#${EmpDetscrId}el_inp_3`).val(OffAdr.area ?? '');
+            $(`#${EmpDetscrId}location`).val(OffAdr.locateCoOrdinates ?? '');
+            $(`#${EmpDetscrId}officeAddrSameAs_option_` + OffAdr.addressSameAs).attr("checked", true);
+            if (!apz.isNull(OffAdr.addressSameAs) && OffAdr.addressSameAs !== 'Other') {
+                $(`#${EmpDetscrId}officeAddrSameAs_option_` + OffAdr.addressSameAs).attr("checked", true).select();
+            }
+        }
+    }
+    //Bank Details
+    if (!apz.isNull(inSessionStore.bankDetailsWrapperList)) {
+        let currIndex = ApzCOB.getIndexforBankWrapper("Applicant");
+        var BnkDtls = window.inSessionStore.bankDetailsWrapperList[currIndex]?.bankDetails?.payload
+        $(`#${EmpDetscrId}typeOfAcc`).val(BnkDtls.accountType ?? '');
+        $(`#${EmpDetscrId}accHolderName`).val(BnkDtls.accountName ?? '');
+        $(`#${EmpDetscrId}ifscCode`).val(BnkDtls.ifsc ?? '');
+        $(`#${EmpDetscrId}bankName`).val(BnkDtls.bankName ?? '');
+        $(`#${EmpDetscrId}branchName`).val(BnkDtls.branchName ?? '');
+        $(`#${EmpDetscrId}accNumber`).val(BnkDtls.accountNumber ?? '');
+    }
+    // $(`#${EmpDetscrId}coappIns`).val(BnkDtls.coApplicantInsurance);
+    //Occupation Deatails
+    if (!apz.isNull(inSessionStore.occupationDetailsWrapperList) && !apz.isNull(inSessionStore.occupationDetailsWrapperList[    CURRENT_APPLICANT_DETAILS_INDEX])) {
+        var OccupationDtls = '';
+        inSessionStore.occupationDetailsWrapperList.forEach(function(el, index) {
+            if (gApzCOB.currentApplicant === 1) {
+                if (parseInt(el.occupationDetails.custDtlId) === parseInt(gApzCOB.userDetails.custDtlId)) {
+                    OccupationDtls = window.inSessionStore.occupationDetailsWrapperList[index].occupationDetails.payload;
+                }
+            } else if (gApzCOB.currentApplicant === 2) {
+                if (parseInt(el.occupationDetails.custDtlId) === parseInt(gApzCOB.userDetails.CoApplicantCustomerId)) {
+                    OccupationDtls = window.inSessionStore.occupationDetailsWrapperList[index].occupationDetails.payload;
+                }
+            }
+        })
+        // var OccupationDtls = window.inSessionStore.occupationDetailsWrapperList[CURRENT_APPLICANT_DETAILS_INDEX].occupationDetails.payload
+        if (!apz.isNull(OccupationDtls) || OccupationDtls.length > 0) {
+            $(`#${EmpDetscrId}profession`).val(OccupationDtls.occupationType ?? '');
+            $(`#${EmpDetscrId}profession`).change();
+            $(`#${EmpDetscrId}typeOfEmployer`).val(OccupationDtls.typeOfEmployer ?? '');
+            //$(`#${EmpDetscrId}employerName`).val(OccupationDtls.employer ?? '');
+            $(`#${EmpDetscrId}employerName`).val(ApzCOB.getSubstrValue(`#${EmpDetscrId}employerName`, OccupationDtls.employer ?? '')).trigger("onblur");
+            $(`#${EmpDetscrId}typbssEmpent`).val(OccupationDtls.typeofbusiness ?? '');
+            $(`#${EmpDetscrId}bssEmpAcc`).val(OccupationDtls.employeeActivity ?? '');
+            let bussAddrProof = OccupationDtls.businessAddressProof;
+            $(`#${EmpDetscrId}bssAddrProof`).val(bussAddrProof ?? '');
+            if(!apz.isNull(bussAddrProof) && (bussAddrProof.toLowerCase() !== PleaseSelect.toLowerCase()) && IS_REJECTED_APPLICATION) {
+                ApzCOB.addDisableToInput(`${EmpDetscrId}bssAddrProof`);
+            }
+            let emplProof = OccupationDtls.employmentProof;
+            $(`#${EmpDetscrId}empProof`).val(emplProof ?? '');
+            if(!apz.isNull(emplProof) && (emplProof.toLowerCase() !== PleaseSelect.toLowerCase()) && IS_REJECTED_APPLICATION) {
+                ApzCOB.addDisableToInput(`${EmpDetscrId}empProof`);
+            }
+            $(`#${EmpDetscrId}bssPerOwn`).val(OccupationDtls.businessPremiseOwnerShip ?? '');
+            $(`#${EmpDetscrId}freqOfInc`).val(OccupationDtls.freqOfIncome ?? '');
+            apz.app.EmploymentDetails.setAnnualIncomeValue(OccupationDtls.annualIncome);
+            $(`#${EmpDetscrId}othSrcInc`).val(!apz.isNull(OccupationDtls.otherSourceIncome) ? OccupationDtls.otherSourceIncome : PleaseSelect);
+            $(`#${EmpDetscrId}othSrcAnnInc`).val(OccupationDtls.otherSourceAnnualIncome ?? '');
+            $(`#${EmpDetscrId}streetVendor`).val(OccupationDtls.streetVendor === 'Y' ? $(`#${EmpDetscrId}streetVendor_option_Y`).attr("checked", true) : $(`#${EmpDetscrId}streetVendor_option_N`).attr("checked", true));
+            let appOccu = ApzCOB.getPayloadDatafromWrapper('occupation', 'Applicant', 'customerDetailsList');
+            let coAppOccu = ApzCOB.getPayloadDatafromWrapper('occupation', 'Co-App', 'customerDetailsList');
+            if (!apz.isNull(OccupationDtls.occupationTag) && !apz.isNull(appOccu) && !apz.isNull(coAppOccu)) {
+                if (OccupationDtls.occupationTag.toLowerCase() === 'yes' && appOccu === coAppOccu) {
+                    $(`#${EmpDetscrId}ocuupationTag_option_Yes`).click();
+                } else {
+                    $(`#${EmpDetscrId}ocuupationTag_option_NO`).click();
+                }
+                // apz.setElmValue(`${EmpDetscrId}ocuupationTag`, OccupationDtls.occupationTag);
+            }
+        }
+    }
+}
+//to hide the sub header when all the subheader fields are hidden.
+apz.app.EmploymentDetails.hideHeader = function() {
+    ApzCOB.hideHeader([{
+        'fieldId': [EmpDetscrId + 'professionDiv', EmpDetscrId + 'yrsOfExpDiv', EmpDetscrId + 'employerNameDiv', EmpDetscrId +
+            'designationDiv', EmpDetscrId + 'currentBusinessYrsDiv', EmpDetscrId + 'grossIncomeDiv', EmpDetscrId +
+            'monthlyTakeHomeDiv',
+            EmpDetscrId + 'landlineNoDiv'
+        ],
+        'headerId': EmpDetscrId + 'OccupationDetailsHeader'
+    }])
+};
+// request creation function
+apz.app.EmploymentDetails.createRequest = function(iSave) {
+    if (!accisVerified && gApzCOB.currentApplicant == 1 && accvalidationCheck) {
+        ApzCOB.fnDisplayMsg("Please verify bank account", "E");
+        return;
+    }
+    // Disability Sts insert
+    currCusDtlId = ApzCOB.getCustDetailID(gApzCOB.currentApplicant === 1 ? 'Applicant' : 'Co-App');
+    curindex = inSessionStore.customerDetailsList.findIndex(el => el.custDtlId === currCusDtlId);
+    if (!checkedValues || checkedValues.length === 0) {
+      checkedValues = inSessionStore.customerDetailsList[curindex].payload.disabilityList;
+    }
+	inSessionStore.customerDetailsList[curindex].payload.isDisabled = apz.getElmValue(EmpDetscrId + "ApplDisaRadio");
+	inSessionStore.customerDetailsList[curindex].payload.disabilityList = window.checkedValues;
+	inSessionStore.customerDetailsList[curindex].payload.UDID = apz.getElmValue(EmpDetscrId + "UDID_Num");
+	inSessionStore.customerDetailsList[curindex].payload.disabilityPercentage = apz.getElmValue(EmpDetscrId + "percentageOfImp"); 
+	inSessionStore.customerDetailsList[curindex].payload.disabliltyOtherValue = apz.getElmValue(EmpDetscrId + "others_input_impair");
+    var prevJobYears = $('#' + EmpDetscrId + 'prevBusinessYrs').val() === PleaseSelect ? "" : $('#' + EmpDetscrId + 'prevBusinessYrs').val() +
+        " years ";
+    var prevJobMon = $('#' + EmpDetscrId + 'prevBusinessMonths').val() === PleaseSelect ? "" : $('#' + EmpDetscrId + 'prevBusinessMonths').val() +
+        " months";
+    var currJobYears = $('#' + EmpDetscrId + 'currentBusinessYrs').val() === PleaseSelect ? "" : $('#' + EmpDetscrId + 'currentBusinessYrs')
+    .val() + " years ";
+    var currJobMon = $('#' + EmpDetscrId + 'currentBusinessMonths').val() === PleaseSelect ? "" : $('#' + EmpDetscrId + 'currentBusinessMonths')
+        .val() + " months";
+    var totalExpYears = $('#' + EmpDetscrId + 'yrsOfExp').val() === PleaseSelect ? "" : $('#' + EmpDetscrId + 'yrsOfExp').val() + " years ";
+    var totalExpMon = $('#' + EmpDetscrId + 'monOfExp').val() === PleaseSelect ? "" : $('#' + EmpDetscrId + 'monOfExp').val() + " months ";
+    var designation = $('#' + EmpDetscrId + 'designation').val() === PleaseSelect ? "" : $('#' + EmpDetscrId + 'designation').val();
+    var occType = $('#' + EmpDetscrId + 'profession').val() === PleaseSelect ? "" : $('#' + EmpDetscrId + 'profession').val();
+    var typeOfBusineeOrEmp = $('#' + EmpDetscrId + 'typbssEmpent').val() === PleaseSelect ? "" : $('#' + EmpDetscrId + 'typbssEmpent').val();
+    var otherSourceIncome = $("#EmpDRE__EmploymentDetails__othSrcInc").val();
+    var otherSourceIncomeValue = otherSourceIncome === "Others" ? otherSourceIncome + "|" + $("#" + EmpDetscrId + "otherSrcInc").val() :
+        otherSourceIncome;
+    var businessAddressPrrof = $('#' + EmpDetscrId + 'bssAddrProof').val() === PleaseSelect ? "" : $('#' + EmpDetscrId + 'bssAddrProof').val();
+    var employmentAddressPrrof = $('#' + EmpDetscrId + 'empProof').val() === PleaseSelect ? "" : $('#' + EmpDetscrId + 'empProof').val();
+    var retirementAge = $('#' + EmpDetscrId + 'retirementAge').val() === PleaseSelect ? "" : $('#' + EmpDetscrId + 'retirementAge').val();
+    var typeOfEmployer = $('#' + EmpDetscrId + 'typeOfEmployer').val() === PleaseSelect ? "" : $('#' + EmpDetscrId + 'typeOfEmployer').val();
+    var custDtlId = gApzCOB.currentApplicant > 1 ? gApzCOB.userDetails.CoApplicantCustomerId : gApzCOB.userDetails.custDtlId;
+    var addrSameAs = $('input[name="EmpDRE__EmploymentDetails__officeAddrSameAs_"]:checked').val();
+    if (addrSameAs?.toLowerCase() === "present") {
+        addrType = 'Personal';
+        subAddrType = 'Present';
+        businessAddressPrrof = ApzCOB.getPayloadDatafromWrapper('currentAddressProof', custType, 'addressDetailsWrapperList');
+        $(`#${EmpDetscrId}bssAddrProof`).val(businessAddressPrrof).change();
+    }
+    var obj = {
+        "occupationDetails": {
+            "occptDtlId": gApzCOB.userDetails.occptDtlId,
+            "custDtlId": custDtlId,
+            "payload": {
+                "employer": $('#' + EmpDetscrId + 'employerName').val(),
+                "employeeId": "", //$('#' + EmpDetscrId + 'employeeId').val(),
+                "occupationType": occType,
+                "designation": designation,
+                "grossIncome": "", //ApzCOB.fn_unFormatAmount($('#' + EmpDetscrId + 'grossIncome').val()),
+                "netTakeHome": "", //ApzCOB.fn_unFormatAmount($('#' + EmpDetscrId + 'monthlyTakeHome').val()),
+                "organisationName": $('#' + EmpDetscrId + 'employerName').val(),
+                "officePhone": "", //$('#' + EmpDetscrId + 'landlineNo').val(),
+                "officeEmail": "", //$('#' + EmpDetscrId + 'companyEmail').val(),
+                "employeeSince": currJobYears + currJobMon,
+                "experience": totalExpYears + totalExpMon,
+                "retirementAge": retirementAge,
+                "lastEmployer": $('#' + EmpDetscrId + 'lastEmployerName').val(),
+                "previousJobYears": prevJobYears + prevJobMon,
+                "typeOfEmployer": typeOfEmployer,
+                "natureOfOccupation": occType,
+                "addressProof": "",
+                "premiseOwnership": "",
+                "incomeFrequency": "",
+                "totalOtherSourcesAnnualIncome": "",
+                "streetVendor": apz.getElmValue(EmpDetscrId + "streetVendor"),
+                "modeOfIncome": "",
+                "otherIncomeSources": [{
+                    "source": '',
+                    "annualIncome": ''
+                }],
+                "typeofbusiness": typeOfBusineeOrEmp,
+                "occupationTag": apz.getElmValue(`${EmpDetscrId}ocuupationTag`),
+                "employeeActivity": $("#EmpDRE__EmploymentDetails__bssEmpAcc").val(),
+                "businessAddressProof": businessAddressPrrof,
+                "employmentProof": employmentAddressPrrof,
+                "businessPremiseOwnerShip": $("#EmpDRE__EmploymentDetails__bssPerOwn").val(),
+                "freqOfIncome": $("#EmpDRE__EmploymentDetails__freqOfInc").val(),
+                "annualIncome": $("#EmpDRE__EmploymentDetails__annualIncome").val(),
+                "otherSourceIncome": otherSourceIncomeValue,
+                "otherSourceAnnualIncome": $("#EmpDRE__EmploymentDetails__othSrcAnnInc").val(),
+                "businessEmpStartDate": $("#EmpDRE__EmploymentDetails__busiEmpStartDatInput").val(),
+                "businessEmpVintageYear": $("#EmpDRE__EmploymentDetails__busiEmpVintageInput").val(),
+            }
+        }
+    }
+    if (gApzCOB.currentApplicant > 1) {
+        obj.occupationDetails.occptDtlId = apz.isNull(gApzCOB.userDetails.coAppOccptDtlId) ? "" : gApzCOB.userDetails.coAppOccptDtlId;
+    }
+    var addressDetObj = {
+        "addressDetailsList": [{
+            "addressDtlsId": gApzCOB.userDetails.occAddressDtlsId,
+            "custDtlId": custDtlId,
+            "addressType": "Occupation",
+            "payload": {
+                // "relatedKey": "occptDtlId",
+                //  "relatedValue": gApzCOB.userDetails.occptDtlId,
+                "addressList": apz.app.EmploymentDetails.address()
+            }
+        }]
+    }
+    if (gApzCOB.currentApplicant > 1) {
+        addressDetObj.addressDetailsList[0].addressDtlsId = apz.isNull(gApzCOB.userDetails.CoApOccAddressDtlsId) ? "" : gApzCOB.userDetails
+            .CoApOccAddressDtlsId;
+    }
+    let isBankInfoEdit = $('input[name="' + EmpDetscrId + 'AccDetRadio_"]:checked').val() === "Y" ? "Yes" : "No";
+    var bankDetailsObj = {
+        "bankDetails": {
+            "bankDtlId": gApzCOB.userDetails.bankDtlsId,
+            "custDtlId": gApzCOB.userDetails.custDtlId,
+            "payload": {
+                "accountType": $('#' + EmpDetscrId + 'typeOfAcc').val(),
+                "accountName": $('#' + EmpDetscrId + 'accHolderName').val(),
+                "ifsc": $('#' + EmpDetscrId + 'ifscCode').val(),
+                "bankName": $('#' + EmpDetscrId + 'bankName').val(),
+                "branchName": $('#' + EmpDetscrId + 'branchName').val(),
+                "accountNumber": $('#' + EmpDetscrId + 'accNumber').val(),
+                "accntVerified": window.accIsvalid,
+                "longitude": window.storelongitude,
+                "latitude": window.storelatitude,
+                "uploadedTs": new Date().toISOString(),
+                "editBankDetails": isBankInfoEdit
+            }
+        }
+    }
+    window.BANK_DETAILS = [];
+    window.BANK_DETAILS.push(bankDetailsObj);
+    if(gApzCOB.currentApplicant === 1){
+    apz.app.EmploymentDetails.onchangecoapplicIns();
+    }
+    var relnNomi = $('#' + EmpDetscrId + 'relationWithNominee').val() === PleaseSelect ? "" : $('#' + EmpDetscrId + 'relationWithNominee').val();
+    let insuredFor = gApzCOB.currentApplicant <= 1 ? "Applicant" : "Co-App";
+    var insuranceDetailsObj = {
+        "insuranceDetails": {
+            "insuranceDtlId": gApzCOB.userDetails.insuranceDtlsId,
+            "custDtlId": custDtlId,
+            "payload": {
+                "insuranceReqd": apz.getElmValue(EmpDetscrId + "ApplInsRadio"),
+                "insuredName": insuredFor,
+                "nomineeName": $('#' + EmpDetscrId + 'nomineeForInsur').val(),
+                "nomineeRelation": relnNomi,
+                "nomineeDob": $('#' + EmpDetscrId + 'dobNominee').val(),
+                "age": $('#' + EmpDetscrId + 'ageOfNominee').val(),
+                "coApplicantInsurance": gApzCOB.userDetails.insurenceReqForCoApp
+            }
+        }
+    }
+    if (gApzCOB.currentApplicant > 1 /* && gApzCOB.userDetails.insurenceReqForCoApp === "Yes"*/ ) {
+        insuranceDetailsObj.insuranceDetails.insuranceDtlId = apz.isNull(gApzCOB.userDetails.coAppInsuranceDtlsId) ? "" : gApzCOB.userDetails
+            .coAppInsuranceDtlsId;
+        if (gApzCOB.userDetails.insurenceReqForCoApp !== "Yes") {
+            var insPayload = insuranceDetailsObj.insuranceDetails.payload;
+            insPayload.insuranceReqd = ''
+            insPayload.insuredName = '';
+            insPayload.coApplicantInsurance = '';
+            insPayload.nomineeName = '';
+            insPayload.nomineeRelation = '';
+            insPayload.nomineeDob = '';
+            insPayload.age = '';
+            insPayload.coApplicantInsurance = '';
+        }
+    }
+    window.INSURANCE_DETAILS = [];
+    window.INSURANCE_DETAILS.push(insuranceDetailsObj)
+    if (iSave === 'captureBefore') {
+        window.afterBack.occupationDetailsWrapperList = [];
+        window.afterBack.addressDetailsWrapperList = [];
+        window.afterBack.occupationDetailsWrapperList.push(obj);
+        window.afterBack.addressDetailsWrapperList = [addressDetObj];
+        window.EMP_ADDRESS_SAVE = [];
+        window.EMP_ADDRESS_SAVE.push(addressDetObj);
+        return window.beforeBack;
+    }
+    if (iSave === 'captureAfter') {
+        window.afterBack.occupationDetailsWrapperList = [];
+        window.afterBack.addressDetailsWrapperList = [];
+        window.afterBack.occupationDetailsWrapperList.push(obj);
+        window.afterBack.addressDetailsWrapperList = [addressDetObj];
+        window.EMP_ADDRESS_SAVE = [];
+        window.EMP_ADDRESS_SAVE.push(addressDetObj);
+        return window.afterBack;
+    }
+    // window.inSessionStore.occupationDetailsWrapperList = [];
+    // window.inSessionStore.addressDetailsWrapperList = [];
+    // window.inSessionStore.addressDetailsWrapperList = [addressDetObj];
+    // window.inSessionStore.occupationDetailsWrapperList.push(obj);
+    window.EMP_ADDRESS_SAVE = [];
+    window.EMP_ADDRESS_SAVE.push(addressDetObj);
+    if (iSave === 'triggerdSave') {
+        return window.inSessionStore;
+    }
+    if (gApzCOB.currentApplicant <= 1) {
+        if (!apz.isNull(window.inSessionStore.occupationDetailsWrapperList)) {
+            let arrayIndex = window.inSessionStore.occupationDetailsWrapperList.findIndex(occupation => parseInt(occupation.occupationDetails.custDtlId) === parseInt(gApzCOB.userDetails.custDtlId));
+            if(arrayIndex >= 0){
+              window.inSessionStore.occupationDetailsWrapperList[arrayIndex] = obj;  
+            } else if(arrayIndex === -1) {
+                window.inSessionStore.occupationDetailsWrapperList.push(obj);
+            }
+        } else {
+            window.inSessionStore.occupationDetailsWrapperList = [];
+            window.inSessionStore.occupationDetailsWrapperList.push(obj);
+        }
+    } else {
+       let arrayIndex = window.inSessionStore.occupationDetailsWrapperList.findIndex(occupation => parseInt(occupation.occupationDetails.custDtlId) === parseInt(gApzCOB.userDetails.CoApplicantCustomerId));
+            if(arrayIndex >= 0){
+              window.inSessionStore.occupationDetailsWrapperList[arrayIndex] = obj;  
+            } else {
+                window.inSessionStore.occupationDetailsWrapperList.push(obj);
+            }
+    }
+    let addressStoreLength = window.inSessionStore.addressDetailsWrapperList[0].addressDetailsList.length;
+    let currentAddressRecords = [];
+    let currentAddressDtlsId = '';
+    let currentAddressIndex = '';
+    if (gApzCOB.currentApplicant <= 1) {
+    currentAddressRecords = inSessionStore.addressDetailsWrapperList[0].addressDetailsList.filter(addres => addres.addressType === 'Occupation' &&
+            parseInt(addres.custDtlId) === parseInt(gApzCOB.userDetails.custDtlId));
+    } else {
+     currentAddressRecords = inSessionStore.addressDetailsWrapperList[0].addressDetailsList.filter(addres => addres.addressType === 'Occupation' &&
+            parseInt(addres.custDtlId) === parseInt(gApzCOB.userDetails.CoApplicantCustomerId));   
+    }
+    if(currentAddressRecords.length > 0){
+     currentAddressDtlsId =   currentAddressRecords[0].addressDtlsId;
+     currentAddressIndex = inSessionStore.addressDetailsWrapperList[0].addressDetailsList.findIndex(add => add
+        .addressDtlsId === currentAddressDtlsId);
+    }
+    // var addrDtlsIDApp = (inSessionStore.addressDetailsWrapperList[0].addressDetailsList.filter(addres => addres.addressType === 'Occupation' &&
+    //         parseInt(addres.custDtlId) === parseInt(gApzCOB.userDetails.custDtlId)).length > 0) ? inSessionStore.addressDetailsWrapperList[0]
+    //     .addressDetailsList.filter(addres => addres.addressType === 'Occupation' && parseInt(addres.custDtlId) === parseInt(gApzCOB.userDetails
+    //         .custDtlId))[0].addressDtlsId : '';
+    // var addrDtlsIDCoApp = (inSessionStore.addressDetailsWrapperList[0].addressDetailsList.filter(addres => addres.addressType === 'Occupation' &&
+    //         parseInt(addres.custDtlId) === parseInt(gApzCOB.userDetails.CoApplicantCustomerId)).length > 0) ? inSessionStore
+    //     .addressDetailsWrapperList[0].addressDetailsList.filter(addres => addres.addressType === 'Occupation' && parseInt(addres.custDtlId) ===
+    //         parseInt(gApzCOB.userDetails.CoApplicantCustomerId))[0].addressDtlsId : ''
+    // var addressStoreIndex = addrDtlsIDApp != '' ? inSessionStore.addressDetailsWrapperList[0].addressDetailsList.findIndex(add => add
+    //     .addressDtlsId === addrDtlsIDApp) : '';
+    // var addressStoreIndexCoApp = addrDtlsIDCoApp != '' ? inSessionStore.addressDetailsWrapperList[0].addressDetailsList.findIndex(add => add
+    //     .addressDtlsId === addrDtlsIDCoApp) : '';
+        if (!apz.isNull(window.inSessionStore.addressDetailsWrapperList[0].addressDetailsList[currentAddressIndex])) {
+            window.inSessionStore.addressDetailsWrapperList[0].addressDetailsList[currentAddressIndex].payload = addressDetObj.addressDetailsList[0]
+                .payload;
+        } else {
+            window.inSessionStore.addressDetailsWrapperList[0].addressDetailsList.push(addressDetObj.addressDetailsList[0])
+        }
+    // insurance
+    var insurApp = '',
+        insurAppIndex = 0,
+        insurCoApp = '',
+        insurCoAppIndex = 1;
+    if (!apz.isNull(inSessionStore.insuranceDetailsWrapperList)) {
+        insurApp = (inSessionStore.insuranceDetailsWrapperList.filter(insur => parseInt(insur.insuranceDetails.custDtlId) === parseInt(gApzCOB
+            .userDetails.custDtlId)).length > 0) ? inSessionStore.insuranceDetailsWrapperList.filter(insur => parseInt(insur.insuranceDetails
+            .custDtlId) === parseInt(gApzCOB.userDetails.custDtlId))[0].insuranceDetails.insuranceDtlId : '';
+        insurAppIndex = insurApp != '' ? inSessionStore.insuranceDetailsWrapperList.findIndex(ins => ins.insuranceDetails.insuranceDtlId ===
+            insurApp) : '';
+        insurCoApp = (inSessionStore.insuranceDetailsWrapperList.filter(insur => parseInt(insur.insuranceDetails.custDtlId) === parseInt(gApzCOB
+            .userDetails.CoApplicantCustomerId)).length > 0) ? inSessionStore.insuranceDetailsWrapperList.filter(insur => parseInt(insur
+            .insuranceDetails.custDtlId) === parseInt(gApzCOB.userDetails.CoApplicantCustomerId))[0].insuranceDetails.insuranceDtlId : '';
+        insurCoAppIndex = insurCoApp != '' ? inSessionStore.insuranceDetailsWrapperList.findIndex(ins => ins.insuranceDetails.insuranceDtlId ===
+            insurCoApp) : '';
+    }
+    if (gApzCOB.currentApplicant <= 1) {
+        if (!apz.isNull(window.inSessionStore.insuranceDetailsWrapperList)) {
+            if (!apz.isNull(window.inSessionStore.insuranceDetailsWrapperList[insurAppIndex])) {
+                window.inSessionStore.insuranceDetailsWrapperList[insurAppIndex].insuranceDetails.payload = insuranceDetailsObj.insuranceDetails
+                    .payload;
+            }
+        } else {
+            window.inSessionStore.insuranceDetailsWrapperList = [];
+            window.inSessionStore.insuranceDetailsWrapperList.push(insuranceDetailsObj);
+        }
+    } else if (gApzCOB.currentApplicant > 1 /*&& inSessionStore.insuranceDetailsWrapperList[insurAppIndex].insuranceDetails.payload.insuranceReqd === "Y"*/) {
+        if (window.inSessionStore.insuranceDetailsWrapperList.length === gApzCOB.currentApplicant) {
+            if (!apz.isNull(window.inSessionStore.insuranceDetailsWrapperList[insurCoAppIndex])) {
+                window.inSessionStore.insuranceDetailsWrapperList[insurCoAppIndex].insuranceDetails.payload = insuranceDetailsObj.insuranceDetails
+                    .payload;
+            }
+        } else {
+            window.inSessionStore.insuranceDetailsWrapperList.push(insuranceDetailsObj);
+        }
+    }
+    // if (gApzCOB.currentApplicant <= 1) {
+    //     if (!apz.isNull(window.inSessionStore.insuranceDetailsWrapperList)) {
+    //         window.inSessionStore.insuranceDetailsWrapperList[gApzCOB.currentApplicant - 1] = insuranceDetailsObj;
+    //     } else {
+    //         window.inSessionStore.insuranceDetailsWrapperList = [];
+    //         window.inSessionStore.insuranceDetailsWrapperList = [addressDetObj];
+    //     }
+    // } else {
+    //     window.inSessionStore.insuranceDetailsWrapperList[gApzCOB.currentApplicant - 1] = insuranceDetailsObj;
+    // }
+    apz.app.EmploymentDetails.removeExpMand();
+    gApzCOB["requestNodes"]['occupationDetailsWrapperList'] = [];
+    window.EMP_ADDRESS = [];
+    window.EMP_ADDRESS.push(addressDetObj);
+    if (!window.pendingApplication) {
+        gApzCOB.requestNodes['addressDetailsWrapperList'] = [];
+    }
+    gApzCOB["requestNodes"]['insuranceDetailsWrapperList'] = [];
+    gApzCOB["requestNodes"]['bankDetailsWrapperList'] = [];
+    window.inSessionStore.bankDetailsWrapperList = window.BANK_DETAILS;
+    gApzCOB["requestNodes"]['insuranceDetailsWrapperList'] = window.INSURANCE_DETAILS;
+    gApzCOB["requestNodes"]['bankDetailsWrapperList'] = window.BANK_DETAILS;
+    gApzCOB["requestNodes"]['addressDetailsWrapperList'] = window.EMP_ADDRESS;
+    gApzCOB["requestNodes"]['occupationDetailsWrapperList'].push(obj);
+    if (apz.isNull(gApzCOB["requestNodes"]['applicationDocumentsWrapperList']) || gApzCOB["requestNodes"]['applicationDocumentsWrapperList']
+        .length === 0) {
+        var lobj = {};
+        lobj["applicationDocumentsList"] = []
+        gApzCOB["requestNodes"]['applicationDocumentsWrapperList'] = [];
+        var lobj = {};
+        lobj["applicationDocumentsList"] = []
+        inSessionStore.applicationDocumentsWrapperList = [];
+        inSessionStore.applicationDocumentsWrapperList.push(lobj)
+    } else {
+        if (!apz.isNull(gApzCOB.requestNodes.applicationDocumentsWrapperList[0].applicationDocumentsList)) {
+            if (gApzCOB.requestNodes.applicationDocumentsWrapperList[0].applicationDocumentsList.length > 0) {
+                gApzCOB.requestNodes.applicationDocumentsWrapperList[0].applicationDocumentsList = gApzCOB.requestNodes.applicationDocumentsWrapperList[0].applicationDocumentsList.filter(bankDocs => bankDocs.payload.screenId !== "EmploymentDetails")
+            }
+        }
+    }
+    if (BANK_DETAILS_EDIT_OPTION) {
+        apz.app.EmploymentDetails.createBankDocRequest();
+    }
+    return gApzCOB["requestNodes"];
+}
+apz.app.EmploymentDetails.createBankDocRequest = function() {
+    var lobj = {};
+    lobj["applicationDocumentsList"] = []
+    let bankDoc = bankdocProofObj.BankProof[0];
+    var obj = {
+        "appId": gAppId,
+        "documentId": bankDoc.appDocId,
+        "appDocId": bankDoc.appDocId,
+        "applicationId": gApzCOB.userDetails.applicationId,
+        "custDtlId": gApzCOB.userDetails.custDtlId,
+        "payload": {
+            "docSide": "Front",
+            "documentFileName": bankDoc.filename,
+            "documentFormat": bankDoc.filetype,
+            "documentType": "Bank Passbook",
+            "documentName": "Bank Passbook",
+            "documentDesc": "",
+            "documentLoc": bankDoc.filelocation,
+            "screenId": "EmploymentDetails",
+            "issueDate": "",
+            "expiryDate": "",
+            "docStatus": "A",
+            "latitude": localFileObj.latitude,
+            "longitude": localFileObj.longitude,
+            "uploadedTs" :  new Date().toISOString(),
+            "docCategory": "Bank Account Proof"
+        }
+    }
+    if (apz.isNull(gApzCOB["requestNodes"]['applicationDocumentsWrapperList']) || gApzCOB["requestNodes"]['applicationDocumentsWrapperList']
+        .length === 0) {
+        lobj["applicationDocumentsList"].push(obj);
+        gApzCOB["requestNodes"]['applicationDocumentsWrapperList'].push(lobj);
+    } else {
+        if (!apz.isNull(obj)) {
+            gApzCOB["requestNodes"]['applicationDocumentsWrapperList'][0].applicationDocumentsList.push(obj)
+        }
+    }
+    if(!apz.isNull(inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList)){
+        inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList = [...gApzCOB["requestNodes"]['applicationDocumentsWrapperList'][0].applicationDocumentsList]
+    }
+    return gApzCOB['requestNodes'];
+}
+apz.app.EmploymentDetails.ageCalculator = function() {
+    var a = {
+        'val': $('#' + EmpDetscrId + 'dobNominee').val(),
+        'fromFormat': 'dd/MM/yyyy',
+        'toFormat': 'dd-MM-yyyy'
+    }
+    var dobVal = apz.formatDate(a);
+    dobVal = dobVal.split("-").reverse().join('').replaceAll("-", '');
+    var year = Number(dobVal.substr(0, 4));
+    var month = Number(dobVal.substr(4, 2)) - 1;
+    var day = Number(dobVal.substr(6, 2));
+    var today = new Date();
+    var age = today.getFullYear() - year;
+    var ageCount = ApzCOB.getAge($('#' + EmpDetscrId + 'dobNominee').val());
+    if (ageCount > 0) {
+    if (today.getMonth() < month || (today.getMonth() === month && today.getDate() < day)) {
+        age--;
+    }
+    if (age === -1) {
+        $('#' + EmpDetscrId + 'ageOfNominee').val(age + 1).change();
+    } else {
+        $('#' + EmpDetscrId + 'ageOfNominee').val(age).change();
+    }
+    $('#' + EmpDetscrId + 'ageOfNominee').removeClass('err');
+    } else {
+        ApzCOB.fnDisplayMsg('Please select valid dob', "E");
+        $('#' + EmpDetscrId + 'dobNominee').val('');
+        $('#' + EmpDetscrId + 'dobNominee').addClass('err');
+        $('#' + EmpDetscrId + 'ageOfNominee').val('');
+        $('#' + EmpDetscrId + 'ageOfNominee').addClass('err');
+    }
+}
+apz.app.EmploymentDetails.validateMonths = function() {
+    var isValid = true;
+    if (parseInt($('#' + EmpDetscrId + 'monOfExp').val()) > 11) {
+        isValid = false;
+        $('#' + EmpDetscrId + 'monOfExp').val(PleaseSelect);
+        ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_EMPDTLS_MSG_MONTHERR"), "I");
+    }
+    return isValid;
+}
+apz.app.EmploymentDetails.address = function() {
+    var addressArr = [];
+    let addrSameAs = $('input[name="EmpDRE__EmploymentDetails__officeAddrSameAs_"]:checked').val();
+    var empAddress = {
+        "addressType": "Office",
+        "addressSameAs": addrSameAs || '',
+        "state": $('#' + EmpDetscrId + 'state').val(),
+        "city": $('#' + EmpDetscrId + 'city').val(),
+        "country": $('#' + EmpDetscrId + 'country').val(), //NR
+        "pinCode": $('#' + EmpDetscrId + 'pin').val(),
+        "addressLine1": $('#' + EmpDetscrId + 'addressLine1').val(),
+        "addressLine2": $('#' + EmpDetscrId + 'addressLine2').val(),
+        "addressLine3": $('#' + EmpDetscrId + 'addressLine3').val(),
+        "district": $('#' + EmpDetscrId + 'district').val(),
+        "nameAsperAddressProof": $('#' + EmpDetscrId + 'nameAsperAddr').val(),
+        "dobAsperAddressProof": $('#' + EmpDetscrId + 'dob').val(),
+        "residenceOwnership": "",
+        "residenceAddressSince": "",
+        "residenceCitySince": "",
+        "landMark": $("#EmpDRE__EmploymentDetails__el_inp_2").val(),
+        "area": $("#EmpDRE__EmploymentDetails__el_inp_3").val(),
+        "locateCoOrdinatesFor": addrSameAs || '',
+        "locateCoOrdinates": $('#' + coOrdinateInputTag).val()
+    }
+    addressArr.push(empAddress);
+    return addressArr;
+}
+apz.app.EmploymentDetails.removeExpMand = function() {
+    var isValid = false;
+    if (!apz.isNull($('#' + EmpDetscrId + 'monOfExp').val()) || !apz.isNull($('#' + EmpDetscrId + 'yrsOfExp').val())) {
+        isValid = true;
+        $('#' + EmpDetscrId + 'yrsOfExp').removeClass('err');
+        $('#' + EmpDetscrId + 'monOfExp').removeClass('err');
+    }
+    return isValid;
+}
+apz.app.EmploymentDetails.removeExpMandErr = function() {
+    $('#' + EmpDetscrId + 'yrsOfExp').removeClass('err');
+    $('#' + EmpDetscrId + 'monOfExp').removeClass('err');
+}
+// apz.app.EmploymentDetails.currentAddressDetail = function() {
+//     curAddrDetails = gApzCOB.requestNodes['addressDetailsWrapperList'];
+//     curAddrDetails[0]['addressDetailsList'].forEach(function(i, k) {
+//         i["payload"]["addressList"].filter(function(m, n) {
+//             if (m.addressType === "Occupation") {
+//                 if (!apz.isNull(i["addressDtlsId"])) {
+//                     gApzCOB.userDetails.occAddressDtlsId = i["addressDtlsId"];
+//                 }
+//                 arrIndex = k;
+//                 payloadIndex = n;
+//                 return;
+//             }
+//         })
+//     })
+// }
+apz.app.EmploymentDetails.employeeAddress = function() {
+    if (!apz.isNull(window.EMP_ADDRESS) && window.EMP_ADDRESS.length > 0) {
+        gApzCOB.requestNodes['addressDetailsWrapperList'] = window.EMP_ADDRESS;
+    }
+    if ((!apz.isNull(window.EMP_ADDRESS_SAVE) && window.EMP_ADDRESS_SAVE.length > 0) && inSessionStoreEnabled) {
+        window.inSessionStore.addressDetailsWrapperList = window.EMP_ADDRESS_SAVE;
+    }
+}
+apz.app.EmploymentDetails.data = function() {
+    if (!apz.isNull(window.inSessionStore.occupationDetailsWrapperList) && !apz.isNull(window.inSessionStore.occupationDetailsWrapperList[CURRENT_APPLICANT_DETAILS_INDEX])) {
+        let itemIndex =  window.inSessionStore.occupationDetailsWrapperList.findIndex(item => parseInt(item.occupationDetails.custDtlId) === parseInt((gApzCOB.currentApplicant <= 1) ? gApzCOB.userDetails.custDtlId : gApzCOB.userDetails.CoApplicantCustomerId));
+        if (!apz.isNull(itemIndex) && itemIndex >= 0) {
+            data = apz.isNull(window.inSessionStore.occupationDetailsWrapperList[itemIndex].occupationDetails) ? data : window.inSessionStore.occupationDetailsWrapperList[itemIndex].occupationDetails;
+        }
+    }
+}
+$('#' + EmpDetscrId + 'yrsOfExp,#' + EmpDetscrId + 'monOfExp').on('mousemove', function(event) {
+    var input = document.getElementById(event.target.id);
+    input.addEventListener("drop", $('#' + event.target.id).trigger('onblur'));
+    // mouseDown = true;
+})
+apz.app.EmploymentDetails.getStateCityValueforDropdown = function() { //using it for setElmValue for setting state & city
+    $.each(States, function(a, b) {
+        stateVal.push(b.val)
+        stateDesc.push(b.desc)
+    })
+    $.each(Cities, function(a, b) {
+        cityVal.push(b.val)
+        cityDesc.push(b.desc)
+    })
+}
+apz.app.EmploymentDetails.paintLoanEmpDetails = function() {
+    if (gApzCOB.ExistingCustomer) {
+        if (!apz.isNull(gApzCOB.customerDetails.addressList) && gApzCOB.customerDetails.addressList.length > 0) {
+            gApzCOB.customerDetails.addressList.filter(function(e) {
+                if (JSON.parse(e.payloadColumn).addressList[0].addressType === "Occupation" || JSON.parse(e.payloadColumn).addressList[0]
+                    .addressType === "Communication") {
+                    gApzCOB.customerDetails.addrdet = JSON.parse(e.payloadColumn);
+                    if (JSON.parse(e.payloadColumn).addressList[0].addressType === "Occupation") {
+                        gApzCOB.customerDetails.addrdet.addressLine1 = gApzCOB.customerDetails.addrdet["addressList"][0].addressLine1
+                        gApzCOB.customerDetails.addrdet.addressLine2 = gApzCOB.customerDetails.addrdet["addressList"][0].addressLine2
+                        gApzCOB.customerDetails.addrdet.addressType = gApzCOB.customerDetails.addrdet["addressList"][0].addressType
+                        gApzCOB.customerDetails.addrdet.city = gApzCOB.customerDetails.addrdet["addressList"][0].city
+                        gApzCOB.customerDetails.addrdet.country = gApzCOB.customerDetails.addrdet["addressList"][0].country
+                        gApzCOB.customerDetails.addrdet.landMark = gApzCOB.customerDetails.addrdet["addressList"][0].landMark
+                        gApzCOB.customerDetails.addrdet.pinCode = gApzCOB.customerDetails.addrdet["addressList"][0].pinCode
+                        gApzCOB.customerDetails.addrdet.state = gApzCOB.customerDetails.addrdet["addressList"][0].state
+                        ApzCOB.stateDropDown(EmpDetscrId, 'state');
+                        apz.app.EmploymentDetails.getStateCityValueforDropdown();
+                        apz.setElmValue(EmpDetscrId + "state", stateVal[stateDesc.indexOf(gApzCOB.customerDetails.addrdet.state)]);
+                        apz.setElmValue(EmpDetscrId + "city", cityVal[cityDesc.indexOf(gApzCOB.customerDetails.addrdet.city)]);
+                        $("#" + EmpDetscrId + "addressLine1").val(gApzCOB.customerDetails.addrdet.addressLine1);
+                        $("#" + EmpDetscrId + "addressLine2").val(gApzCOB.customerDetails.addrdet.addressLine2);
+                        $("#" + EmpDetscrId + "landMark").val(gApzCOB.customerDetails.addrdet.landMark);
+                        $("#" + EmpDetscrId + "pin").val(gApzCOB.customerDetails.addrdet.pinCode);
+                        $("#" + EmpDetscrId + "doorNo").val(gApzCOB.customerDetails.addrdet.doorNum);
+                    }
+                }
+            })
+        }
+        apz.app.EmploymentDetails.LoadOccupationDetails();
+    }
+    apz.app.EmploymentDetails.LoadDropDownValues();
+}
+apz.app.EmploymentDetails.LoadOccupationDetails = function() {
+    if (!apz.isObjectEmpty(gApzCOB.customerDetails.occupationDetails)) {
+        gApzCOB.customerDetails.occupationDet = JSON.parse(gApzCOB.customerDetails.occupationDetails['payloadColumn'])
+        $("#" + EmpDetscrId + "profession").val(gApzCOB.customerDetails.occupationDet.occupationType);
+        $("#" + EmpDetscrId + "employerName").val(gApzCOB.customerDetails.occupationDet.employer);
+        $("#" + EmpDetscrId + "employeeId").val(gApzCOB.customerDetails.occupationDet.employeeId);
+        $("#" + EmpDetscrId + "designation").val(gApzCOB.customerDetails.occupationDet.designation);
+        $("#" + EmpDetscrId + "currentBusinessYrs").val(gApzCOB.customerDetails.occupationDet.employeeSince);
+        $("#" + EmpDetscrId + "annualIncome").val(gApzCOB.customerDetails.occupationDet.annualIncome);
+        $("#" + EmpDetscrId + "grossIncome").val(gApzCOB.customerDetails.occupationDet.grossIncome);
+        $("#" + EmpDetscrId + "monthlyTakeHome").val(gApzCOB.customerDetails.occupationDet.netTakeHome);
+        $('#' + EmpDetscrId + "companyEmail").val(gApzCOB.customerDetails.occupationDet.officeEmail);
+        $('#' + EmpDetscrId + "landlineNo").val(gApzCOB.customerDetails.occupationDet.officePhone);
+        $("#" + EmpDetscrId + "yrsOfExp").val(gApzCOB.customerDetails.occupationDet.experience.split(' ')[0]);
+        $("#" + EmpDetscrId + "monOfExp").val(gApzCOB.customerDetails.occupationDet.experience.split(' ')[2]);
+    }
+}
+apz.app.EmploymentDetails.LoadDropDownValues = function() {
+    if ($("#" + EmpDetscrId + "designation").val() === '') {
+        $("#" + EmpDetscrId + "designation").val(PleaseSelect);
+    }
+    if ($("#" + EmpDetscrId + "profession").val() === '') {
+        $("#" + EmpDetscrId + "profession").val(PleaseSelect);
+    }
+}
+apz.app.EmploymentDetails.LoadEmpAddrIndex = function() {
+    if (window.pendingApplication) {
+        window.EMP_ADDRESS = [];
+        window.EMP_ADDRESS_SAVE = [];
+        var obj = {
+            "addressDetailsList": []
+        };
+        obj.addressDetailsList.push(curAddrDetails[0]['addressDetailsList'][arrIndex])
+        EMP_ADDRESS.push(obj);
+        window.EMP_ADDRESS_SAVE.push(obj);
+    }
+}
+apz.app.EmploymentDetails.onLoadCollapseAll = function() {
+    if (gApzCOB.currentApplicant > 1 && gApzCOB.userDetails.insurenceReqForCoApp !== 'Yes') {
+        occDetFlag = true;
+        $(occDetId).removeClass('sno');
+        $(`#${EmpDetscrId}gr_row_8`).addClass('active');
+    } else {
+        disabilityFlag = true;
+        $(disabDetId).removeClass('sno');
+        //insLoanFlag = true;
+        //$(insDetId).removeClass('sno');
+        $(`#${EmpDetscrId}gr_row_2`).addClass('active');
+    }
+    $(insDetId).addClass('sno');
+    $(bankDetId).addClass('sno');
+    $(offAddrId).addClass('sno');
+    $(`#${EmpDetscrId}gr_row_2`).removeClass('active');
+    $(`#${EmpDetscrId}gr_row_5`).removeClass('active');
+    $(`#${EmpDetscrId}gr_row_11`).removeClass('active');
+}
+apz.app.EmploymentDetails.onclickDisa = function(pthis) {
+    if ($(disabDetId).is(":visible")) {
+        $(disabDetId).addClass("sno");
+        $(`#${EmpDetscrId}gr_row_30`).removeClass('active');
+        ['disbDown', 'insurUp', 'bankUp', 'occupUp', 'officeUp'].show();
+        ['disbUp', 'insurDown', 'bankDown', 'occupDown', 'officeDown'].hide();
+    } else {
+        disabilityFlag = true;
+        ['disbDown', 'insurUp', 'bankUp', 'occupUp', 'officeUp'].hide();
+        ['disbUp', 'insurDown', 'bankDown', 'occupDown', 'officeDown'].show();
+        $(disabDetId).removeClass("sno");
+        $(`#${EmpDetscrId}gr_row_30`).addClass('active');
+        $(`#${EmpDetscrId}gr_row_2`).removeClass('active');
+        $(`#${EmpDetscrId}gr_row_5`).removeClass('active');
+        $(`#${EmpDetscrId}gr_row_8`).removeClass('active');
+        $(`#${EmpDetscrId}gr_row_11`).removeClass('active');
+        $(insDetId).addClass("sno");
+        $(bankDetId).addClass("sno");
+        $(occDetId).addClass("sno");
+        $(offAddrId).addClass("sno")
+    }
+}
+apz.app.EmploymentDetails.onclickIns = function(pthis) {
+    if ($(`#${EmpDetscrId}ApplDisaRadio_option_N`).is(':checked') || $(`#${EmpDetscrId}ApplDisaRadio_option_Y`).is(':checked')) {
+        $(`#${EmpDetscrId}disability_err_div`).addClass("sno");
+        if ($(`#${EmpDetscrId}ApplDisaRadio_option_Y`).is(':checked')) {
+            checkedValues = [];
+            for (let i = 1; i <= 7; i++) {
+                let id = EmpDetscrId + 'el_cbx_' + i;
+                let cb = document.getElementById(id);
+                if (cb) { // check if element exists
+                    if (cb.checked) {
+                        checkedValues.push(cb.getAttribute('checkedval'));
+                    }
+                }
+            }
+            if (checkedValues.length >= 1) {
+                $(`#${EmpDetscrId}disabilityImparirment_err_div`).addClass("sno");
+                if (($(`#${EmpDetscrId}UDID_Num`).val()).length != 18) {
+                    $(`#${EmpDetscrId}UDID_err_row`).removeClass("sno");
+                    return false;
+                } else {
+                    $(`#${EmpDetscrId}UDID_err_row`).addClass("sno");
+                }
+                if ($(`#${EmpDetscrId}percentageOfImp`).val() > 100 || $(`#${EmpDetscrId}percentageOfImp`).val().length == 0) {
+                    $(`#${EmpDetscrId}percent_ERR_row`).removeClass("sno");
+                    return false;
+                } else {
+                    $(`#${EmpDetscrId}percent_ERR_row`).addClass("sno");
+                }
+                if (checkedValues.includes('Others')) {
+                    if (($(`#${EmpDetscrId}others_input_impair`).text()).length < 2) {
+                        $(`#${EmpDetscrId}other_type_impair_errdiv`).removeClass("sno");
+                        return false;
+                    } else {
+                        $(`#${EmpDetscrId}other_type_impair_errdiv`).addClass("sno");
+                    }
+                }
+            } else {
+                $(`#${EmpDetscrId}disabilityImparirment_err_div`).removeClass("sno");
+                return false;
+            }
+        }
+    } else {
+        $(`#${EmpDetscrId}disability_err_div`).removeClass("sno");
+        return false;
+    }
+    if ($(insDetId).is(":visible")) {
+        $(insDetId).addClass("sno");
+        $(`#${EmpDetscrId}gr_row_2`).removeClass('active');
+        ['disbUp', 'insurDown', 'bankUp', 'occupUp', 'officeUp'].show();
+        ['disbDown', 'insurUp', 'bankDown', 'occupDown', 'officeDown'].hide();
+    } else {
+        insLoanFlag = true;
+        ['disbUp', 'insurDown', 'bankUp', 'occupUp', 'officeUp'].hide();
+        ['disbDown', 'insurUp', 'bankDown', 'occupDown', 'officeDown'].show();
+        $(insDetId).removeClass("sno");
+        $(`#${EmpDetscrId}gr_row_2`).addClass('active');
+        $(`#${EmpDetscrId}gr_row_30`).removeClass('active');
+        $(`#${EmpDetscrId}gr_row_5`).removeClass('active');
+        $(`#${EmpDetscrId}gr_row_8`).removeClass('active');
+        $(`#${EmpDetscrId}gr_row_11`).removeClass('active');
+        $(disabDetId).addClass("sno");
+        $(bankDetId).addClass("sno");
+        $(occDetId).addClass("sno");
+        $(offAddrId).addClass("sno");
+        $(`#${EmpDetscrId}disabSuccess_ul`).removeClass("sno");
+    }
+    //apz.app.EmploymentDetails.continueBtn();
+}
+apz.app.EmploymentDetails.onclickbank = function(pthis) {
+    if ($(`#${EmpDetscrId}ApplDisaRadio_option_N`).is(':checked') || $(`#${EmpDetscrId}ApplDisaRadio_option_Y`).is(':checked')) {
+        $(`#${EmpDetscrId}disability_err_div`).addClass("sno");
+        if ($(`#${EmpDetscrId}ApplDisaRadio_option_Y`).is(':checked')) {
+            checkedValues = [];
+            for (let i = 1; i <= 7; i++) {
+                let id = EmpDetscrId + 'el_cbx_' + i;
+                let cb = document.getElementById(id);
+                if (cb) { // check if element exists
+                    if (cb.checked) {
+                        checkedValues.push(cb.getAttribute('checkedval'));
+                    }
+                }
+            }
+            if (checkedValues.length >= 1) {
+                $(`#${EmpDetscrId}disabilityImparirment_err_div`).addClass("sno");
+                if (($(`#${EmpDetscrId}UDID_Num`).val()).length != 18) {
+                    $(`#${EmpDetscrId}UDID_err_row`).removeClass("sno");
+                    return false;
+                } else {
+                    $(`#${EmpDetscrId}UDID_err_row`).addClass("sno");
+                }
+            } else {
+                $(`#${EmpDetscrId}disabilityImparirment_err_div`).removeClass("sno");
+                return false;
+            }
+            if ($(`#${EmpDetscrId}percentageOfImp`).val() > 100 || $(`#${EmpDetscrId}percentageOfImp`).val().length == 0) {
+                    $(`#${EmpDetscrId}percent_ERR_row`).removeClass("sno");
+                    return false;
+                } else {
+                    $(`#${EmpDetscrId}percent_ERR_row`).addClass("sno");
+                }
+                if (checkedValues.includes('Others')) {
+                    if (($(`#${EmpDetscrId}others_input_impair`).text()).length < 2) {
+                        $(`#${EmpDetscrId}other_type_impair_errdiv`).removeClass("sno");
+                        return false;
+                    } else {
+                        $(`#${EmpDetscrId}other_type_impair_errdiv`).addClass("sno");
+                    }
+                }
+        }
+    } else {
+        $(`#${EmpDetscrId}disability_err_div`).removeClass("sno");
+        return false;
+    }
+    var formValidate = ApzCOB.fnformValidator(EmpDetscrId, 'ct_frm_1');
+    if (formValidate) {
+        if ($(bankDetId).is(":visible")) {
+            $(bankDetId).addClass("sno");
+            $(`#${EmpDetscrId}gr_row_5`).removeClass('active');
+            ['disbUp', 'insurUp', 'bankDown', 'occupUp', 'officeUp'].show();
+            ['disbDown', 'insurDown', 'bankUp', 'occupDown', 'officeDown'].hide();
+        } else {
+            bankDetFLag = true;
+            ['disbUp', 'insurUp', 'bankDown', 'occupUp', 'officeUp'].hide();
+            ['disbDown', 'insurDown', 'bankUp', 'occupDown', 'officeDown'].show();
+            $(disabDetId).addClass("sno");
+            $(insDetId).addClass("sno");
+            $(bankDetId).removeClass("sno");
+            $(occDetId).addClass("sno");
+            $(offAddrId).addClass("sno");
+            $(`#${EmpDetscrId}gr_row_2`).removeClass('active');
+            $(`#${EmpDetscrId}gr_row_30`).removeClass('active');
+            $(`#${EmpDetscrId}gr_row_5`).addClass('active');
+            $(`#${EmpDetscrId}gr_row_8`).removeClass('active');
+            $(`#${EmpDetscrId}gr_row_11`).removeClass('active');
+            $(`#${EmpDetscrId}insurSuccess_ul`).removeClass("sno");
+            $(`#${EmpDetscrId}disabSuccess_ul`).removeClass("sno");
+        }
+        apz.app.EmploymentDetails.continueBtn();
+        let toggleDivID = pthis.id;
+        let toggleEventListIndex = window.toggleEvents.findIndex((item) => item.toggleID === pthis.id);
+        ApzCOB.addEventToNextToggle(toggleEventListIndex);
+    }
+}
+apz.app.EmploymentDetails.onclickoccup = function(pthis) {
+    var formValidate;
+    if (gApzCOB.currentApplicant <= 1) {
+        //let checkkmVerified = $("#" + EmpDetscrId + "accountVerified").is(":visible");
+        if (apz.childScr === "EmploymentDetails" && gApzCOB.currentApplicant == 1 && accIsvalid !== 'Verified') {
+            ApzCOB.fnDisplayMsg("Please verify bank account number!", "E");
+            formValidate = false;
+            return;
+        }
+        formValidate = ApzCOB.fnformValidator(EmpDetscrId, 'ct_frm_2');
+    } else {
+        let isCoAppInsRequired = true;
+        let applicantInsData = inSessionStore.insuranceDetailsWrapperList.filter(ins => parseInt(ins.insuranceDetails.custDtlId) === parseInt(
+            gApzCOB.userDetails.custDtlId));
+        if (applicantInsData.length > 0) {
+            let coAppInsOption = applicantInsData[0].insuranceDetails.payload.coApplicantInsurance;
+            isCoAppInsRequired = coAppInsOption === "Yes" ? true : false;
+        }
+        if (isCoAppInsRequired) {
+            formValidate = ApzCOB.fnformValidator(EmpDetscrId, 'insurDetFieldsForm');
+        } else {
+            formValidate = true;
+        }
+    }
+    if ($(`#${EmpDetscrId}ApplDisaRadio_option_N`).is(':checked') || $(`#${EmpDetscrId}ApplDisaRadio_option_Y`).is(':checked')) {
+        $(`#${EmpDetscrId}disability_err_div`).addClass("sno");
+        if ($(`#${EmpDetscrId}ApplDisaRadio_option_Y`).is(':checked')) {
+            checkedValues = [];
+            for (let i = 1; i <= 7; i++) {
+                let id = EmpDetscrId + 'el_cbx_' + i;
+                let cb = document.getElementById(id);
+                if (cb) { // check if element exists
+                    if (cb.checked) {
+                        checkedValues.push(cb.getAttribute('checkedval'));
+                    }
+                }
+            }
+            if (checkedValues.length >= 1) {
+                $(`#${EmpDetscrId}disabilityImparirment_err_div`).addClass("sno");
+                if (($(`#${EmpDetscrId}UDID_Num`).val()).length != 18) {
+                    $(`#${EmpDetscrId}UDID_err_row`).removeClass("sno");
+                    return false;
+                } else {
+                    $(`#${EmpDetscrId}UDID_err_row`).addClass("sno");
+                }
+                if ($(`#${EmpDetscrId}percentageOfImp`).val() > 100 || $(`#${EmpDetscrId}percentageOfImp`).val().length == 0) {
+                    $(`#${EmpDetscrId}percent_ERR_row`).removeClass("sno");
+                    return false;
+                } else {
+                    $(`#${EmpDetscrId}percent_ERR_row`).addClass("sno");
+                }
+                if (checkedValues.includes('Others')) {
+                    if (($(`#${EmpDetscrId}others_input_impair`).text()).length < 2) {
+                        $(`#${EmpDetscrId}other_type_impair_errdiv`).removeClass("sno");
+                        return false;
+                    } else {
+                        $(`#${EmpDetscrId}other_type_impair_errdiv`).addClass("sno");
+                    }
+                }
+            } else {
+                $(`#${EmpDetscrId}disabilityImparirment_err_div`).removeClass("sno");
+                return false;
+            }
+        }
+    } else {
+        $(`#${EmpDetscrId}disability_err_div`).removeClass("sno");
+        return false;
+    }
+    var bankPassbookValidate = apz.app.EmploymentDetails.checkBankDocUploaded();
+    if (formValidate && bankPassbookValidate) {
+        if ($(occDetId).is(":visible")) {
+            $(occDetId).addClass("sno");
+            $(`#${EmpDetscrId}gr_row_8`).removeClass('active');
+            ['disbUp', 'insurUp', 'bankUp', 'occupDown', 'officeUp'].show();
+            ['disbDown', 'insurDown', 'bankDown', 'occupUp', 'officeDown'].hide();
+        } else {
+            occDetFlag = true;
+            ['disbUp', 'insurUp', 'bankUp', 'occupDown', 'officeUp'].hide();
+            ['disbDown', 'insurDown', 'bankDown', 'occupUp', 'officeDown'].show();
+            $(disabDetId).addClass("sno");
+            $(insDetId).addClass("sno");
+            $(bankDetId).addClass("sno");
+            $(occDetId).removeClass("sno");
+            $(offAddrId).addClass("sno");
+            $(`#${EmpDetscrId}gr_row_30`).removeClass('active');
+            $(`#${EmpDetscrId}gr_row_2`).removeClass('active');
+            $(`#${EmpDetscrId}gr_row_5`).removeClass('active');
+            $(`#${EmpDetscrId}gr_row_8`).addClass('active');
+            $(`#${EmpDetscrId}gr_row_11`).removeClass('active');
+            $(`#${EmpDetscrId}insurSuccess_ul`).removeClass("sno");
+            $(`#${EmpDetscrId}bankSuccess_ul`).removeClass("sno");
+            $(`#${EmpDetscrId}disabSuccess_ul`).removeClass("sno");
+        }
+        //apz.app.EmploymentDetails.continueBtn();
+        let toggleDivID = pthis.id;
+        let toggleEventListIndex = window.toggleEvents.findIndex((item) => item.toggleID === pthis.id);
+        ApzCOB.addEventToNextToggle(toggleEventListIndex);
+    }
+}
+apz.app.EmploymentDetails.checkBankDocUploaded = function() {
+    let isValid = false;
+    if (BANK_DETAILS_EDIT_OPTION) {
+        if (!apz.isNull(bankdocProofObj.BankProof)) {
+            if (bankdocProofObj.BankProof.length > 0) {
+                isValid = true;
+            }
+        }
+    } else {
+        isValid = true;
+    }
+    if (!isValid) {
+        ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_EMPDTLS_TXT_UPLOAD_BANK_PASSOOK"), "E");
+        return isValid;
+    }
+    if (accisVerified) {
+        isValid = true;
+    } else {
+        if (gApzCOB.currentApplicant == 1) {
+            isValid = false;
+            ApzCOB.fnDisplayMsg("Please verify bank account", "E");
+        } else {
+            isValid = true;
+        }
+    }
+    return isValid;
+}
+apz.app.EmploymentDetails.onclickoffAddr = function(pthis) {
+    
+    if ($(`#${EmpDetscrId}ApplDisaRadio_option_N`).is(':checked') || $(`#${EmpDetscrId}ApplDisaRadio_option_Y`).is(':checked')) {
+        $(`#${EmpDetscrId}disability_err_div`).addClass("sno");
+        if ($(`#${EmpDetscrId}ApplDisaRadio_option_Y`).is(':checked')) {
+            checkedValues = [];
+            for (let i = 1; i <= 7; i++) {
+                let id = EmpDetscrId + 'el_cbx_' + i;
+                let cb = document.getElementById(id);
+                if (cb) { // check if element exists
+                    if (cb.checked) {
+                        checkedValues.push(cb.getAttribute('checkedval'));
+                    }
+                }
+            }
+            if (checkedValues.length >= 1) {
+                $(`#${EmpDetscrId}disabilityImparirment_err_div`).addClass("sno");
+                if (($(`#${EmpDetscrId}UDID_Num`).val()).length != 18) {
+                    $(`#${EmpDetscrId}UDID_err_row`).removeClass("sno");
+                    return false;
+                } else {
+                    $(`#${EmpDetscrId}UDID_err_row`).addClass("sno");
+                }
+                if ($(`#${EmpDetscrId}percentageOfImp`).text() > 100 || $(`#${EmpDetscrId}percentageOfImp`).val().length == 0) {
+                    $(`#${EmpDetscrId}percent_ERR_row`).removeClass("sno");
+                    return false;
+                } else {
+                    $(`#${EmpDetscrId}percent_ERR_row`).addClass("sno");
+                }
+                if (checkedValues.includes('Others')) {
+                    if (($(`#${EmpDetscrId}others_input_impair`).text()).length < 2) {
+                        $(`#${EmpDetscrId}other_type_impair_errdiv`).removeClass("sno");
+                        return false;
+                    } else {
+                        $(`#${EmpDetscrId}other_type_impair_errdiv`).addClass("sno");
+                    }
+                }
+            } else {
+                $(`#${EmpDetscrId}disabilityImparirment_err_div`).removeClass("sno");
+                return false;
+            }
+        }
+    } else {
+        $(`#${EmpDetscrId}disability_err_div`).removeClass("sno");
+        return false;
+    }
+    var formValidate = ApzCOB.fnformValidator(EmpDetscrId, 'ct_frm_3');
+    if (formValidate) {
+        if ($(offAddrId).is(":visible")) {
+            $(offAddrId).addClass("sno");
+            $(`#${EmpDetscrId}gr_row_11`).removeClass('active');
+            ['disbUp', 'insurUp', 'bankUp', 'occupUp', 'officeDown'].show();
+            ['disbDown', 'insurDown', 'bankDown', 'occupDown', 'officeUp'].hide();
+            ['officeDown'].show();
+            ['officeUp'].hide();
+        } else {
+            offAddrFlag = true;
+            ['disbUp', 'insurUp', 'bankUp', 'occupUp', 'officeDown'].hide();
+            ['disbDown', 'insurDown', 'bankDown', 'occupDown', 'officeUp'].show();
+            $(disabDetId).addClass("sno");
+            $(insDetId).addClass("sno");
+            $(bankDetId).addClass("sno");
+            $(occDetId).addClass("sno");
+            $(offAddrId).removeClass("sno");
+            $(`#${EmpDetscrId}gr_row_30`).removeClass('active');
+            $(`#${EmpDetscrId}gr_row_2`).removeClass('active');
+            $(`#${EmpDetscrId}gr_row_5`).removeClass('active');
+            $(`#${EmpDetscrId}gr_row_8`).removeClass('active');
+            $(`#${EmpDetscrId}gr_row_11`).addClass('active');
+            $(`#${EmpDetscrId}insurSuccess_ul`).removeClass("sno");
+            $(`#${EmpDetscrId}bankSuccess_ul`).removeClass("sno");
+            $(`#${EmpDetscrId}occupSuccess_ul`).removeClass("sno");
+            $(`#${EmpDetscrId}disabSuccess_ul`).removeClass("sno");
+        }
+        apz.app.EmploymentDetails.continueBtn();
+        let toggleDivID = pthis.id;
+        let toggleEventListIndex = window.toggleEvents.findIndex((item) => item.toggleID === pthis.id);
+        ApzCOB.addEventToNextToggle(toggleEventListIndex);
+    }
+}
+apz.app.EmploymentDetails.continueBtn = function() {
+    if(apz.getElmValue("EmpDRE__EmploymentDetails__ApplDisaRadio") != ''){
+        disabilityFlag = true;
+    }
+    if (disabilityFlag && insLoanFlag && bankDetFLag && occDetFlag && offAddrFlag) {
+        // $('#APZCBO__BaseScreens__continue').attr('disabled', false);
+        ApzCOB.removeDisableToInput('APZCBO__BaseScreens__continue');
+    } else {
+        // $('#APZCBO__BaseScreens__continue').attr('disabled', true);
+        ApzCOB.addDisableToInput('APZCBO__BaseScreens__continue');
+    }
+};
+apz.app.EmploymentDetails.updateBankUponIfsc = function() {
+    /* var ifscVal = $(`#${EmpDetscrId}ifscCode`).val();
+     if (ifscVal.length == 11) {
+         for (var i = 0; i < ifscCodes.length; i++) {
+             if (ifscVal === ifscCodes[i].ifscCode) {
+                 $(`#${EmpDetscrId}bankName`).val(ifscCodes[i].bankName);
+                 $(`#${EmpDetscrId}branchName`).val(ifscCodes[i].BranchName);
+             }
+         }
+     }*/
+}
+apz.app.EmploymentDetails.onchangeApplicIns = function() {
+    var coAppIns = "#EmpDRE__EmploymentDetails__coAppInsuranceRadio input[name='EmpDRE__EmploymentDetails__coAppInsuranceRadio_']";
+    if ($("#" + EmpDetscrId + "ApplInsRadio_option_Y").is(':checked')) {
+        InsurHideShow.show();
+        $(coAppIns).attr('disabled', false);
+        if (gApzCOB.currentApplicant <= 1) {
+            apz.app.EmploymentDetails.onchangecoapplicIns();
+        }
+    } else if ($("#" + EmpDetscrId + "ApplInsRadio_option_N").is(':checked')) {
+        ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_EMPDET_MSG_TXT_COAPPLICANTINSURANCE"), "C", apz.app.EmploymentDetails.onchangeCB);
+    }
+};
+apz.app.EmploymentDetails.onchangecoapplicIns = function() {
+    coAppInsurance = '';
+    if ($(`#${EmpDetscrId}coAppInsuranceRadio_option_Y`).is(':checked')) {
+        coAppInsurance = 'Yes'
+    } else if ($(`#${EmpDetscrId}coAppInsuranceRadio_option_N`).is(':checked')) {
+        coAppInsurance = 'No'
+    } else {
+        coAppInsurance = '';
+    }
+    gApzCOB.userDetails.insurenceReqForCoApp = coAppInsurance;
+}
+
+apz.app.EmploymentDetails.onchangeCB = function(params) {
+    var coAppIns = "#EmpDRE__EmploymentDetails__coAppInsuranceRadio input[name='EmpDRE__EmploymentDetails__coAppInsuranceRadio_']";
+    if (params.choice) {
+      InsurHideShow.hide();
+        $("#" + EmpDetscrId + "coAppInsuranceRadio_option_N").attr("checked", true);
+        $(coAppIns).attr('disabled', true);  
+    } else {
+        $(`#${EmpDetscrId}ApplInsRadio_option_N`).prop('checked', false).change();
+        $(`#${EmpDetscrId}ApplInsRadio_option_Y`).prop('checked', true).change();
+    }
+     if (gApzCOB.currentApplicant <= 1) {
+        apz.app.EmploymentDetails.onchangecoapplicIns();
+    }
+}
+apz.app.EmploymentDetails.onchangepincode = function(pthis) {
+    if (pthis.value.length > 5) {
+        ApzCOB.fetchpincodeDtls(pthis.value, 'emp');
+    }
+};
+apz.app.EmploymentDetails.paint_pincode = function(params) {
+    $(`#${EmpDetscrId}city`).val(params.city).change();
+    $(`#${EmpDetscrId}district`).val(params.district).change();
+    $(`#${EmpDetscrId}state`).val(params.state).change();
+    $(`#${EmpDetscrId}country`).val(params.country).change();
+    $(`#${EmpDetscrId}el_inp_3`).val(params.area).change();
+};
+apz.app.EmploymentDetails.onChangeAccDetRadio = function() {
+    if ($(`#${EmpDetscrId}AccDetRadio_option_N`).is(':checked')) {
+        $(`#${EmpDetscrId}uploadDocRow`).addClass("sno"); //hide UploadRow
+        BANK_DETAILS_EDIT_OPTION = false;
+    } else if ($(`#${EmpDetscrId}AccDetRadio_option_Y`).is(':checked')) {
+        BANK_DETAILS_EDIT_OPTION = true;
+        $(`#${EmpDetscrId}uploadDocRow`).removeClass("sno"); //show UploadRow
+        $(`#${EmpDetscrId}gr_row_22`).addClass("sno");
+        $(`#${EmpDetscrId}uploadBankDocDiv`).removeClass("sno");
+        var tempArr = [];
+        tempArr.unshift({
+            "value": PleaseSelect,
+            "desc": PleaseSelect
+        });
+        let obj = {
+            "value": "Bank Passbook",
+            "desc": "Bank Passbook"
+        };
+        tempArr.push(obj);
+        apz.populateDropdown(document.getElementById(EmpDetscrId + 'el_dpd_1'), tempArr);
+        $(`#${EmpDetscrId}el_dpd_1`).val("Bank Passbook");
+        $(`#${EmpDetscrId}progressBar`).css(InactiveprogressBar);
+    }
+};
+apz.app.EmploymentDetails.browsefile = function(fileObj, browseId) {
+    selType = "BankAccDoc";
+    FileSideBrowseId = browseId;
+    var fileExtenName = fileObj.value.split('.')[1].toLocaleLowerCase();
+    if (!Object.values(gAllowedFileTypes).includes(fileExtenName)) {
+        ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_EMPDET_MSG_TXT_UPLOAD_VALID_FILE"), "W");
+        return;
+    }
+    filesObj = fileObj;
+    var fileToUpload = fileObj.files;
+    localFileObj = {}; //localFileObj.appid = apz.getElmValue(pageId + "appId");
+    localFileObj.filename = fileToUpload[0].name;
+    localFileObj.filetype = fileToUpload[0].type;
+    localFileObj.filelocation = apz.appId + "/" + localFileObj.filename;
+    localFileObj.docType = selType;
+    localFileObj.fieldID = EmpDetscrId + browseId;
+    FileSideBrowseId = "Browse1";
+    if (apz.app.EmploymentDetails.getFileArr()) {
+        apz.app.EmploymentDetails.fileReader(filesObj);
+    }
+};
+apz.app.EmploymentDetails.getFileArr = function() {
+    // localFileObj.docSide = "Front";
+    // localFileObj.docName = "Bank Passbook";
+    // localFileObj.docCategory = "Bank Account Proof";
+    bankdocProofObj.BankProof.push(localFileObj);
+    return true;
+};
+apz.app.EmploymentDetails.fileReader = function(fileObj) {
+    var FR = new FileReader();
+    FR.readAsDataURL(fileObj.files[0]);
+    FR.onload = function(e) {
+        encodedImage = "";
+        encodedImage = e.target.result.substr(e.target.result.indexOf(',') + 1, e.target.result.length);
+        if (!apz.isNull(encodedImage)) {
+            if (isValidDoc) {
+                localFileObj.imgSrc = encodedImage;
+                document.getElementById(localFileObj.fieldID).value = "";
+                ApzCOB.fileUpload(localFileObj);
+            }
+        }
+    }
+}
+apz.app.EmploymentDetails.displayFileName = function() {
+    if (bankdocProofObj.BankProof.length > 0) {
+        $(`#${EmpDetscrId}bankDocRow`).addClass('uploaded');
+        $(`#${EmpDetscrId}progressBar`).css(ActiveprogressBar);
+        var lFilename = ApzCOB.fnShortenFileName(bankdocProofObj.BankProof[0]["filename"]);
+        $(`#${EmpDetscrId}bankDocFname`).text(lFilename);
+        ['bankDocDiv'].show();
+        ['uploadBankDocDiv'].hide();
+        $(`#${EmpDetscrId}docImage`).attr('src', "data:image/png;base64," + localFileObj.imgSrc);
+        $(`#${EmpDetscrId}deleteIcon`).attr('onclick', "apz.app.EmploymentDetails.deleteOtherDocs('delete')");
+    }
+}
+apz.app.EmploymentDetails.selectedFileData = function(appDocId) {
+    var tempFileArr = [];
+    if (!apz.isNull(appDocId)) {
+        bankdocProofObj.BankProof["appDocId"] = appDocId;
+    }
+    tempFileArr.push(bankdocProofObj.BankProof[0]);
+    return tempFileArr;
+}
+apz.app.EmploymentDetails.fileClick = function(obj) {
+    var flname = $(obj).text();
+    var tempFileArr = apz.app.EmploymentDetails.selectedFileData('');
+    $.each(tempFileArr, function(i, k) {
+        if (k.filename === flname) {
+            viewBase64 = k.imgSrc;
+            curImgObj = k;
+            curImgIndex = i;
+            apz.app.EmploymentDetails.noBase64(flname, k, i);
+        }
+    })
+};
+apz.app.EmploymentDetails.noBase64 = function(flname, k, i) {
+    apz.app.EmploymentDetails.showDoc(flname, k, i);
+};
+apz.app.EmploymentDetails.noBase64CB = function(params) {
+    if (!apz.isNull(params.base64)) {
+        viewBase64 = params.base64;
+        apz.app.EmploymentDetails.showDoc('', curImgObj, curImgIndex);
+    }
+};
+apz.app.EmploymentDetails.showDoc = function(flname, k, i) {
+    var fileType = apz.isNull(ApzCOB.getFileExtension(k.filetype)) ? k.filetype.split('/')[1] : ApzCOB.getFileExtension(k.filetype);
+    if (fileType === 'png' || fileType === 'jpeg' || fileType === 'jpg') {
+        $(`#${EmpDetscrId}imgSrc`).attr('src', "data:image/png;base64," + viewBase64);
+        ApzCOB.toggleModal(EmpDetscrId + "viewUploadedFileModal");
+        $(`#${EmpDetscrId}viewFileDeleteBtn`).attr('onclick', "apz.app.EmploymentDetails.deleteOtherDocs('delete')");
+        // $(`#${EmpDetscrId}viewFileReuploadBtn`).attr('onclick', "apz.app.EmploymentDetails.deleteOtherDocs('reupload')");
+    } else if (fileType === 'pdf') {
+        var a = document.createElement("a");
+        a.href = "data:application/octet-stream;base64," + viewBase64;
+        a.download = apz.isNull(flname) ? k.filename : flname
+        a.click();
+    }
+    apz.stopLoader();
+}
+apz.app.EmploymentDetails.deleteOtherDocs = function(actionType) {
+    ActionFlag = actionType;
+    if ($('#' + EmpDetscrId + "viewUploadedFileModal").is(':visible')) {
+        ApzCOB.toggleModal(EmpDetscrId + "viewUploadedFileModal");
+    }
+    if (bankdocProofObj.BankProof[0] !== undefined) {
+        ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_EMPDET_MSG_TXT_DELETE_FILE_CONF"), "C", apz.app.EmploymentDetails.deleteOtherDocsCB);
+    }
+};
+apz.app.EmploymentDetails.deleteOtherDocsCB = function(param) {
+    if (!apz.isNull(param) && param.choice === true) {
+        ApzCOB.deleteDocument("OtherDocs", "", param.thisObj);
+        // apz.app.EmploymentDetails.deleteBnkDoc();
+    }
+    if ($('#' + EmpDetscrId + "viewUploadedFileModal").is(':visible')) {
+        ApzCOB.toggleModal(EmpDetscrId + "viewUploadedFileModal");
+        // deleteRowNo = param;
+        ApzCOB.deleteDocument("OtherDocs", "");
+        // ApzCOB.toggleModal(EmpDetscrId + "photoSignList");
+    }
+};
+apz.app.EmploymentDetails.deleteBnkDoc = function(tempFileArr) {
+    var type = tempFileArr[0]["docType"];
+    var filename = tempFileArr[0]["filename"];
+    var appDocID = apz.isNull(tempFileArr[0].appDocId) ? "" : parseInt(tempFileArr[0].appDocId);
+    if (!apz.isNull(gApzCOB["requestNodes"]['applicationDocumentsWrapperList']) && gApzCOB["requestNodes"]['applicationDocumentsWrapperList'].length >
+        0) {
+        gApzCOB["requestNodes"]['applicationDocumentsWrapperList'][0].applicationDocumentsList.forEach(function(e, i) {
+            if (e.payload.documentType === type && e.payload.documentFileName === filename && parseInt(e.appDocId) === appDocID) {
+                gApzCOB["requestNodes"]['applicationDocumentsWrapperList'][0].applicationDocumentsList.splice(i, 1)
+            }
+        });
+    }
+    if (bankdocProofObj.BankProof.length > 0) {
+        bankdocProofObj.BankProof = [];
+        ['bankDocDiv'].hide();
+        ['uploadBankDocDiv'].show()
+        $(`#${EmpDetscrId}bankDocRow`).removeClass('uploaded');
+        $(`#${EmpDetscrId}progressBar`).css(InactiveprogressBar);
+        $(`#${EmpDetscrId}bankDocFname`).text("");
+        $(`#${EmpDetscrId}deleteIcon`).attr('onclick', "");
+    }
+};
+apz.app.EmploymentDetails.onChangeSourceOfIncome = function() {
+    var sourceOfIncome = apz.getElmValue(EmpDetscrId + "othSrcInc")
+    if (sourceOfIncome === 'Others') {
+        $(`#${EmpDetscrId}otherSrcInc_ul`).removeClass("sno");
+    } else {
+        $(`#${EmpDetscrId}otherSrcInc_ul`).addClass("sno");
+    }
+}
+apz.app.EmploymentDetails.onClickbrowseHyp = function() {
+    if (apz.deviceType === "WEB") {
+        $(`#${EmpDetscrId}bankDtlBrowser`).trigger('click');
+    } else {
+        FileSideBrowseId = "Browse1";
+        apz.app.EmploymentDetails.SelectOption("camera");
+    }
+}
+apz.app.EmploymentDetails.getVintageYear = function(pthis) {
+    let startDate = $(pthis).val();
+    var vintage = ApzCOB.getAge(startDate);
+    $('#' + EmpDetscrId + 'busiEmpVintageInput').val(vintage);
+    $('#' + EmpDetscrId + 'busiEmpVintageInput').removeClass('err');
+    $('#' + EmpDetscrId + 'sc_row_307').addClass('sno');
+}
+apz.app.EmploymentDetails.SelectOption = function(captureType) {
+    var strDate = new Date().getTime() + "";
+    if (captureType === 'camera' || captureType === 'photo') {
+        var cameraObj = {
+            "crop": "Y", //Y or N
+            "flash": "N",
+            "action": "base64_Save", // save,base64
+            "fileName": 'b' + strDate,
+            "encodingType": "JPG",
+            "sourceType": captureType // photo / camera
+        };
+        cameraObj.id = "CAMERA_ID";
+        cameraObj.callBack = apz.app.EmploymentDetails.cameraCallback;
+        apz.ns.openCamera(cameraObj);
+        ApzCOB.getGeoCordinatesMobile();
+    } else {
+        var json = {
+            "filter": "",
+            "fileCategory": "EXTERNAL", // AUDIO, VIDEO, PHOTO
+            "location": "docs",
+            "openFile": "N"
+        };
+        json.id = "FILEBROWSER_ID";
+        json.callBack = apz.app.UploadDocuments.getFileCallback;
+        apz.ns.fileBrowser(json);
+    }
+};
+apz.app.EmploymentDetails.cameraCallback = function(lparams) {
+    if (lparams.status) {
+        filesObj = lparams;
+        localFileObj = {};
+        localFileObj.filename = lparams.path.split('/')[lparams.path.split('/').length - 1];
+        localFileObj.filetype = lparams.path.split('/')[lparams.path.split('/').length - 1];
+        localFileObj.filelocation = apz.appId + "/" + localFileObj.filename;
+        localFileObj.fieldID = EmpDetscrId + FileSideBrowseId;
+        localFileObj.latitude = window.currentGeoCords?.latitude;
+        localFileObj.longitude = window.currentGeoCords?.longitude;
+        localFileObj.uploadedTs = new Date().toISOString();
+        // localFileObj.docSide = "Front";
+        // localFileObj.docType = "BankAccDoc";
+        localFileObj.imgSrc = lparams.encodedImage;
+        apz.app.EmploymentDetails.getFileArr();
+        ApzCOB.fileUpload({
+            'filename': lparams.path.split('/')[lparams.path.split('/').length - 1],
+            'imgSrc': lparams.encodedImage
+        });
+    } else {
+        ApzCOB.fnDisplayMsg(!apz.isNull(lparams.text) ? lparams.text : "Operation cancelled", "E", "");
+    }
+};
+apz.app.EmploymentDetails.validateAnnualIncome = function() {
+    var annualIncome = apz.getElmValue(EmpDetscrId + "annualIncome");
+    if (annualIncome < minAnnualIncome || annualIncome > maxAnnualIncome) {
+        $(`#${EmpDetscrId}annualIncome`).val('');
+        ApzCOB.fnDisplayMsg((ApzCOB.getDescfromLitCode("LIT_EMPDTLS_MaxANNUAL_INCOME") + ' ' + ApzCOB.fn_FormatAmount(minAnnualIncome) + ' ' +
+            'and' + ' ' + ApzCOB.fn_FormatAmount(maxAnnualIncome)), "E");
+    }
+}
+apz.app.EmploymentDetails.StoreAppDocID = function(appDocID) {
+    localFileObj.appDocId = appDocID;
+    localFileObj.isPushbackUpload = "N";
+}
+apz.app.EmploymentDetails.geolocationCapture = function(pthis) {
+    if (apz.deviceType === "WEB") {
+        ApzCOB.getGeoCordinates();
+    } else {
+        ApzCOB.getGeoCordinatesMobile();
+    }
+}
+apz.app.EmploymentDetails.AddrSameAs = function(pthis) {
+    var val = pthis.value;
+    var custAddr = [];
+    var address = inSessionStore.addressDetailsWrapperList[0].addressDetailsList
+    if (val == "Present" || val == "Permanent") {
+        if (!apz.isObjectEmpty(inSessionStore.addressDetailsWrapperList)) {
+            // if (gApzCOB.currentApplicant == 1) {
+            //     custAddr = inSessionStore.addressDetailsWrapperList[0].addressDetailsList[0].payload.addressList;
+            // } else if (gApzCOB.currentApplicant == 2) {
+            //     custAddr = inSessionStore.addressDetailsWrapperList[0].addressDetailsList[1].payload.addressList;
+            // }
+            if (gApzCOB.currentApplicant == 1) {
+                address.forEach(function(i, k) {
+                    if (address[k].addressType === 'Personal' && parseInt(address[k].custDtlId) === parseInt(gApzCOB.userDetails
+                            .custDtlId)) {
+                        custAddr.push(address[k])
+                    }
+                })
+            } else {
+                address.forEach(function(i, k) {
+                    if (address[k].addressType === 'Personal' && parseInt(address[k].custDtlId) === parseInt(gApzCOB.userDetails
+                            .CoApplicantCustomerId)) {
+                        custAddr.push(address[k])
+                    }
+                })
+            }
+        }
+        let addressList = custAddr[0].payload.addressList;
+        let matchedAddress = addressList.find(function(el) {
+            return el.locateCoOrdinatesFor?.toLowerCase().includes(val.toLowerCase());
+        }) || {};
+        let matchedAddressType = addressList.find(function(el) {
+            return el.addressType?.toLowerCase().includes(val.toLowerCase());
+        }) || {};
+        let coordinates = matchedAddress.locateCoOrdinates || "";
+        for (var i = 0; i < officeAddrFields.length; i++) {
+            $(officeAddrFields[i]).attr('disabled', true);
+        }
+        addrType = 'Personal';
+        subAddrType = val;
+        custType = gApzCOB.currentApplicant == 1 ? 'Applicant' : 'Co-App';
+        addressLine1 = ApzCOB.getPayloadDatafromWrapper('addressLine1', custType, 'addressDetailsWrapperList');
+        addressLine2 = ApzCOB.getPayloadDatafromWrapper('addressLine2', custType, 'addressDetailsWrapperList');
+        addressLine3 = ApzCOB.getPayloadDatafromWrapper('addressLine3', custType, 'addressDetailsWrapperList');
+        pinCode = ApzCOB.getPayloadDatafromWrapper('pinCode', custType, 'addressDetailsWrapperList');
+        city = ApzCOB.getPayloadDatafromWrapper('city', custType, 'addressDetailsWrapperList');
+        district = ApzCOB.getPayloadDatafromWrapper('district', custType, 'addressDetailsWrapperList');
+        state = ApzCOB.getPayloadDatafromWrapper('state', custType, 'addressDetailsWrapperList');
+        country = ApzCOB.getPayloadDatafromWrapper('country', custType, 'addressDetailsWrapperList');
+        landMark = ApzCOB.getPayloadDatafromWrapper('landMark', custType, 'addressDetailsWrapperList');
+        $(`#${EmpDetscrId}addressLine1`).val(ApzCOB.getSubstrValue(`#${EmpDetscrId}addressLine1`, addressLine1)).change();
+        $(`#${EmpDetscrId}addressLine2`).val(ApzCOB.getSubstrValue(`#${EmpDetscrId}addressLine2`, addressLine2));
+        $(`#${EmpDetscrId}addressLine3`).val(ApzCOB.getSubstrValue(`#${EmpDetscrId}addressLine3`, addressLine3));
+        $(`#${EmpDetscrId}pin`).val(pinCode).change();
+        $(`#${EmpDetscrId}city`).val(city);
+        $(`#${EmpDetscrId}district`).val(district);
+        $(`#${EmpDetscrId}state`).val(state);
+        $(`#${EmpDetscrId}country`).val(country);
+        $(`#${EmpDetscrId}el_inp_2`).val(landMark);
+        $(`#${EmpDetscrId}pin`).blur();
+        /* var applAddrArray = address.filter(el => el.addressType === "Personal" && el.custDtlId === parseInt(gApzCOB.userDetails.custDtlId));
+        var presentAddrArray = applAddrArray[0].payload.addressList.filter(el => el.addressType === "Present");*/
+        var selectedAddr = val + " Address";
+        var $location = $("#EmpDRE__EmploymentDetails__location");
+        var $row = $("#EmpDRE__EmploymentDetails__sc_row_320");
+        if (selectedAddr === matchedAddress.locateCoOrdinatesFor) {
+            $("#" + (EmpDetscrId + "location")).val(coordinates).prop('disabled', true);
+            $('#' + EmpDetscrId + 'sc_col_351').addClass('sno');
+            if ($location.hasClass("err")) {
+                $location.removeClass("err");
+            }
+            $row.addClass("sno");
+        } else {
+            $('#' + EmpDetscrId + 'businessLocationCoordinateRow').removeClass('sno');
+            $('#' + EmpDetscrId + 'sc_col_351').removeClass('sno');
+            $("#" + (EmpDetscrId + "location")).val("").prop('disabled', true);
+        }
+        /*$(`#${EmpDetscrId}el_inp_2").val();
+        $(`#${EmpDetscrId}el_inp_3").val();*/
+    } else if (val == "Other") {
+        for (var i = 0; i < officeAddrFields.length; i++) {
+            $(officeAddrFields[i]).attr('disabled', false);
+            $(officeAddrFields[i]).val("");
+        }
+        for (var i = 0; i < otherOfficeAddrFields.length; i++) {
+            $(otherOfficeAddrFields[i]).val("");
+        }
+        $('#' + EmpDetscrId + 'businessLocationCoordinateRow').removeClass('sno');
+        $('#' + EmpDetscrId + 'sc_col_351').removeClass('sno');
+    }
+}
+apz.app.EmploymentDetails.onchangeNatureOfBusiness = function() {
+    var tempArr = [];
+    var natureOfBusiness = $(`#${EmpDetscrId}profession`).val();
+    if (natureOfBusiness === PleaseSelect || natureOfBusiness === "") {
+        $(`#${EmpDetscrId}bssEmpAcc`).val(PleaseSelect);
+        $(`#${EmpDetscrId}bssEmpAcc`).attr('disabled', true);
+    } else {
+        tempArr = [...businessActivity[0][natureOfBusiness]];
+        if (!tempArr.includes(PleaseSelect)) {
+            tempArr.unshift(ApzCOB.getDescfromLitCode("LIT_COMM_MSG_PLEASE_SELECT"));
+        }
+        apz.populateDropdown(document.getElementById(EmpDetscrId + 'bssEmpAcc'), ApzCOB.formatDropDownforArray(tempArr));
+        $(`#${EmpDetscrId}bssEmpAcc`).attr('disabled', false);
+    }
+}
+apz.app.EmploymentDetails.checkBankDocument = function() {
+    if (!apz.isNull(inSessionStore.bankDetailsWrapperList) && !apz.isNull(inSessionStore.applicationDocumentsWrapperList)) {
+        if (inSessionStore.bankDetailsWrapperList.length > 0 && inSessionStore.applicationDocumentsWrapperList.length > 0) {
+            let getBankData = inSessionStore.bankDetailsWrapperList.filter(bankData => parseInt(bankData.bankDetails.custDtlId) === parseInt(
+                gApzCOB.userDetails.custDtlId));
+            if (getBankData.length > 0) {
+                let bankEditVal = getBankData[0].bankDetails.payload.editBankDetails === "Yes" ? true : false;
+                if (bankEditVal) {
+                    if (inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList.length > 0) {
+                        let docData = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList;
+                        let getBankEditDoc = docData.filter(docs => docs.payload.screenId === "EmploymentDetails")
+                        if (getBankEditDoc.length > 0) {
+                            let indexNo = getBankEditDoc.length - 1;
+                            let bankDocFileName = getBankEditDoc[indexNo].payload.documentFileName;
+                            localFileObj = {}; //localFileObj.appid = apz.getElmValue(pageId + "appId");
+                            localFileObj.filename = bankDocFileName;
+                            localFileObj.filetype = getBankEditDoc[indexNo].payload.documentFormat;
+                            localFileObj.filelocation = getBankEditDoc[indexNo].payload.documentLoc;
+                            localFileObj.docType = getBankEditDoc[indexNo].payload.documentType;
+                            localFileObj.fieldID = EmpDetscrId + "bankDtlBrowser";
+                            localFileObj.appDocId = getBankEditDoc[indexNo].appDocId;
+                            bankdocProofObj.BankProof = [];
+                            bankdocProofObj.BankProof.push(localFileObj);
+                            ApzCOB.downloadDocFileFromserver(bankDocFileName);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+apz.app.EmploymentDetails.onchangeNatureOfOccpationTag = function() {
+    var radioBtn = apz.getElmValue(EmpDetscrId + "ocuupationTag");
+    if (radioBtn === 'Yes') {
+        var occupation = inSessionStore.occupationDetailsWrapperList;
+        var address = inSessionStore.addressDetailsWrapperList[0].addressDetailsList;
+        var occupationDetl = [],
+            businessAddr = [];
+        //occupation Details
+        if (!apz.isNull(inSessionStore.occupationDetailsWrapperList)) {
+            if (inSessionStore.occupationDetailsWrapperList > 1) {
+                occupation.forEach(function(i, k) {
+                    if (parseInt(occupation[k].custDtlId) === parseInt(gApzCOB.userDetails.custDtlId)) {
+                        occupationDetl.push(occupation[k])
+                        occupationDetl = structuredClone(occupationDetl);
+                    }
+                })
+            } else {
+                occupationDetl = inSessionStore.occupationDetailsWrapperList[0].occupationDetails.payload
+            }
+        }
+        if (gApzCOB.currentApplicant > 1) {
+            if (!apz.isNull(inSessionStore.occupationDetailsWrapperList) && !apz.isNull(occupationDetl)) {
+                $(`#${EmpDetscrId}typbssEmpent`).val(occupationDetl.typeofbusiness);
+                $(`#${EmpDetscrId}profession`).val(occupationDetl.natureOfOccupation);
+                $(`#${EmpDetscrId}typeOfEmployer`).val(occupationDetl.typeOfEmployer);
+                $(`#${EmpDetscrId}bssEmpAcc`).val(occupationDetl.employeeActivity);
+                //$(`#${EmpDetscrId}employerName`).val(occupationDetl.employer);
+                $(`#${EmpDetscrId}employerName`).val(ApzCOB.getSubstrValue(`#${EmpDetscrId}employerName`, occupationDetl.employer ?? '')).trigger("onblur");
+                $(`#${EmpDetscrId}designation`).val(occupationDetl.designation);
+                $(`#${EmpDetscrId}retirementAge`).val(occupationDetl.retirementAge);
+                $(`#${EmpDetscrId}lastEmployerName`).val(occupationDetl.lastEmployer);
+                $(`#${EmpDetscrId}bssAddrProof`).val(occupationDetl.businessAddressProof);
+                if (!apz.isNull(occupationDetl.businessAddressProof) || IS_REJECTED_APPLICATION) {
+                    ApzCOB.addDisableToInput(`${EmpDetscrId}bssAddrProof`);
+                }
+                $(`#${EmpDetscrId}empProof`).val(occupationDetl.employmentProof);
+                if (!apz.isNull(occupationDetl.employmentProof) || IS_REJECTED_APPLICATION) {
+                    ApzCOB.addDisableToInput(`${EmpDetscrId}empProof`);
+                }
+                $(`#${EmpDetscrId}bssPerOwn`).val(occupationDetl.businessPremiseOwnerShip);
+                $(`#${EmpDetscrId}freqOfInc`).val(occupationDetl.freqOfIncome);
+                $(`#${EmpDetscrId}annualIncome`).val(occupationDetl.annualIncome);
+                $(`#${EmpDetscrId}othSrcInc`).val(occupationDetl.otherSourceIncome);
+                $(`#${EmpDetscrId}othSrcAnnInc`).val(occupationDetl.otherSourceAnnualIncome);
+                $(`#${EmpDetscrId}busiEmpVintageInput`).val(occupationDetl.businessEmpVintageYear);
+                $(`#${EmpDetscrId}busiEmpStartDatInput`).val(occupationDetl.businessEmpStartDate);
+                if (!apz.isNull(occupationDetl.streetVendor)) {
+                    $(`#${EmpDetscrId}streetVendor_option_` + occupationDetl.streetVendor).attr("checked", true);
+                }
+                if (!apz.isNull(occupationDetl.otherSourceIncome)) {
+                    if (occupationDetl.otherSourceIncome === 'Others') {
+                        $(`#${EmpDetscrId}otherSrcInc`).val(occupationDetl.otherSourceIncome);
+                    }
+                }
+            }
+            $.map(occupationFields, function(field) {
+                ApzCOB.addDisableToInput(field);
+            });
+            $('#EmpDRE__EmploymentDetails__busiEmpStartDatInput_button').attr('disabled',true);
+            ApzCOB.removeErrMessgae(occupationFields, "array");
+        }
+        //Bussiness Address
+        if (!apz.isNull(inSessionStore.addressDetailsWrapperList[0].addressDetailsList)) {
+            if (inSessionStore.addressDetailsWrapperList[0].addressDetailsList.length > 1) {
+                address.forEach(function(i, k) {
+                    if (address[k].addressType === 'Occupation' && parseInt(address[k].custDtlId) === parseInt(gApzCOB.userDetails
+                            .custDtlId)) {
+                        businessAddr.push(address[k])
+                        businessAddr = businessAddr[0].payload.addressList[0];
+                    }
+                })
+            } else {
+                businessAddr = inSessionStore.addressDetailsWrapperList[0].addressDetailsList[0].payload.addressList[0]
+            }
+        }
+        if (gApzCOB.currentApplicant > 1) {
+            if (!apz.isNull(inSessionStore.addressDetailsWrapperList[0].addressDetailsList[0].payload.addressList[0]) && !apz.isNull(
+                businessAddr)) {
+                $(`#${EmpDetscrId}addressLine1`).val(ApzCOB.getSubstrValue(`#${EmpDetscrId}addressLine1`, businessAddr.addressLine1));
+                $(`#${EmpDetscrId}addressLine2`).val(ApzCOB.getSubstrValue(`#${EmpDetscrId}addressLine2`, businessAddr.addressLine2));
+                $(`#${EmpDetscrId}addressLine3`).val(ApzCOB.getSubstrValue(`#${EmpDetscrId}addressLine3`, businessAddr.addressLine3));
+                $(`#${EmpDetscrId}pin`).val(businessAddr.pinCode);
+                $(`#${EmpDetscrId}city`).val(businessAddr.city);
+                $(`#${EmpDetscrId}district`).val(businessAddr.district);
+                $(`#${EmpDetscrId}state`).val(businessAddr.state);
+                $(`#${EmpDetscrId}country`).val(businessAddr.country);
+                $(`#${EmpDetscrId}el_inp_2`).val(businessAddr.landMark);
+                $(`#${EmpDetscrId}el_inp_3`).val(businessAddr.area);
+                if (!apz.isNull(businessAddr.addressSameAs)) {
+                    $(`#${EmpDetscrId}officeAddrSameAs_option_` + businessAddr.addressSameAs).attr("checked", true);
+                } else {
+                    $(`#${EmpDetscrId}officeAddrSameAs_option_Present`).attr("checked", true).change();
+                }
+            }
+            $.map(businessAddrFields, function(field) {
+                ApzCOB.addDisableToInput(field);
+            });
+            ApzCOB.removeErrMessgae(businessAddrFields, "array");
+        }
+    } else {
+        $.map(businessAddrFields, function(field) {
+            ApzCOB.removeDisableToInput(field);
+        });
+        $.map(occupationFields, function(field) {
+            ApzCOB.removeDisableToInput(field);
+        });
+        $.map(radioFeilds, function(field) {
+            $('#' + field).prop("checked", false);
+        });
+        var disabledFields = [`${EmpDetscrId}city`, `${EmpDetscrId}district`, `${EmpDetscrId}state`, `${EmpDetscrId}country`, `${EmpDetscrId}busiEmpVintageInput`];
+        $.map(disabledFields, function(field) {
+            ApzCOB.addDisableToInput(field);
+        });
+        ApzCOB.removeDisableToInput(`${paintKYCId}dob`);
+        $(`#${paintKYCId}dob`).prop('disabled', true);
+        $('#EmpDRE__EmploymentDetails__busiEmpStartDatInput_button').attr('disabled',false);
+        apz.app.EmploymentDetails.setEmptyFields(fields, dropdowns);
+        $('input[name="EmpDRE__EmploymentDetails__officeAddrSameAs_"]').prop('checked', false);
+    }
+    apz.app.EmploymentDetails.setAnnualIncomeValue();
+}
+apz.app.EmploymentDetails.setEmptyFields = function(fields, dropDown) {
+    $.map(fields, function(field) {
+        apz.setElmValue(field, "");
+    });
+    $.map(dropDown, function(field) {
+        $(`#${field}`).val(PleaseSelect).change();
+    });
+}
+apz.app.EmploymentDetails.onChangeRelnWtNomi = function(pthis) {
+    $(`#${EmpDetscrId}nomineeForInsur`).val('');
+    $(`#${EmpDetscrId}dobNominee`).val('');
+    $(`#${EmpDetscrId}ageOfNominee`).val('');
+    if (gApzCOB.currentApplicant <= 1) {
+        var selVal = pthis.value.toLowerCase();
+        let coAppData = inSessionStore.customerDetailsList.filter(custData => custData.customerType === "Co-App");
+        let relnWithAppl = (coAppData.length > 0) ? coAppData[0].payload.relationShipWithApplicant : '';
+        if (!apz.isNull(relnWithAppl)) {
+            if (selVal === relnWithAppl.toLowerCase()) {
+                apz.app.EmploymentDetails.populateData();
+            }
+        }
+    }
+}
+apz.app.EmploymentDetails.onchangeAppliDisability = function() {
+    disabilityFlag = true;
+    $(`#${EmpDetscrId}disability_err_div`).addClass("sno");
+    $(`#${EmpDetscrId}disabilityImparirment_err_div`).addClass("sno");
+    $(`#${EmpDetscrId}other_type_impair_errdiv`).addClass("sno");
+    $(`#${EmpDetscrId}UDID_err_row`).addClass("sno");
+    $(`#${EmpDetscrId}percent_ERR_row`).addClass("sno");
+    $(`#${EmpDetscrId}others_impair_div`).addClass("sno");
+    if ($('#EmpDRE__EmploymentDetails__ApplDisaRadio_option_Y').is(':checked')) {
+    ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_EMPDET_MSG_TXT_APPLICANTDISABILITYSTS"), "C", apz.app.EmploymentDetails.DisAblStatus);
+    $('.ajs-button').text('No');
+    $('.ajs-button.ajs-ok').text('Yes');
+ }else{
+     DisabilityHideShow.hide();
+     apz.setElmValue(EmpDetscrId + "UDID_Num", "" );
+     apz.setElmValue(EmpDetscrId + "percentageOfImp", "" );
+	 //$('#EmpDet__EmploymentDetails__UDID_Num').val('');
+	 //$('#EmpDet__EmploymentDetails__percentageOfImp').val('');
+	 checkedValues = [];
+	 for (let i = 1; i <= 7; i++) {
+			let id = 'EmpDetscrId + el_cbx_' + i;
+			let cb = document.getElementById(id);
+
+			if (cb) { // check if element exists
+				if(cb.checked){
+				//console.log(id + ' → ' + val);
+				$('#' + id).prop('checked', false);
+				
+				}
+			}
+		}
+ }
+}
+apz.app.EmploymentDetails.DisAblStatus = function(params) {
+    if (params.choice) {
+        DisabilityHideShow.show();
+        $(`#${EmpDetscrId}disability_err_div`).addClass("sno");
+        $("#" + EmpDetscrId + "el_label_2").addClass("req");
+        $("#" + EmpDetscrId + "UDID_Num_grp_lbl").addClass("req");
+        $("#" + EmpDetscrId + "percentageOfImp_grp_lbl").addClass("req");
+    }else{
+		$("#" + EmpDetscrId + "ApplDisaRadio_option_Y").prop('checked', false);
+		$("#" + EmpDetscrId + "ApplDisaRadio_option_N").prop('checked', true);
+        DisabilityHideShow.hide();
+        apz.setElmValue(EmpDetscrId + "UDID_Num", "" );
+        apz.setElmValue(EmpDetscrId + "percentageOfImp", "" );
+		//$('#EmpDet__EmploymentDetails__UDID_Num').val('');
+		//$('#EmpDet__EmploymentDetails__percentageOfImp').val('');
+		checkedValues = [];
+		
+		for (let i = 1; i <= 7; i++) {
+			let id = 'EmpDetscrId + el_cbx_' + i;
+			let cb = document.getElementById(id);
+
+			if (cb) { // check if element exists
+				if(cb.checked){
+				//console.log(id + ' → ' + val);
+				$('#' + cb).prop('checked', false);
+				
+				}
+			}
+		}
+    }
+}
+
+apz.app.EmploymentDetails.addORremoveDisabilitySts = function(value) {
+    checkedValues = [];
+    for (let i = 1; i <= 7; i++) {
+        let id = EmpDetscrId + 'el_cbx_' + i;
+        let cb = document.getElementById(id);
+        if (cb) { // check if element exists
+            if (cb.checked) {
+                //console.log(id + ' → ' + val);
+                checkedValues.push(cb.getAttribute('checkedval'));
+                /*if(cb.getAttribute('checkedval') == 'Others'){
+                	$('#EmpDet__EmploymentDetails__UDID_Num_ul').removeClass('sno');
+                }else{
+                	$('#EmpDet__EmploymentDetails__UDID_Num_ul').addClass('sno');
+                	$('#EmpDet__EmploymentDetails__UDID_Num').val('');
+                }*/
+            }
+        }
+    }
+    if (checkedValues.includes('Others')) {
+        $(`#${EmpDetscrId}others_impair_div`).removeClass("sno");
+    } else {
+        apz.setElmValue(EmpDetscrId + "others_input_impair", "");
+        $(`#${EmpDetscrId}others_impair_div`).addClass("sno");
+    }
+    if (checkedValues.length > 0) {
+        $(`#${EmpDetscrId}disabilityImparirment_err_div`).addClass("sno");
+    }
+}
+apz.app.EmploymentDetails.setAnnualIncomeValue = function(lvalue) {
+    income = ApzCOB.getOccupation("Income");
+    $(`#${annualIncomeTag}`).val('');
+    setType = false;
+    if (!apz.isNull(income)) {
+        $(`#${annualIncomeTag}`).val(income);
+        setType = true;
+    } else if (!apz.isNull(lvalue)) {
+        $(`#${annualIncomeTag}`).val(lvalue);
+        setType = true;
+    }
+    ApzCOB.AddOrRemoveDisableFields([annualIncomeTag], setType);
+}
+apz.app.EmploymentDetails.otherTypValidation = function() {
+    if (($(`#${EmpDetscrId}others_input_impair`).text()).length < 2) {
+        $(`#${EmpDetscrId}other_type_impair_errdiv`).removeClass("sno");
+        return false;
+    } else {
+        $(`#${EmpDetscrId}other_type_impair_errdiv`).addClass("sno");
+    }
+}
+apz.app.EmploymentDetails.UDIDCertiValidation = function() {
+    if (($(`#${EmpDetscrId}UDID_Num`).val()).length != 18) {
+        $(`#${EmpDetscrId}UDID_err_row`).removeClass("sno");
+        return false;
+    } else {
+        $(`#${EmpDetscrId}UDID_err_row`).addClass("sno");
+    }
+}
+apz.app.EmploymentDetails.TypImapairPercenValidation = function() {
+    if ($(`#${EmpDetscrId}percentageOfImp`).val() > 100 || $(`#${EmpDetscrId}percentageOfImp`).val().length == 0) {
+        $(`#${EmpDetscrId}percent_ERR_row`).removeClass("sno");
+        return false;
+    } else {
+        $(`#${EmpDetscrId}percent_ERR_row`).addClass("sno");
+    }
+}

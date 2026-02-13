@@ -1,0 +1,763 @@
+var CustVerfScrId = 'CusVer__CustomerVerification__',
+    otpFieldNumber = 0,
+    pwdMaximumLength = 6,
+    OTPDIV = CustVerfScrId + "Authentication_formOTP",
+    otpVerified = false,
+    paramName = "",
+    paramValue = "",
+    codeType = "";
+//window.isExisting = false;
+gApzCOB.ExistingCustomer = gApzCOB.product === 'DEPOSIT' || gApzCOB.product === "CARDS" || gApzCOB.product === "LOAN" ? false : "";
+var CustVerLookUp = {
+    "withAuth": "customerDetailsDiv|Authentication_formOTP|pendingAppDiv|pendingApplicationDiv",
+    "withoutAuth": "customerDetailsDiv|pendingAppDiv|pendingApplicationDiv"
+}
+var temp, panVerifybutton, panEnabledorDisabled, panMandatory, loadData, MainHeadr, InfoHeadr;
+var imgpath = "apps/styles/themes/AppzillonConsumerOnboarding/img/";
+window.panVerified = false;
+//onload function
+apz.app.onLoad_CustomerVerification = function(params) {
+    apz.app.BaseScreens.hideNshowbackIcon();
+    apz.app.CustomerVerification.getCommomCodeBasedOnProduct();
+    apz.app.CustomerVerification.litCodeDescPropertyFile();
+    if (backNav) {
+        ConfigureScrJson.filter(function(i, k) {
+            if (i.confParamName === "CUSTVERIFICATION") {
+                $.each(i.Divs, function(a, b) {
+                    if (a < i.Divs.length - 1) {
+                        $('#' + i.MicroAppID + '__' + i.ScreenID + '__' + b).addClass('sno');
+                    } else {
+                        $('#' + i.MicroAppID + '__' + i.ScreenID + '__' + b).removeClass('sno');
+                    }
+                })
+                return;
+            }
+        })
+    }
+};
+//onshown function
+apz.app.onShown_CustomerVerification = function(params) {
+    /**
+     * @author praisy.b
+     * @since 08.06.21
+     * Added fix for below issue
+     * Show hand icon for open/close eye icon
+     **/
+    $('#' + BaseScrId + 'backIcon').addClass('sno');
+    $('body').addClass('LoginBase')
+    $(".icon-Eye-Open").css("cursor", "pointer");
+    $(".icon-Eye-Close").css("cursor", "pointer");
+    apz.app.CustomerVerification.loadCustLitConf();
+    $("input").attr("autocomplete", "off");
+    apz.app.CustomerVerification.panVerifyBtnStatus();
+    if ($('#' + BaseScrId + 'backIcon').hasClass('sno')) {
+        $('#' + CustVerfScrId + 'subHeaderRow').addClass('var1')
+    }
+    ApzCOB.disableCutCopyPaste();
+    apz.app.CustomerVerification.showGeneralInstructions();
+    gApzCOB.userDetails.currentStage = "appMaster";
+    $('#' + CustVerfScrId + 'otp').addClass('mand')
+    apz.app.CustomerVerification.configureFields();
+    ApzCOB.setMinMaxLength([{
+        'fieldName': 'UserName',
+        'fieldId': CustVerfScrId + 'name'
+    }, {
+        'fieldName': 'MobileNumber',
+        'fieldId': CustVerfScrId + 'mobileNumber'
+    }, {
+        'fieldName': 'CustomerId',
+        'fieldId': CustVerfScrId + 'customerID'
+    }, {
+        'fieldName': 'AadharNumber',
+        'fieldId': CustVerfScrId + 'aadharNumber'
+    }, {
+        'fieldName': 'PanNumber',
+        'fieldId': CustVerfScrId + 'panNumber'
+    }, {
+        'fieldName': 'NationalId',
+        'fieldId': CustVerfScrId + 'nationalID'
+    }, {
+        'fieldName': 'EmailId',
+        'fieldId': CustVerfScrId + 'email'
+    }]);
+    $('#' + CustVerfScrId + 'success').addClass('sno');
+    $('#' + CustVerfScrId + 'retry').addClass('sno');
+    ApzCOB.showLanguageSelect();
+    if (selectedType === 'CASA') {
+        $("#" + CustVerfScrId + "CheckBox").addClass("sno");
+    } else if (selectedType === 'DEPOSIT') {
+        $("#" + CustVerfScrId + "checkBox").removeClass("sno");
+        $("#" + CustVerfScrId + "checkbox").prop('checked', false);
+        $("#" + CustVerfScrId + "customerIdDiv").addClass("sno");
+        //  $("#" + CustVerfScrId + "checkbox").prop('checked', true)
+        //  $("#" + CustVerfScrId + "checkbox").prop('disabled', true);
+    } else {
+        $("#" + CustVerfScrId + "checkBox").removeClass("sno");
+        /*$("#" + CustVerfScrId + "el_cbx_1").prop('checked', true);
+        $("#" + CustVerfScrId + "userNameDIv").addClass('sno');
+        $("#" + CustVerfScrId + "mobileNumberDiv").removeClass("sno");
+        $("#" + CustVerfScrId + "CustomerId").removeClass("sno");*/
+    }
+    if ($("#" + CustVerfScrId + "checkbox").is(':checked')) {
+        $('#CusVer__CustomerVerification__sc_col_14').addClass('sno');
+    }
+    if (window.COUNTRYCODE === 'N') {
+        $('#' + CustVerfScrId + 'countryFlagCol').addClass('sno');
+    }
+}
+/*Hide and show fields based on configuration
+fieldName - Commoncode table fieldName respective to stage.
+fieldId - Id of the respective field.
+fieldDivId - Id of the complete row.
+*/
+apz.app.CustomerVerification.configureFields = function() {
+    var a = {
+        fieldName: 'Name',
+        fieldId: [CustVerfScrId + 'name'],
+        fieldDivId: [CustVerfScrId + 'userNameDIv']
+    };
+    var b = {
+        fieldName: 'MobileNo',
+        fieldId: [CustVerfScrId + 'mobileNumber'],
+        fieldDivId: [CustVerfScrId + 'mobileNumberDiv']
+    };
+    var c = {
+        fieldName: 'Email',
+        fieldId: [CustVerfScrId + 'email'],
+        fieldDivId: [CustVerfScrId + 'emailDiv']
+    };
+    var d = {
+        fieldName: 'NIDInput',
+        fieldId: [CustVerfScrId + 'nationalID'],
+        fieldDivId: [CustVerfScrId + 'nationalIDDiv']
+    };
+    var e = {
+        fieldName: 'PANInput',
+        fieldId: [CustVerfScrId + 'panNumber'],
+        fieldDivId: [CustVerfScrId + 'panNumberDiv']
+    };
+    var f = {
+        fieldName: 'GenralInst',
+        fieldDivId: [CustVerfScrId + 'generalInstDiv']
+    };
+    var g = {
+        fieldName: 'PanVerify',
+        fieldDivId: [CustVerfScrId + 'panVerifyDiv']
+    };
+    var h = {
+        fieldName: 'CustomerID',
+        fieldId: [CustVerfScrId + 'customerID'],
+        fieldDivId: [CustVerfScrId + 'customerIdDiv']
+    };
+    ApzCOB.ConfigureFields([a, b, c, d, e, f, g, h], paramName, paramValue, "", codeType);
+    // ApzCOB.ConfigureFields([{
+    //     'fieldName': 'Name',
+    //     'fieldId': [CustVerfScrId + 'name'],
+    //     'fieldDivId': [CustVerfScrId + 'userNameDIv']
+    // }, {
+    //     'fieldName': 'MobileNo',
+    //     'fieldId': [CustVerfScrId + 'mobileNumber'],
+    //     'fieldDivId': [CustVerfScrId + 'mobileNumberDiv']
+    // }, {
+    //     'fieldName': 'Email',
+    //     'fieldId': [CustVerfScrId + 'email'],
+    //     'fieldDivId': [CustVerfScrId + 'emailDiv']
+    // }, {
+    //     'fieldName': 'NIDInput',
+    //     'fieldId': [CustVerfScrId + 'nationalID'],
+    //     'fieldDivId': [CustVerfScrId + 'nationalIDDiv']
+    // }, {
+    //     'fieldName': 'PANInput',
+    //     'fieldId': [CustVerfScrId + 'panNumber'],
+    //     'fieldDivId': [CustVerfScrId + 'panNumberDiv']
+    // }, {
+    //     'fieldName': 'GenralInst',
+    //     'fieldDivId': [CustVerfScrId + 'generalInstDiv']
+    // }, {
+    //     'fieldName': 'PanVerify',
+    //     'fieldDivId': [CustVerfScrId + 'panVerifyDiv']
+    // }], 'CUSTVERIFICATION', 'CUSTVERIFICATION');
+    ApzCOB.showCountrycodeFlag(CustVerfScrId, "regnFlag")
+}
+apz.app.CustomerVerification.getCommomCodeBasedOnProduct = function() {
+    switch (gApzCOB.product) {
+        case "CASA":
+            temp = ApzCOB.GetCommonCodes("CUSTVERIFICATION", "CASA").CUSTVERIFICATION;
+            paramName = "CUSTVERIFICATION";
+            paramValue = "CUSTVERIFICATION";
+            codeType = "CASA";
+            break;
+        case "DEPOSIT":
+            if (gApzCOB.ExistingCustomer) {
+                temp = ApzCOB.GetCommonCodes("CUSTVERIFICATION", "DEPOSIT_ETB").CUSTVERIFICATION;
+                paramName = "CUSTVERIFICATION";
+                paramValue = "CUSTVERIFICATION";
+                codeType = "DEPOSIT_ETB";
+                break;
+            } else {
+                temp = ApzCOB.GetCommonCodes("CUSTVERIFICATION", "CASA").CUSTVERIFICATION;
+                paramName = "CUSTVERIFICATION";
+                paramValue = "CUSTVERIFICATION";
+                codeType = "CASA";
+                break;
+            }
+            case "CARDS":
+                if (gApzCOB.ExistingCustomer) {
+                    temp = ApzCOB.GetCommonCodes("CUSTVERIFICATION", "CARD_ETB").CUSTVERIFICATION;
+                    paramName = "CUSTVERIFICATION";
+                    paramValue = "CUSTVERIFICATION";
+                    codeType = "CARD_ETB";
+                    break;
+                } else {
+                    temp = ApzCOB.GetCommonCodes("CUSTVERIFICATION", "CARD_NTB").CUSTVERIFICATION;
+                    paramName = "CUSTVERIFICATION";
+                    paramValue = "CUSTVERIFICATION";
+                    codeType = "CARD_NTB";
+                    break;
+                }
+                case "LOAN":
+                    if (gApzCOB.ExistingCustomer) {
+                        temp = ApzCOB.GetCommonCodes("CUSTVERIFICATION", "LOAN_ETB").CUSTVERIFICATION;
+                        paramName = "CUSTVERIFICATION";
+                        paramValue = "CUSTVERIFICATION";
+                        codeType = "LOAN_ETB";
+                        break;
+                    } else {
+                        temp = ApzCOB.GetCommonCodes("CUSTVERIFICATION", "CASA").CUSTVERIFICATION;
+                        paramName = "CUSTVERIFICATION";
+                        paramValue = "CUSTVERIFICATION";
+                        codeType = "CASA";
+                        break;
+                    }
+                    default:
+                        break;
+    }
+};
+//To reset the Otp field.
+apz.app.CustomerVerification.clearvalue = function() {
+    if (apz.deviceType !== "WEB") {
+        for (var i = 1; i <= pwdMaximumLength; i++) {
+            $("#" + CustVerfScrId + "otp_" + i).val("");
+        }
+    }
+};
+//To start the timer value in otp screen.
+apz.app.CustomerVerification.startTimer = function(timerval) {
+    var counter;
+    counter = new timerCounter();
+    $("#" + CustVerfScrId + "Resendotp").addClass("sno");
+    $("#" + CustVerfScrId + "otpExpireDiv").removeClass("sno");
+    counter.init(CustVerfScrId + "otptimertext_txtcnt", timerval);
+};
+//Generate otp service
+apz.app.CustomerVerification.GenerateOTP = function() {
+    //var OTPuserID = apz.isNull(gApzCOB.userDetails.userName) ? gApzCOB.userDetails.mobileNum : gApzCOB.userDetails.userName;
+    var OTPuserID = !apz.isNull(gApzCOB.userDetails.userName) ? gApzCOB.userDetails.userName : !apz.isNull(gApzCOB.userDetails.mobileNum) ?
+        gApzCOB.userDetails.mobileNum : !apz.isNull(gApzCOB.userDetails.customerId) ? gApzCOB.userDetails.customerId : ""
+    //apz.userId = gApzCOB.userDetails.mobileNum;
+    otpFieldNumber = 0;
+    apz.app.CustomerVerification.clearvalue();
+    var req = {
+        "apiRequest": {
+            "interfaceName": "GenerateOtp",
+            "appId": apz.currAppId,
+            "userId": OTPuserID,
+            "requestObj": {
+                "payload": {}
+            }
+        }
+    }
+    apz.startLoader();
+    ApzCOB.serverBuildParam(gAppId, "AuthenticationService", "N", "N", req, true, apz.app.CustomerVerification.GenerateOTPCB);
+};
+//Generate otp service callback
+apz.app.CustomerVerification.GenerateOTPCB = function(params) {
+    otpVerified = false;
+    if (ApzCOB.handleServiceCallBacks(params)) {
+        var tempOtpObj = JSON.parse(params.res.APZCBO__AuthenticationService_Res.apiResponse.ResponseBody.responseObj)
+        var tempRefNo = params.res.APZCBO__AuthenticationService_Res.apiResponse.ResponseBody.responseObj.split('\n').filter(data => data.indexOf("RefNo") !==
+            -1);
+        tempRefNo = (tempRefNo[0].split(":")[1]).replace(' ', "");
+        var refNo = tempRefNo.replace(",", "");
+        tempOtpObj.RefNo = refNo
+        $("#" + CustVerfScrId + "OTPRefno").text(tempOtpObj.RefNo);
+        $("#" + CustVerfScrId + "dummyotptxt").text(tempOtpObj.otp);
+        apz.app.CustomerVerification.startTimer(tempOtpObj.otpExpiry);
+        $("#" + CustVerfScrId + "otp").attr("maxlength", tempOtpObj.otpLength);
+        //  document.getElementById(CustVerfScrId + "otp").type = (apz.deviceType === 'WEB' ? 'password' : "tel");
+        document.getElementById(CustVerfScrId + "otp").type = "tel";
+        $("#" + CustVerfScrId + "otp").addClass('mask');
+        $("#" + CustVerfScrId + "expiryDIV").removeClass("sno");
+        $("#" + CustVerfScrId + "otpsubmit").removeClass("sno");
+        $("#" + CustVerfScrId + "otpconfirm").removeClass("sno");
+        if (apz.deviceType !== "WEB") {
+            apz.stopLoader();
+        }
+        $("#" + CustVerfScrId + "otp").focus();
+        apz.stopLoader();
+    } else {
+        ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_CUSTVER_ERR_TXT_OTP_GENERATION_FAILED"), $("#" + CustVerfScrId + "otpcancel").trigger("onclick"));
+    }
+};
+$("#" + CustVerfScrId + "otp").keypress(function(e) {
+    if (e.which === 13 && apz.deviceType === "WEB") {
+        apz.app.CustomerVerification.screenLaunch();
+    }
+});
+// validate otp service
+apz.app.CustomerVerification.validate_otp = function() {
+    if (ApzCOB.validateConfFields()) {
+        apz.app.CustomerVerification.ValidateOTP()
+    }
+}
+// validate otp service
+apz.app.CustomerVerification.ValidateOTP = function(params) {
+    //var OTPuserID = apz.isNull(gApzCOB.userDetails.userName) ? gApzCOB.userDetails.mobileNum : gApzCOB.userDetails.userName;
+    var OTPuserID = !apz.isNull(gApzCOB.userDetails.userName) ? gApzCOB.userDetails.userName : !apz.isNull(gApzCOB.userDetails.mobileNum) ?
+        gApzCOB.userDetails.mobileNum : !apz.isNull(gApzCOB.userDetails.customerId) ? gApzCOB.userDetails.customerId : ""
+    var req = {
+        "apiRequest": {
+            "interfaceName": "ValidateOtp",
+            "appId": apz.appId,
+            "userId": OTPuserID,
+            "requestObj": {
+                "RefNo": $("#" + CustVerfScrId + "OTPRefno").text(),
+                "otp": $("#" + CustVerfScrId + "otp").val(),
+                "payload": {}
+            }
+        }
+    }
+    apz.startLoader();
+    ApzCOB.serverBuildParam(gAppId, "AuthenticationService", "N", "N", req, false, apz.app.CustomerVerification.ValidateOTPCB);
+};
+// validate otp service callback
+apz.app.CustomerVerification.ValidateOTPCB = function(params) {
+    otpFieldNumber = 0;
+    //apz.stopLoader();
+    apz.app.CustomerVerification.clearvalue();
+    if (ApzCOB.handleServiceCallBacks(params)) {
+        otpVerified = true;
+        var tempOtpObj = JSON.parse(params.res.APZCBO__AuthenticationService_Res.apiResponse.ResponseBody.responseObj);
+        if (tempOtpObj.Status === "success" && tempOtpObj.OTPValServiceResponse.status === "Y") {
+            gApzCOB.OTPRefno = $("#" + CustVerfScrId + "OTPRefno").text();
+            if (!approvedApplication) {
+                // if (apz.deviceType !== "WEB") {
+                apz.app.CustomerVerification.screenLaunch();
+                //  }
+            }
+        } else {
+            apz.stopLoader();
+            $("#" + CustVerfScrId + "otp").val("");
+            $("#" + CustVerfScrId + "otp").focus();
+            apz.app.CustomerVerification.clearvalue();
+            if (!apz.isNull(tempOtpObj.OTPValServiceResponse)) {
+                ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_CUSTVER_ERR_TXT_INCORRECT_OTP") + " " + tempOtpObj.OTPValServiceResponse["Attempts Left"] +
+                    " " + ApzCOB.getDescfromLitCode("LIT_CUSTVER_ERR_TXT_ATTEMPT_LEFT"));
+                otpVerified = false;
+            } else {
+                ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_CUSTVER_INFO_TXT_OTPEXPIRED"));
+                otpVerified = false;
+                $("#CusVer__CustomerVerification__otpExpireDiv").addClass('sno');
+                $("#CusVer__CustomerVerification__Resendotp").removeClass('sno');
+            }
+        }
+    } else {
+        apz.stopLoader();
+        $("#" + CustVerfScrId + "otp").val("");
+        $("#" + CustVerfScrId + "otp").focus();
+        apz.app.CustomerVerification.clearvalue();
+        ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_CUSTVER_ERR_TXT_WRONGOTP"));
+        otpVerified = false;
+    }
+};
+//hide and show password on eye icon click
+apz.app.CustomerVerification.HideShowPassword = function() {
+    //var otptype = document.getElementById(CustVerfScrId + "otp").type;
+    if ($("#" + CustVerfScrId + 'eyeClose').hasClass('sno')) {
+        $("#" + CustVerfScrId + "otp").removeClass("mask");
+        $("#" + CustVerfScrId + 'eyeClose').removeClass('sno')
+        $("#" + CustVerfScrId + 'eyeOpen').addClass('sno')
+    } else {
+        $("#" + CustVerfScrId + "otp").addClass("mask");
+        $("#" + CustVerfScrId + 'eyeClose').addClass('sno')
+        $("#" + CustVerfScrId + 'eyeOpen').removeClass('sno')
+    }
+};
+apz.app.CustomerVerification.letsStart = function() {
+    /**
+     * @author praisy.b
+     * @since 04.06.21
+     * Added fix for below issue
+     * No mobile number validation
+     **/
+    window.isMobErr = false;
+    if (!apz.isNull($('#' + CustVerfScrId + 'mobileNumber').val())) {
+        ApzCOB.fnValidateMobileNumber(CustVerfScrId + 'mobileNumber');
+    }
+    var Email = $("#" + CustVerfScrId + 'email').val()
+    apz.app.serReqList = [];
+    apz.app.serReqList.push(Email);
+    if ($("#" + CustVerfScrId + 'customerDetailsDiv').is(':visible') && !window.isMobErr && ApzCOB.validateConfFields()) {
+        if (panEnabledorDisabled === "Y" && panMandatory === "M") {
+            if ((panVerifybutton === "Y" && window.panVerified) || (window.panWithoutService && panMandatory === "N")) {
+                apz.app.CustomerVerification.screenLaunch()
+            } else {
+                ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_CUSTVER_ERR_TXT_VERIFY_PAN"), "E");
+            }
+        } else {
+            apz.app.CustomerVerification.screenLaunch();
+            /*if (gApzCOB.product === 'DEPOSIT') {
+                ApzCOB.FetchCustomerDetails();
+            } else {
+                apz.app.CustomerVerification.screenLaunch();
+            }*/
+        }
+    } else {
+        window.isMobErr = false;
+    }
+};
+//Screen launch navigation for customer verification sreen.
+apz.app.CustomerVerification.screenLaunch = function() {
+    var nextDivLaunch = true;
+    var objNodeName = '';
+    var mobileNum = '';
+    if ($('#' + BaseScrId + 'newCustomerModal').is(':visible')) {
+        ApzCOB.toggleModal(BaseScrId + 'newCustomerModal');
+    }
+    if (window.COUNTRYCODE === 'Y') {
+        if (ApzCOB.GetCommonCodes("COUNTRYCODE", "COMM").COUNTRYCODE[0].includeInReq === "Y") {
+            var mobNo = $('#' + CustVerfScrId + 'mobileNumber').val();
+            gApzCOB.userDetails.mobileNum = mobNo === '' ? '' : $('#' + CustVerfScrId + 'regnFlag').val() + " " + $('#' + CustVerfScrId + 'mobileNumber')
+                .val();
+            mobileNum = mobNo === '' ? '' : $('#' + CustVerfScrId + 'regnFlag').val() + " " + $('#' + CustVerfScrId + 'mobileNumber').val();
+        } else {
+            gApzCOB.userDetails.mobileNum = $('#' + CustVerfScrId + 'mobileNumber').val();
+            mobileNum = $('#' + CustVerfScrId + 'mobileNumber').val();
+        }
+    } else {
+        gApzCOB.userDetails.mobileNum = $('#' + CustVerfScrId + 'mobileNumber').val();
+        mobileNum = $('#' + CustVerfScrId + 'mobileNumber').val();
+    }
+    gApzCOB.userDetails.userName = $('#' + CustVerfScrId + 'name').val();
+    // gApzCOB.userDetails.nationalId = $('#' + CustVerfScrId + 'aadharNumber').val();
+    gApzCOB.userDetails.nationalId = $('#' + CustVerfScrId + 'nationalID').val();
+    gApzCOB.userDetails.panNum = $('#' + CustVerfScrId + 'panNumber').val().toLocaleUpperCase();
+    gApzCOB.userDetails.email = $('#' + CustVerfScrId + 'email').val();
+    gApzCOB.userDetails.customerId = $('#' + CustVerfScrId + 'customerID').val();
+    gApzCOB.userDetails.existingCustomer = $('#' + CustVerfScrId + 'checkbox').is(':checked') ? 'Y' : 'N';
+    if (ApzCOB.validateConfFields()) {
+        if (!apz.isNull(gApzCOB.userDetails.mobileNum) || !apz.isNull(gApzCOB.userDetails.email) || !apz.isNull(gApzCOB.userDetails.customerId)) {
+            objNodeName = "withAuth";
+        } else {
+            objNodeName = "withoutAuth";
+        }
+        CustVerLookUp[objNodeName].split('|').forEach(function(a, b) {
+            if (nextDivLaunch && $('#' + CustVerfScrId + a).is(":visible")) {
+                if (!otpVerified) {
+                    if (a === "customerDetailsDiv") {
+                        $("#" + BaseScrId + "loginMainScreen").removeClass('sno');
+                        apz.app.CustomerVerification.HideShowPassword();
+                        apz.app.CustomerVerification.GenerateOTP();
+                        $('#' + CustVerfScrId + 'otpMobileNo').text(apz.lits[apz.currAppId][apz.language]["LIT_CUSTVER_TITLE_TXT_OTP_SENT"] + " " +
+                            mobileNum /*.substring(0, 2) + 'xxxxxx' + gApzCOB.userDetails.mobileNum.substring(7 + 1)*/
+                            ); //To Mask Mobile Number
+                        $('#' + CustVerfScrId + CustVerLookUp[objNodeName].split('|')[b]).addClass('sno');
+                        $('#' + CustVerfScrId + CustVerLookUp[objNodeName].split('|')[b + 1]).removeClass('sno');
+                        nextDivLaunch = false;
+                        return;
+                    } else if (a === "Authentication_formOTP") {
+                        apz.app.CustomerVerification.ValidateOTP();
+                        return;
+                    }
+                }
+                if (otpVerified) {
+                    $("#APZCBO__BaseScreens__sidebarController").removeClass('sno');
+                    if (CustVerLookUp[objNodeName].split('|')[b + 1] === "pendingApplicationDiv" || CustVerLookUp[objNodeName].split('|')[
+                            b + 1] === "pendingAppDiv") {
+                        if (gApzCOB.product === 'CASA') {
+                            ApzCOB.VerifyApplication();
+                        } else if (gApzCOB.product === 'DEPOSIT') {
+                            if (gApzCOB.ExistingCustomer) {
+                                ApzCOB.DepositVerifyApplication();
+                            } else {
+                                ApzCOB.VerifyApplication();
+                            }
+                            //ApzCOB.DepositVerifyApplication();
+                        } else if (gApzCOB.product === "CARDS") {
+                            ApzCOB.CardVerifyApplication();
+                        } else if (gApzCOB.product === 'LOAN') {
+                            if (gApzCOB.ExistingCustomer) {
+                                ApzCOB.LoanVerifyApplication();
+                            } else {
+                                ApzCOB.VerifyApplication();
+                            }
+                        }
+                        $("#" + BaseScrId + 'DipInfoTile').text(ApzCOB.getDescfromLitCode('LIT_CUSTVER_INFO_TXT_INFORMATION'))
+                        $("#" + BaseScrId + 'DipInfoContent').text(ApzCOB.getDescfromLitCode('LIT_CUSTVER_INFO_TXT_NEWCUSTBANKOPENSAVINGSACCASSDEPOSIT'))
+                        $("#" + BaseScrId + 'LoanInfoTitle').text(ApzCOB.getDescfromLitCode('LIT_CUSTVER_INFO_TXT_INFORMATION'))
+                        $("#" + BaseScrId + 'LoanInfoContent').text(ApzCOB.getDescfromLitCode('LIT_CUSTVER_INFO_TXT_NEWCUSTBANKOPENSAVINGSACCASSLOAN'))
+                        $("#" + BaseScrId + 'NewCustContiBtnTxt').text(ApzCOB.getDescfromLitCode('LIT_CUSTVER_BTN_TXT_CONTINUE'));
+                        $("#" + BaseScrId + 'NewCustExitBtnTxt').text(ApzCOB.getDescfromLitCode('LIT_CUSTVER_BTN_TXT_EXIT'));
+                    } else {
+                        $('#' + CustVerfScrId + CustVerLookUp[objNodeName].split('|')[b]).addClass('sno');
+                        $('#' + CustVerfScrId + CustVerLookUp[objNodeName].split('|')[b + 1]).removeClass('sno');
+                        nextDivLaunch = false;
+                        return;
+                    }
+                }
+            }
+        })
+    }
+}
+apz.app.CustomerVerification.showGeneralInstructions = function() {
+    var genrlInst = [];
+    var data = '';
+    if (gApzCOB.product === 'CASA') {
+        data = ApzCOB.GetCommonCodes("GENERALINSTRUCTIONS", "CASA")["GENERALINSTRUCTIONS"]
+    }
+    if (gApzCOB.product === 'DEPOSIT') {
+        if (gApzCOB.ExistingCustomer) {
+            data = ApzCOB.GetCommonCodes("GENERALINSTRUCTIONS", "DEPOSIT_ETB")["GENERALINSTRUCTIONS"]
+        } else {
+            data = ApzCOB.GetCommonCodes("GENERALINSTRUCTIONS", "CASA")["GENERALINSTRUCTIONS"]
+        }
+    }
+    if (gApzCOB.product === 'CARDS') {
+        if (gApzCOB.ExistingCustomer) {
+            data = ApzCOB.GetCommonCodes("GENERALINSTRUCTIONS", "CARD_ETB")["GENERALINSTRUCTIONS"]
+        } else {
+            data = ApzCOB.GetCommonCodes("GENERALINSTRUCTIONS", "CARD_NTB")["GENERALINSTRUCTIONS"]
+        }
+    }
+    if (gApzCOB.product === 'LOAN') {
+        if (gApzCOB.ExistingCustomer) {
+            data = ApzCOB.GetCommonCodes("GENERALINSTRUCTIONS", "LOAN_ETB")["GENERALINSTRUCTIONS"]
+        } else {
+            data = ApzCOB.GetCommonCodes("GENERALINSTRUCTIONS", "CASA")["GENERALINSTRUCTIONS"]
+        }
+    }
+    $.each(data, function(i, k) {
+        if (k.split("~")[2] === "Y") {
+            var obj = {
+                "images": k.split("~")[0],
+                "value": k.split("~")[1]
+            }
+            genrlInst.push(obj)
+        }
+    })
+    apz.data.scrdata.CusVer__IPaintGeneralIns_Res = {};
+    apz.data.loadData("IPaintGeneralIns", "CusVer");
+    apz.data.scrdata.CusVer__IPaintGeneralIns_Res = genrlInst;
+    apz.data.loadData("IPaintGeneralIns", "CusVer");
+}
+apz.app.CustomerVerification.toggleModal = function() {
+    $('#' + CustVerfScrId + 'customerDetailsDiv').trigger('click')
+}
+var count = 0;
+apz.app.CustomerVerification.applicationType = function() {
+    count += 1;
+    if (count % 2 !== 0) {
+        $('#' + CustVerfScrId + 'singleAcbtn').removeClass('active');
+        $('#' + CustVerfScrId + 'jointAcbtn').addClass('active')
+    } else {
+        $('#' + CustVerfScrId + 'singleAcbtn').addClass('active')
+        $('#' + CustVerfScrId + 'jointAcbtn').removeClass('active')
+    }
+}
+apz.app.CustomerVerification.panVerifyBtnStatus = function() {
+    ApzCOB.panVerifyButtonStatus();
+    // ApzCOB.GetCommonCodes("CUSTVERIFICATION").CUSTVERIFICATION.forEach(function(k) {
+    //     if (k.split('~')[0] === "PanVerify") {
+    //         panVerifybutton = k.split('~')[1];
+    //         if (panVerifybutton === 'N') {
+    //             window.panWithoutService = false;
+    //         } else if (panVerifybutton === 'Y') {
+    //             window.panWithoutService = true;
+    //         }
+    //     }
+    //     if (k.split('~')[0] === "PANInput") {
+    //         panEnabledorDisabled = k.split('~')[1];
+    //         panMandatory = k.split('~')[2];
+    //     }
+    // })
+}
+apz.app.CustomerVerification.validateUserName = function() {
+    if (gApzCOB.demoMode === 'N') {
+        var name = $('#' + CustVerfScrId + 'name').val();
+        var nameReg = (/[a-zA-Z]/g.test(name));
+        if ($('#' + CustVerfScrId + 'name').is(':visible')) {
+            if (nameReg) {
+                $('#' + CustVerfScrId + 'nameErr').addClass('sno');
+                return true;
+            } else {
+                $('#' + CustVerfScrId + 'nameErr').removeClass('sno');
+                return false;
+            }
+        } else {
+            return true;
+        }
+    } else {
+        return true;
+    }
+}
+apz.app.CustomerVerification.backNavigation = function() {
+    if ($("#CusVer__CustomerVerification__customerDetailsDiv").hasClass("sno")) {
+        otpVerified = true;
+        $("#CusVer__CustomerVerification__customerDetailsDiv").removeClass("sno");
+        $("#CusVer__CustomerVerification__Authentication_formOTP").addClass("sno");
+    } else if ($("#CusVer__CustomerVerification__Authentication_formOTP").hasClass("sno")) {
+        ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_CUSTVER_CONF_TXT_EXIT"), "C", apz.app.CustomerVerification.closeApp);
+        $('.cancel').text("No");
+        $('.ok').text("Yes");
+    }
+};
+apz.app.CustomerVerification.closeApp = function(params) {
+    if (params.choice === true) {
+        var req = {
+            "id": "CLOSELAUNCH_ID",
+            "callBack": ''
+        };
+        apz.ns.closeApplication(req);
+    } //Removed empty else block
+};
+apz.app.CustomerVerification.litCodeDescPropertyFile = function(params) {
+    if (!apz.isNull(gDocumentTexts)) {
+        gDocumentTexts.filter(function(el) {
+            if (el.split('~')[0] === "LIT_CUSTVER_DLBL1") {
+                $('#' + CustVerfScrId + 'nationalIdLabel').text(ApzCOB.getLitsDescfromServer(el.split('~')[0]));
+            } else if (el.split('~')[0] === "LIT_CUSTVER_DLBL2") {
+                $('#' + CustVerfScrId + 'nationalID').attr('placeholder', ApzCOB.getLitsDescfromServer(el.split('~')[0]));
+            } else if (el.split('~')[0] === "LIT_CUSTVER_DLBL3") {
+                $('#' + CustVerfScrId + 'nationalIdErr_txtcnt').text(ApzCOB.getLitsDescfromServer(el.split('~')[0]));
+            }
+        })
+    }
+};
+apz.app.CustomerVerification.checkbox = function() {
+    if ($('input:checkbox:checked').length === 0) {
+        $("#CusVer__CustomerVerification__el_cbx_1").prop('checked', false);
+        $("#CusVer__CustomerVerification__userNameDIv").removeClass('sno');
+        $("#CusVer__CustomerVerification__el_label_2").text(ApzCOB.getDescfromLitCode("LIT_COMM_LBL_TXT_MOBILENO"));
+        $("#" + CustVerfScrId + "mobileNumberDiv").removeClass("sno");
+        $("#" + CustVerfScrId + "CustomerId").removeClass("sno");
+    } else {
+        $("#CusVer__CustomerVerification__el_cbx_1").prop('checked', true);
+        $("#CusVer__CustomerVerification__userNameDIv").addClass('sno');
+        $("#CusVer__CustomerVerification__el_label_2").text(ApzCOB.getDescfromLitCode("LIT_CUSTID_MOB"));
+        $("#" + CustVerfScrId + "mobileNumberDiv").removeClass("sno");
+        $("#" + CustVerfScrId + "CustomerId").removeClass("sno");
+    }
+};
+apz.app.CustomerVerification.isExistingCheckbox = function() {
+    gApzCOB.ExistingCustomer = $("#" + CustVerfScrId + "checkbox").is(':checked');
+    if (gApzCOB.ExistingCustomer) {
+        temp.forEach(function(el) {
+            if (gApzCOB.product === "CARDS") {
+                temp = ApzCOB.GetCommonCodes("CUSTVERIFICATION", "CARD_ETB").CUSTVERIFICATION;
+                paramName = "CUSTVERIFICATION";
+                paramValue = "CUSTVERIFICATION";
+                codeType = "CARD_ETB";
+                apz.app.BaseScreens.getCommomCodeBasedOnProduct();
+            } else if (gApzCOB.product === "LOAN") {
+                temp = ApzCOB.GetCommonCodes("CUSTVERIFICATION", "LOAN_ETB").CUSTVERIFICATION;
+                paramName = "CUSTVERIFICATION";
+                paramValue = "CUSTVERIFICATION";
+                codeType = "LOAN_ETB";
+            } else {
+                temp = ApzCOB.GetCommonCodes("CUSTVERIFICATION", "DEPOSIT_ETB").CUSTVERIFICATION;
+                paramName = "CUSTVERIFICATION";
+                paramValue = "CUSTVERIFICATION";
+                codeType = "DEPOSIT_ETB";
+                /*if (el.split('~')[0] === 'CustomerID' && el.split('~')[1] === 'Y') {
+                    $("#" + CustVerfScrId + "customerIdDiv").removeClass("sno");
+                }*/
+            }
+        })
+    } else {
+        if (gApzCOB.product === "CARDS") {
+            temp = ApzCOB.GetCommonCodes("CUSTVERIFICATION", "CARD_NTB").CUSTVERIFICATION;
+            paramName = "CUSTVERIFICATION";
+            paramValue = "CUSTVERIFICATION";
+            codeType = "CARD_NTB";
+        } else {
+            temp = ApzCOB.GetCommonCodes("CUSTVERIFICATION", "CASA").CUSTVERIFICATION;
+            paramName = "CUSTVERIFICATION";
+            paramValue = "CUSTVERIFICATION";
+            codeType = "CASA";
+        }
+        //$("#" + CustVerfScrId + "customerIdDiv").addClass("sno");
+    }
+    $("#" + CustVerfScrId + 'customerDetails').find('label').removeClass('req');
+    $("#" + CustVerfScrId + 'customerDetails').find('input').trigger('onfocus');
+    apz.app.CustomerVerification.configureFields();
+};
+$("#" + CustVerfScrId + 'infoIcn_ul').click(function() {
+    apz.app.CustomerVerification.showGeneralInstructions();
+})
+apz.app.CustomerVerification.loadCustLitConf = function() {
+    switch (gApzCOB.product) {
+        case "CASA":
+            loadData = ApzCOB.GetCommonCodes("CUSTVERIFICATION", "CASA");
+            loadData["LITCODES"].forEach(function(el) {
+                MainHeadr = ApzCOB.getLitsDescfromServer("LIT_CUSTVER_DLBL4");
+                InfoHeadr = ApzCOB.getLitsDescfromServer("LIT_CUSTVER_DLBL5");
+            });
+            break;
+        case "DEPOSIT":
+            if (gApzCOB.ExistingCustomer) {
+                loadData = ApzCOB.GetCommonCodes("CUSTVERIFICATION", "DEPOSIT_ETB");
+                loadData["LITCODES"].forEach(function(el) {
+                    MainHeadr = ApzCOB.getLitsDescfromServer("LIT_CUSTVER_DLBL6");
+                    InfoHeadr = ApzCOB.getLitsDescfromServer("LIT_CUSTVER_DLBL7");
+                });
+            } else {
+                loadData = ApzCOB.GetCommonCodes("CUSTVERIFICATION", "CASA");
+                loadData["LITCODES"].forEach(function(el) {
+                    MainHeadr = ApzCOB.getLitsDescfromServer("LIT_CUSTVER_DLBL6");
+                    InfoHeadr = ApzCOB.getLitsDescfromServer("LIT_CUSTVER_DLBL7");
+                });
+            }
+            break;
+        case "CARDS":
+            loadData = ApzCOB.GetCommonCodes("CUSTVERIFICATION", "CARD_NTB");
+            loadData["LITCODES"].forEach(function(el) {
+                MainHeadr = ApzCOB.getLitsDescfromServer("LIT_CUSTVER_DLBL8");
+                InfoHeadr = ApzCOB.getLitsDescfromServer("LIT_CUSTVER_DLBL9");
+            });
+            break;
+        case "LOAN":
+            if (gApzCOB.ExistingCustomer) {
+                loadData = ApzCOB.GetCommonCodes("CUSTVERIFICATION", "LOAN_NTB");
+                loadData["LITCODES"].forEach(function(el) {
+                    MainHeadr = ApzCOB.getLitsDescfromServer("LIT_CUSTVER_DLBL10");
+                    InfoHeadr = ApzCOB.getLitsDescfromServer("LIT_CUSTVER_DLBL11");
+                });
+            } else {
+                loadData = ApzCOB.GetCommonCodes("CUSTVERIFICATION", "CASA");
+                loadData["LITCODES"].forEach(function(el) {
+                    MainHeadr = ApzCOB.getLitsDescfromServer("LIT_CUSTVER_DLBL10");
+                    InfoHeadr = ApzCOB.getLitsDescfromServer("LIT_CUSTVER_DLBL11");
+                });
+            }
+            break;
+        default:
+            break;
+    }
+    apz.setElmValue(CustVerfScrId + "el_txt_1_txtcnt", MainHeadr);
+    apz.setElmValue(CustVerfScrId + "el_txt_5_txtcnt", InfoHeadr);
+}
+$('#' + CustVerfScrId + 'name').on('mousemove', function(event) {
+    var input = document.getElementById(event.target.id);
+    input.addEventListener("drop", $('#' + event.target.id).trigger('onblur'));
+    // mouseDown = true;
+})
+$('#' + CustVerfScrId + 'mobileNumber').on('mousemove', function(event) {
+    var input = document.getElementById(event.target.id);
+    input.addEventListener("drop", $('#' + event.target.id).trigger('onblur'));
+    // mouseDown = true;
+})
+$('#' + CustVerfScrId + 'customerID').on('mousemove', function(event) {
+    var input = document.getElementById(event.target.id);
+    input.addEventListener("drop", $('#' + event.target.id).trigger('onblur'));
+    // mouseDown = true;
+})

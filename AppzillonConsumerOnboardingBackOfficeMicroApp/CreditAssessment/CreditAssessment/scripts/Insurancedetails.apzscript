@@ -1,0 +1,759 @@
+var insuranceDetailsScrId = "CrdAss__Insurancedetails__",
+    baseScrId = "CrdAss__Cabase__",
+    dobAgeField = {
+        "CrdAss__Insurancedetails__A_dobInput": "A_ageOfNomineeInput",
+        "CrdAss__Insurancedetails__CA_dobInput": "CA_ageOfNomineeInput",
+        "CrdAss__Insurancedetails__CC_dobInput": "CC_ageOfNomineeInput",
+        "CrdAss__Insurancedetails__BA_dobInput": "BA_ageOfNomineeInput"
+    };
+window.CURRENTSCREEN = "Insurancedetails";
+window.CA_CURRENT_STAGE = "Insurance";
+window.applicantFields = [];
+window.coappFields = [];
+window.jointInsurFields = [];
+window.hasJointApplication ='';
+window.insurancePremiumData = "";
+window.insurancePremium = "";
+window.customerType = '';
+window.prevSection ='';
+window.currSection = 'Applicant';
+window.baseBtns = ["rejectsenback_row", "reject_btn", "sendback_btn", "bckBtn", "nxtBtn"]
+window.fieldsToDisableEnable = ["A_nomineeInsurenceInput", "A_genderInput", "A_dobInput", "A_dobInput_button", "A_nomineeRelationshipInput",
+    "CA_nomineeInsurenceInput", "CA_genderInput", "CA_dobInput", "CA_dobInput_button", "CA_nomineeRelationshipInput", "CC_nomineeInsurenceInput",
+    "CC_genderInput", "CC_dobInput", "CC_nomineeRelationshipInput", "BA_nomineeInsurenceInput", "BA_genderInput", "BA_dobInput",
+    "BA_dobInput_button", "BA_nomineeRelationshipInput", "BC_genderInput", "BC_dobInput", "CC_dobInput_button", "BC_nomineeRelationshipInput",
+    "el_rdo_1_option_Both", "el_rdo_1_option_Joint", "el_rdo_1_option_Noinsurance", "el_rdo_1_option_Applicant", "el_rdo_1", "el_rdo_2_option_Y",
+    "el_rdo_2_option_N"
+];
+window.applicantFeilds = ["A_nomineeInsurenceInput", "A_genderInput", "A_dobInput", "A_nomineeRelationshipInput"]
+window.coAppFeilds = ["CA_nomineeInsurenceInput", "CA_genderInput", "CA_dobInput", "CA_nomineeRelationshipInput", "CC_nomineeInsurenceInput",
+    "CC_genderInput", "CC_dobInput", "CC_nomineeRelationshipInput"
+]
+window.jointFeilds = ["BA_nomineeInsurenceInput", "BA_genderInput", "BA_dobInput", "BA_nomineeRelationshipInput"]
+window.jointInsurRadioBtn = "N";
+window.jointInsurFields = ["BA_nomineeInsurenceInput", "BA_genderInput", "BA_dobInput", "BA_nomineeRelationshipInput", "BA_ageOfNomineeInput"];
+apz.app.onLoad_Insurancedetails = function() {
+};
+apz.app.onShown_Insurancedetails = function() {
+    $(`#${insuranceDetailsScrId}el_rdo_1`).addClass('disabled');
+    $('input').attr('autocomplete', 'off');
+    apz.app.Insurancedetails.insurancePremium();
+    let applicantRadio = document.querySelector('input[type="radio"][value="Applicant"]');
+    if (applicantRadio) {
+        applicantRadio.checked = true;
+        apz.app.Insurancedetails.changeSection('Applicant')
+    }
+    inSessionStore.insuranceDetailsWrapperList.forEach(function(k, i) {
+        if (inSessionStore.insuranceDetailsWrapperList[i].insuranceDetails?.payload?.insuredName === 'Applicant') {
+            let payload = inSessionStore.insuranceDetailsWrapperList[i].insuranceDetails?.payload;
+            let radio = '';
+            if (payload?.insuranceOption) {
+                radio = payload.insuranceOption;
+            } else if (payload?.insuranceReqd === 'Y') {
+                radio = (payload.coApplicantInsurance === 'Yes') ? 'Both' : 'Applicant';
+            } else {
+                radio = 'No insurance';
+            }
+            const radioKey = (radio === 'No insurance') ? 'Noinsurance' : radio;
+            $('#CrdAss__Insurancedetails__el_rdo_1_option_' + radioKey).prop('checked', true);
+            currSection = radio;
+            apz.app.Insurancedetails.changeSection(radio);
+        }
+    })
+    apz.app.Insurancedetails.populateDropdownValues();
+    apz.app.Insurancedetails.paintInsuranceDetails();
+    apz.app.Cabase.hideShowBtnBasedOnScreen();
+    fieldsToDisableEnable.forEach((field) => ApzCOB.addDisableToInput(`${insuranceDetailsScrId}${field}`));
+    window.CA_CURRENT_STAGE_NO = CA_ALL_STAGE_FIELDS.find(stage => stage.stageName === CA_CURRENT_STAGE)?.id;
+    $('#scr__CrdAss__Insurancedetails__main .hasDatepicker').prop('disabled', true);
+    $('#scr__CrdAss__Insurancedetails__main input.hasDatepicker').datepicker("option", {
+        maxDate: Date.parse(DATE_TODAY),
+        yearRange: "-100:+0"
+    });
+    apz.app.Insurancedetails.setMinMaxLength();
+};
+apz.app.Insurancedetails.setMinMaxLength = function() {
+    const fieldMap = {
+        A_nomineeInsurenceInput: "Nominee",
+        CA_nomineeInsurenceInput: "Nominee",
+        CC_nomineeInsurenceInput: "Nominee",
+        BA_nomineeInsurenceInput: "Nominee",
+        BC_nomineeInsurenceInput: "Nominee"
+    };
+    ApzCOB.setMinMaxLength(Object.entries(fieldMap).map(([fieldId, fieldName]) => ({
+        fieldName,
+        fieldId: insuranceDetailsScrId + fieldId
+    })));
+};
+apz.app.Insurancedetails.paintInsuranceDetails = function() {
+    let nomineeDOB = '';
+    let loanAmt = inSessionStore.loanDetails.loanAmount;
+    if (loanAmt > 200000) {
+        loanAmt = 200000
+    }
+    let applicantInsuranceDetails, CoAppInsuranceDetails;
+    if (inSessionStore.insuranceDetailsWrapperList.length > 0) {
+        inSessionStore.insuranceDetailsWrapperList.forEach(function(k, i) {
+            if (inSessionStore.insuranceDetailsWrapperList[i].insuranceDetails.payload.insuredName === 'Applicant') {
+                applicantInsuranceDetails = inSessionStore.insuranceDetailsWrapperList[i].insuranceDetails;
+            } else if (inSessionStore.insuranceDetailsWrapperList[i].insuranceDetails.payload.insuredName === 'Co-App') {
+                CoAppInsuranceDetails = inSessionStore.insuranceDetailsWrapperList[i].insuranceDetails;
+            } else {
+                //
+            }
+        })
+        $(`#${insuranceDetailsScrId}A_sumAssuredInput`).val(ApzCOB.formatamountVal(loanAmt))
+        $(`#${insuranceDetailsScrId}A_nameOfInsurerInput`).val('CreditAccess Life Insurance');
+        $(`#${insuranceDetailsScrId}A_nomineeInsurenceInput`).val(applicantInsuranceDetails.payload.nomineeName);
+        nomineeDOB = apz.app.Insurancedetails.changeDOBFormat(applicantInsuranceDetails.payload.nomineeDob);
+        $(`#${insuranceDetailsScrId}A_dobInput`).val(nomineeDOB);
+        $(`#${insuranceDetailsScrId}A_ageOfNomineeInput`).val(applicantInsuranceDetails.payload.age);
+        $(`#${insuranceDetailsScrId}A_nomineeRelationshipInput`).val(applicantInsuranceDetails.payload.nomineeRelation);
+        $(`#${insuranceDetailsScrId}A_genderInput`).val(!apz.isNull(applicantInsuranceDetails.payload.gender) ? applicantInsuranceDetails.payload
+            .gender : "");
+        hasJointApplication = inSessionStore.insuranceDetailsWrapperList.find((item) => item.insuranceDetails.payload.insuredName === "Joint");
+        if (hasJointApplication) {
+            $(`#${insuranceDetailsScrId}BA_nomineeInsurenceInput`).val(hasJointApplication.insuranceDetails.payload.nomineeName);
+            nomineeDOB = apz.app.Insurancedetails.changeDOBFormat(hasJointApplication.insuranceDetails.payload.nomineeDob);
+            $(`#${insuranceDetailsScrId}BA_dobInput`).val(nomineeDOB);
+            $(`#${insuranceDetailsScrId}BA_genderInput`).val(hasJointApplication.insuranceDetails.payload.gender);
+            $(`#${insuranceDetailsScrId}BA_nomineeRelationshipInput`).val(hasJointApplication.insuranceDetails.payload.nomineeRelation);
+            $(`#${insuranceDetailsScrId}BA_ageOfNomineeInput`).val(hasJointApplication.insuranceDetails.payload.age);
+            if (hasJointApplication.insuranceDetails.payload.nomineeAdded === "Yes") {
+                $('#CrdAss__Insurancedetails__el_rdo_2_option_Y').prop('checked', true);
+            } else {
+                $('#CrdAss__Insurancedetails__el_rdo_2_option_N').prop('checked', true);
+            }
+        }
+        $(`#${insuranceDetailsScrId}CA_genderInput`).val(!apz.isNull(applicantInsuranceDetails.payload.gender) ? applicantInsuranceDetails.payload
+            .gender : '');
+        $(`#${insuranceDetailsScrId}CA_sumAssuredInput`).val(ApzCOB.formatamountVal(loanAmt));
+        $(`#${insuranceDetailsScrId}CA_nameOfInsurerInput`).val('CreditAccess Life Insurance');
+        $(`#${insuranceDetailsScrId}CA_nomineeInsurenceInput`).val(applicantInsuranceDetails.payload.nomineeName);
+        nomineeDOB = apz.app.Insurancedetails.changeDOBFormat(applicantInsuranceDetails.payload.nomineeDob);
+        $(`#${insuranceDetailsScrId}CA_dobInput`).val(nomineeDOB);
+        $(`#${insuranceDetailsScrId}CA_ageOfNomineeInput`).val(applicantInsuranceDetails.payload.age);
+        $(`#${insuranceDetailsScrId}CA_nomineeRelationshipInput`).val(applicantInsuranceDetails.payload.nomineeRelation);
+        $(`#${insuranceDetailsScrId}CC_sumAssuredInput`).val(ApzCOB.formatamountVal(loanAmt));
+        $(`#${insuranceDetailsScrId}CC_nameOfInsurerInput`).val('CreditAccess Life Insurance');
+        $(`#${insuranceDetailsScrId}CC_nomineeInsurenceInput`).val(CoAppInsuranceDetails?.payload?.nomineeName);
+        nomineeDOB = apz.app.Insurancedetails.changeDOBFormat(CoAppInsuranceDetails?.payload?.nomineeDob);
+        $(`#${insuranceDetailsScrId}CC_dobInput`).val(nomineeDOB);
+        $(`#${insuranceDetailsScrId}CC_ageOfNomineeInput`).val(CoAppInsuranceDetails?.payload?.age);
+        $(`#${insuranceDetailsScrId}CC_nomineeRelationshipInput`).val(CoAppInsuranceDetails?.payload?.nomineeRelation);
+        $(`#${insuranceDetailsScrId}CC_genderInput`).val(!apz.isNull(CoAppInsuranceDetails?.payload?.gender) ? CoAppInsuranceDetails?.payload
+            .gender : '');
+        $(`#${insuranceDetailsScrId}BC_nomineeInsurenceInput`).val(CoAppInsuranceDetails?.payload?.nomineeName);
+        nomineeDOB = apz.app.Insurancedetails.changeDOBFormat(CoAppInsuranceDetails?.payload?.nomineeDob);
+        $(`#${insuranceDetailsScrId}BC_dobInput`).val(nomineeDOB);
+        $(`#${insuranceDetailsScrId}BC_ageOfNomineeInput`).val(CoAppInsuranceDetails?.payload?.age);
+        $(`#${insuranceDetailsScrId}BC_nomineeRelationshipInput`).val(CoAppInsuranceDetails?.payload?.nomineeRelation);
+        //joint
+        $(`#${insuranceDetailsScrId}B_sumAssuredInput`).val(ApzCOB.formatamountVal(loanAmt));
+        $(`#${insuranceDetailsScrId}B_nameOfInsurerInput`).val('CreditAccess Life Insurance');
+    }
+    ApzCOB.addDisableToInput(`${insuranceDetailsScrId}A_genderInput`)
+    ApzCOB.addDisableToInput(`${insuranceDetailsScrId}A_nomineeRelationshipInput`)
+    ApzCOB.addDisableToInput(`${insuranceDetailsScrId}CA_genderInput`)
+    ApzCOB.addDisableToInput(`${insuranceDetailsScrId}CA_nomineeRelationshipInput`)
+    ApzCOB.addDisableToInput(`${insuranceDetailsScrId}CC_genderInput`)
+    ApzCOB.addDisableToInput(`${insuranceDetailsScrId}CC_nomineeRelationshipInput`)
+    ApzCOB.addDisableToInput(`${insuranceDetailsScrId}BA_genderInput`)
+    ApzCOB.addDisableToInput(`${insuranceDetailsScrId}BA_nomineeRelationshipInput`)
+    ApzCOB.addDisableToInput(`${insuranceDetailsScrId}BC_genderInput`)
+    ApzCOB.addDisableToInput(`${insuranceDetailsScrId}BC_nomineeRelationshipInput`)
+    $('#scr__CrdAss__Insurancedetails__main .hasDatepicker').prop('disabled', true);
+    $('#scr__CrdAss__Insurancedetails__main input.hasDatepicker').datepicker("option", {
+        maxDate: Date.parse(DATE_TODAY),
+        yearRange: "-100:+0"
+    });
+};
+apz.app.Insurancedetails.hideSections = function() {
+    $(`#${insuranceDetailsScrId}Both`).addClass("sno");
+    $(`#${insuranceDetailsScrId}Applicant`).addClass("sno");
+    $(`#${insuranceDetailsScrId}Joint`).addClass("sno");
+}
+apz.app.Insurancedetails.changeSection = function(pthis) {
+    if (confirmationModal) {
+        apz.app.Cabase.closeCaConfirmarionMdl();
+    }
+    confirmationModal = false;
+    apz.app.Insurancedetails.hideSections();
+    let radioBtn = pthis.value ?? pthis;
+    $(`#${insuranceDetailsScrId}sc_row_23`).removeClass("sno");
+    prevSection = radioBtn;
+    if (radioBtn === 'Applicant') {
+        $(`#${insuranceDetailsScrId}${radioBtn}`).removeClass("sno");
+        $(`#${insuranceDetailsScrId}totalInsurPremium`).text(ApzCOB.formatamountVal(insurancePremium?.actualMemberPremium));
+    } else if (radioBtn === 'Both') {
+        $(`#${insuranceDetailsScrId}${radioBtn}`).removeClass("sno");
+        $(`#${insuranceDetailsScrId}totalInsurPremium`).text(ApzCOB.formatamountVal(insurancePremium?.totalPremium));
+    } else if (radioBtn === 'Joint') {
+        $(`#${insuranceDetailsScrId}${radioBtn}`).removeClass("sno");
+        $(`#${insuranceDetailsScrId}totalInsurPremium`).text(ApzCOB.formatamountVal(insurancePremium?.totalPremium));
+    } else {
+        $(`#${insuranceDetailsScrId}${radioBtn}`).removeClass("sno");
+        $(`#${insuranceDetailsScrId}sc_row_23`).addClass("sno");
+    }
+    fieldsToDisableEnable.forEach(field => {
+        $('#' + insuranceDetailsScrId + field + 'ErrorDiv').addClass('sno');
+    })
+    if (radioBtn === 'Joint') {
+        baseBtns.forEach((btn) => $(`#${baseScrId}${btn}`).addClass("sno"));
+        $(`#${baseScrId}${'save_btn'}`).removeClass("sno");
+    }
+    let hasJoint = inSessionStore?.insuranceDetailsWrapperList?.find(item => item.insuranceDetails.payload.insuredName === 'Joint');
+    if (hasJoint && hasJoint.insuranceDetails.payload.insuranceOption === radioBtn) {
+        if (hasJoint.insuranceDetails.payload.nomineeAdded === "Yes") {
+            $("#" + insuranceDetailsScrId + "sc_row_81").removeClass("sno");
+            $("#" + insuranceDetailsScrId + "sc_row_58").removeClass("sno");
+        } else {
+            $("#" + insuranceDetailsScrId + "sc_row_81").addClass("sno");
+            $("#" + insuranceDetailsScrId + "sc_row_58").addClass("sno");
+        }
+    }
+    $('#scr__CrdAss__Insurancedetails__main .hasDatepicker').prop('disabled', true);
+    $('#scr__CrdAss__Insurancedetails__main input.hasDatepicker').datepicker("option", {
+        maxDate: Date.parse(DATE_TODAY),
+        yearRange: "-100:+0"
+    });
+}
+apz.app.Insurancedetails.editInsuranceDetails = function() {
+    $(`#${insuranceDetailsScrId}el_rdo_1`).removeClass('disabled');
+    $(`#${insuranceDetailsScrId}edit_col`).addClass("sno");
+    ApzCOB.removeDisableToInput(`${insuranceDetailsScrId}A_genderInput`)
+    fieldsToDisableEnable.forEach((field) => ApzCOB.removeDisableToInput(`${insuranceDetailsScrId}${field}`));
+    baseBtns.forEach((btn) => $(`#${baseScrId}${btn}`).addClass("sno"));
+    ["cancel_btn", "save_btn"].forEach((btn) => $(`#${baseScrId}${btn}`).removeClass("sno"));
+    $('#scr__CrdAss__Insurancedetails__main .hasDatepicker').prop('disabled', true);
+    $('#scr__CrdAss__Insurancedetails__main input.hasDatepicker').datepicker("option", {
+        maxDate: Date.parse(DATE_TODAY),
+        yearRange: "-100:+0"
+    });
+}
+window.confirmationModal = false
+apz.app.Insurancedetails.confirmationModal = function(pthis) {
+    window.confirmationModal = true;
+    let errMsg = "Do you want to opt-in/opt-out for the applicant/co-applicant insurance?";
+    let radio = pthis.value;
+    if (prevSection === radio) {
+        return true;
+    }
+    if (prevSection === "Joint") {
+        if (radio === "Both") {
+            errMsg = "Do you want to opt-in for the applicant/co-applicant insurance?";
+        } else if (radio === "Applicant") {
+            errMsg = "Do you want to opt-out for the co-applicant insurance?";
+        } else {
+            errMsg = "Do you want to opt-out for the applicant and co-applicant insurance?";
+        }
+    } else if (prevSection === "Applicant") {
+        if (radio === "Joint" || radio === "Both") {
+            errMsg = "Do you want to opt-in for the applicant/co-applicant insurance?";
+        } else {
+            errMsg = "Do you want to opt-out for the applicant and co-applicant insurance?";
+        }
+    } else if (prevSection === "Both") {
+        if (radio === "Joint") {
+            errMsg = "Do you want to opt-in for the applicant/co-applicant insurance?";
+        } else if (radio === "Applicant") {
+            errMsg = "Do you want to opt-out for the co-applicant insurance?";
+        } else {
+            errMsg = "Do you want to opt-out for the applicant and co-applicant insurance?";
+        }
+    } else {
+        if (radio === "Joint" || radio === "Both") {
+            errMsg = "Do you want to opt-in for the applicant and co-applicant insurance?";
+        } else {
+            errMsg = "Do you want to opt-in for the applicant insurance?";
+        }
+    }
+    let popUpObj = {};
+    popUpObj.text = errMsg;
+    popUpObj.Btn1 = {
+        text: "Yes",
+        onClick: 'apz.app.Insurancedetails.changeSection("' + radio + '")',
+    };
+    popUpObj.Btn2 = {
+        text: "No",
+        onClick: "apz.app.Insurancedetails.closeModal()",
+    };
+    ApzCOB.showCaModals(popUpObj, "confirmation");
+};
+apz.app.Insurancedetails.closeModal = function() {
+    $('#CrdAss__Insurancedetails__el_rdo_1_option_' + prevSection).prop('checked', true);
+    apz.app.Cabase.closeCaConfirmarionMdl();
+}
+apz.app.Insurancedetails.cancelInsurancedetails = function() {
+    $(`#${insuranceDetailsScrId}edit_col`).removeClass("sno");
+    fieldsToDisableEnable.forEach((field) => ApzCOB.addDisableToInput(`${insuranceDetailsScrId}${field}`));
+    fieldsToDisableEnable.forEach(field => {
+        $('#' + insuranceDetailsScrId + field + 'ErrorDiv').addClass('sno');
+    })
+    baseBtns.forEach((btn) => $(`#${baseScrId}${btn}`).removeClass("sno"));
+    ["cancel_btn", "save_btn"].forEach((btn) => $(`#${baseScrId}${btn}`).addClass("sno"));
+    if (jointInsurRadioBtn === 'Y') {
+        const areAllFieldsEmpty = jointInsurFields.every(fieldId => {
+            const val = $(`#${insuranceDetailsScrId}${fieldId}`).val();
+            return val === '' || val === 'Please Select';
+        });
+        if (areAllFieldsEmpty) {
+            $('#' + insuranceDetailsScrId + 'sc_row_81').addClass('sno');
+            $('#' + insuranceDetailsScrId + 'sc_row_58').addClass('sno');
+            $("#CrdAss__Insurancedetails__el_rdo_2_option_N").prop("checked", true);
+        }
+    }
+    inSessionStore.insuranceDetailsWrapperList.forEach(function(k, i) {
+        if (inSessionStore.insuranceDetailsWrapperList[i].insuranceDetails?.payload?.insuredName === 'Applicant') {
+            if (inSessionStore.insuranceDetailsWrapperList[i].insuranceDetails?.payload?.insuranceOption) {
+                let radio = inSessionStore.insuranceDetailsWrapperList[i].insuranceDetails.payload.insuranceOption;
+                if (radio === 'No insurance') {
+                    $('#CrdAss__Insurancedetails__el_rdo_1_option_' + 'Noinsurance').prop('checked', true);
+                    currSection = 'Noinsurance';
+                } else {
+                    $('#CrdAss__Insurancedetails__el_rdo_1_option_' + radio).prop('checked', true);
+                    currSection = radio;
+                }
+                apz.app.Insurancedetails.changeSection(radio);
+            }
+        }
+    })
+    apz.app.Insurancedetails.paintInsuranceDetails();
+};
+apz.app.Insurancedetails.saveInsurancedetails = function(param) {
+    let lvalid;
+    let fieldsArray;
+    let currentSection = document.querySelector('input[type="radio"]:checked');
+    currentSection = currentSection.id.split('_').pop();
+    currSection = currentSection
+    currentSection = `#${insuranceDetailsScrId}${currentSection}`;
+    if (currSection === 'Applicant') {
+        fieldsArray = applicantFeilds
+    } else if (currSection === 'Both') {
+        fieldsArray = coAppFeilds
+    } else if (currSection === 'Joint') {
+        if (apz.getElmValue(insuranceDetailsScrId + "el_rdo_2") === 'Y') {
+            fieldsArray = jointFeilds
+        } else {
+            fieldsArray = [];
+        }
+    } else {
+        fieldsArray = document.querySelectorAll(`${currentSection} .ett-inpt, ${currentSection} .sub-elt`);
+    }
+    lvalid = apz.app.Insurancedetails.validateInsurancedetailsFields(fieldsArray);
+    if (lvalid) {
+        // service itegration for save api
+        if (param === 'Edit') {
+            apz.app.Insurancedetails.insuranceDetailsService(param);
+        } else if (isApplicantVerified && isCoAppVerified && isRelationshipVerified && isAddressVerified && param === 'verify') {
+            apz.app.Insurancedetails.insuranceDetailsService(param);
+        } else {
+            ApzCOB.showCaModals({
+                text: "Verify All the Stages first",
+                Btn1: {
+                    text: "OK",
+                    onClick: "apz.app.Cabase.closeCaErrMdl()"
+                }
+            }, "Error");
+        }
+    } else {
+        // show invalid fields error
+    }
+}
+apz.app.Insurancedetails.validateInsurancedetailsFields = function(arr) {
+    window.lvalid = true;
+    arr.forEach(field => {
+        if ($("#" + insuranceDetailsScrId + field).val() === '' || $("#" + insuranceDetailsScrId + field).val() === 'Please Select') {
+            lvalid = false;
+            $('#' + insuranceDetailsScrId + field + 'ErrorDiv').removeClass('sno');
+        }
+    })
+    return lvalid;
+}
+apz.app.Insurancedetails.jointRadio = function(pthis) {
+    let radio = pthis.value;
+    if (radio === 'Y') {
+        jointInsurRadioBtn = 'Y';
+        $('#' + insuranceDetailsScrId + 'sc_row_81').removeClass('sno');
+        $('#' + insuranceDetailsScrId + 'sc_row_58').removeClass('sno');
+        $('#scr__CrdAss__Insurancedetails__main .hasDatepicker').prop('disabled', true);
+        $('#scr__CrdAss__Insurancedetails__main input.hasDatepicker').datepicker("option", {
+            maxDate: Date.parse(DATE_TODAY),
+            yearRange: "-100:+0"
+        });
+    } else {
+        jointInsurRadioBtn = 'N';
+        $('#' + insuranceDetailsScrId + 'sc_row_81').addClass('sno');
+        $('#' + insuranceDetailsScrId + 'sc_row_58').addClass('sno');
+        $(`#${insuranceDetailsScrId}edit_col`).addClass("sno");
+        $("#" + insuranceDetailsScrId + 'BA_ageOfNomineeInput').val('');
+        jointFeilds.forEach(function(k, i) {
+            $("#" + insuranceDetailsScrId + k).val('');
+        });
+        jointFeilds.forEach(function(k, i) {
+            $('#' + insuranceDetailsScrId + k + 'ErrorDiv').addClass('sno');
+        });
+    }
+}
+apz.app.Insurancedetails.ageCalculator = function(pthis) {
+    let id = pthis.id;
+    let age = ApzCOB.getAge($('#' + id).val());
+    if (age > 0) {
+        $('#' + insuranceDetailsScrId + dobAgeField[id]).val(age).change();
+        if (window.age) {
+            $(`#${id}`).val('');
+        }
+    } else {
+        ApzCOB.fnDisplayMsg('Please select valid dob', "E");
+        $('#' + id).val('');
+        $('#' + insuranceDetailsScrId + dobAgeField[id]).val('');
+    }
+}
+apz.app.Insurancedetails.populateDropdownValues = function() {
+    apz.populateDropdown(document.getElementById(`${insuranceDetailsScrId}A_genderInput`), ApzCOB.formatDropDownforArray(gender));
+    apz.populateDropdown(document.getElementById(`${insuranceDetailsScrId}CA_genderInput`), ApzCOB.formatDropDownforArray(gender));
+    apz.populateDropdown(document.getElementById(`${insuranceDetailsScrId}CC_genderInput`), ApzCOB.formatDropDownforArray(gender));
+    apz.populateDropdown(document.getElementById(`${insuranceDetailsScrId}BA_genderInput`), ApzCOB.formatDropDownforArray(gender));
+    apz.populateDropdown(document.getElementById(`${insuranceDetailsScrId}BC_genderInput`), ApzCOB.formatDropDownforArray(gender));
+    apz.populateDropdown(document.getElementById(`${insuranceDetailsScrId}A_nomineeRelationshipInput`), ApzCOB.formatDropDownforArray(relations));
+    apz.populateDropdown(document.getElementById(`${insuranceDetailsScrId}CA_nomineeRelationshipInput`), ApzCOB.formatDropDownforArray(
+    relations));
+    apz.populateDropdown(document.getElementById(`${insuranceDetailsScrId}CC_nomineeRelationshipInput`), ApzCOB.formatDropDownforArray(
+    relations));
+    apz.populateDropdown(document.getElementById(`${insuranceDetailsScrId}BA_nomineeRelationshipInput`), ApzCOB.formatDropDownforArray(
+    relations));
+    apz.populateDropdown(document.getElementById(`${insuranceDetailsScrId}BC_nomineeRelationshipInput`), ApzCOB.formatDropDownforArray(
+    relations));
+    $('#scr__CrdAss__Insurancedetails__main .hasDatepicker').prop('disabled', true);
+    $('#scr__CrdAss__Insurancedetails__main input.hasDatepicker').datepicker("option", {
+        maxDate: Date.parse(DATE_TODAY),
+        yearRange: "-100:+0"
+    });
+}
+apz.app.Insurancedetails.insuranceDetailsService = function(larg) {
+    let gender, nomineeInsurence, dob, nomineeAge, nomineeRelationshipInput, loanAmount, insurerName, aInsurancePremium,
+        coLoanAmount, coGender, coNomineeInsurence, coDOB, coAge, coNomineeRelationshipInput, coInsurerName, coInsurancePremium, age;
+    let insuDtls = inSessionStore.insuranceDetailsWrapperList;
+    customerType = currSection
+    let req = {
+        "apiRequest": {
+            "requestObj": {
+                "appId": gAppId,
+                "applicationId": gApzCOB.userDetails.applicationId,
+                "versionNum": 1,
+                "stageId": "4",
+                "requestType": larg,
+                "customerType": customerType,
+                "editedFields": [],
+                "insuranceDetailsWrapperList": {}
+            },
+            "userId": LoggedInUserDetails.loginResponse.userDet.id,
+            "appId": gAppId,
+            "interfaceName": "UploadCALoanData"
+        }
+    }
+    req.apiRequest.requestObj.insuranceDetailsWrapperList = insuDtls;
+    if (currSection === 'Applicant') {
+        loanAmount = $("#CrdAss__Insurancedetails__A_sumAssuredInput").val();
+        insurerName = $("#CrdAss__Insurancedetails__A_nameOfInsurerInput").val();
+        aInsurancePremium = $("#CrdAss__Insurancedetails__A_insurancePremiumInput").val();
+        gender = $("#CrdAss__Insurancedetails__A_genderInput").val();
+        nomineeInsurence = $("#CrdAss__Insurancedetails__A_nomineeInsurenceInput").val();
+        dob = $("#CrdAss__Insurancedetails__A_dobInput").val();
+        nomineeAge = $("#CrdAss__Insurancedetails__A_ageOfNomineeInput").val();
+        nomineeRelationshipInput = $("#CrdAss__Insurancedetails__A_nomineeRelationshipInput").val();
+        req.apiRequest.requestObj.insuranceDetailsWrapperList.forEach(function(k, i) {
+            if (k.insuranceDetails.payload.insuredName === 'Applicant') {
+                if (larg === 'verify') {
+                    req.apiRequest.requestObj.insuranceDetailsWrapperList[i].insuranceDetails.payload.insuranceOption = customerType;
+                }
+                req.apiRequest.requestObj.insuranceDetailsWrapperList[i].insuranceDetails.payload.loanAmount = loanAmount;
+                req.apiRequest.requestObj.insuranceDetailsWrapperList[i].insuranceDetails.payload.insurerName = insurerName;
+                req.apiRequest.requestObj.insuranceDetailsWrapperList[i].insuranceDetails.payload.insurancePremium = aInsurancePremium;
+                req.apiRequest.requestObj.insuranceDetailsWrapperList[i].insuranceDetails.payload.nomineeName = nomineeInsurence;
+                req.apiRequest.requestObj.insuranceDetailsWrapperList[i].insuranceDetails.payload.gender = gender;
+                req.apiRequest.requestObj.insuranceDetailsWrapperList[i].insuranceDetails.payload.nomineeDob = dob;
+                req.apiRequest.requestObj.insuranceDetailsWrapperList[i].insuranceDetails.payload.age = nomineeAge;
+                req.apiRequest.requestObj.insuranceDetailsWrapperList[i].insuranceDetails.payload.nomineeRelation =
+                    nomineeRelationshipInput;
+                req.apiRequest.requestObj.insuranceDetailsWrapperList[i].insuranceDetails.payload.nomineeAdded = "No";
+            } else if (k.insuranceDetails.payload.insuredName === 'Co-App') {
+                req.apiRequest.requestObj.insuranceDetailsWrapperList[i].insuranceDetails.payload.insuranceOption = 'Noinsurance';
+            }
+        })
+    } else if (currSection === 'Both') {
+        loanAmount = $("#CrdAss__Insurancedetails__CA_sumAssuredInput").val();
+        insurerName = $("#CrdAss__Insurancedetails__CA_nameOfInsurerInput").val();
+        aInsurancePremium = $("#CrdAss__Insurancedetails__CA_insurancePremiumInput").val();
+        gender = $("#CrdAss__Insurancedetails__CA_genderInput").val();
+        nomineeInsurence = $("#CrdAss__Insurancedetails__CA_nomineeInsurenceInput").val();
+        dob = $("#CrdAss__Insurancedetails__CA_dobInput").val();
+        CAage = $("#CrdAss__Insurancedetails__CA_ageOfNomineeInput").val();
+        nomineeRelationshipInput = $("#CrdAss__Insurancedetails__CA_nomineeRelationshipInput").val();
+        coLoanAmount = $("#CrdAss__Insurancedetails__CC_sumAssuredInput").val();
+        coInsurerName = $("#CrdAss__Insurancedetails__CC_nameOfInsurerInput").val();
+        coInsurancePremium = $("#CrdAss__Insurancedetails__CC_insurancePremiumInput").val();
+        coGender = $("#CrdAss__Insurancedetails__CC_genderInput").val();
+        coNomineeInsurence = $("#CrdAss__Insurancedetails__CC_nomineeInsurenceInput").val();
+        coDOB = $("#CrdAss__Insurancedetails__CC_dobInput").val();
+        coAge = $("#CrdAss__Insurancedetails__CC_ageOfNomineeInput").val();
+        coNomineeRelationshipInput = $("#CrdAss__Insurancedetails__CC_nomineeRelationshipInput").val();
+        let CoAplInsReq = ApzCOB.getPayloadDatafromWrapper('coApplicantInsurance', 'Applicant', 'insuranceDetailsWrapperList') ?? '';
+        if (CoAplInsReq === 'No') {
+            CoAppIndex = inSessionStore.insuranceDetailsWrapperList?.findIndex(el =>el.insuranceDetails?.custDtlId === ApzCOB.getCustDetailID('Co-App'));
+            req.apiRequest.requestObj.insuranceDetailsWrapperList[CoAppIndex].insuranceDetails.payload.insuredName = 'Co-App';
+        }
+        req.apiRequest.requestObj.insuranceDetailsWrapperList.forEach(function(k, i) {
+            if (k.insuranceDetails.payload.insuredName === 'Applicant') {
+                if (larg === 'verify') {
+                    req.apiRequest.requestObj.insuranceDetailsWrapperList[i].insuranceDetails.payload.insuranceOption = customerType;
+                }
+                req.apiRequest.requestObj.insuranceDetailsWrapperList[i].insuranceDetails.payload.loanAmount = loanAmount;
+                req.apiRequest.requestObj.insuranceDetailsWrapperList[i].insuranceDetails.payload.insurerName = insurerName;
+                req.apiRequest.requestObj.insuranceDetailsWrapperList[i].insuranceDetails.payload.insurancePremium = aInsurancePremium;
+                req.apiRequest.requestObj.insuranceDetailsWrapperList[i].insuranceDetails.payload.nomineeName = nomineeInsurence;
+                req.apiRequest.requestObj.insuranceDetailsWrapperList[i].insuranceDetails.payload.gender = gender;
+                req.apiRequest.requestObj.insuranceDetailsWrapperList[i].insuranceDetails.payload.nomineeDob = dob;
+                req.apiRequest.requestObj.insuranceDetailsWrapperList[i].insuranceDetails.payload.age = CAage;
+                req.apiRequest.requestObj.insuranceDetailsWrapperList[i].insuranceDetails.payload.nomineeRelation =
+                    nomineeRelationshipInput;
+                req.apiRequest.requestObj.insuranceDetailsWrapperList[i].insuranceDetails.payload.nomineeAdded = "No";
+                req.apiRequest.requestObj.insuranceDetailsWrapperList[i].insuranceDetails.payload.coApplicantInsurance = 'Yes';
+            } else if (k.insuranceDetails.payload.insuredName === 'Co-App') {
+                if (larg === 'verify') {
+                    req.apiRequest.requestObj.insuranceDetailsWrapperList[i].insuranceDetails.payload.insuranceOption = customerType;
+                }
+                req.apiRequest.requestObj.insuranceDetailsWrapperList[i].insuranceDetails.payload.loanAmount = loanAmount;
+                req.apiRequest.requestObj.insuranceDetailsWrapperList[i].insuranceDetails.payload.loanAmount = coLoanAmount;
+                req.apiRequest.requestObj.insuranceDetailsWrapperList[i].insuranceDetails.payload.insurerName = coInsurerName;
+                req.apiRequest.requestObj.insuranceDetailsWrapperList[i].insuranceDetails.payload.insurancePremium = coInsurancePremium;
+                req.apiRequest.requestObj.insuranceDetailsWrapperList[i].insuranceDetails.payload.nomineeName = coNomineeInsurence;
+                req.apiRequest.requestObj.insuranceDetailsWrapperList[i].insuranceDetails.payload.gender = coGender;
+                req.apiRequest.requestObj.insuranceDetailsWrapperList[i].insuranceDetails.payload.nomineeDob = coDOB;
+                req.apiRequest.requestObj.insuranceDetailsWrapperList[i].insuranceDetails.payload.age = coAge;
+                req.apiRequest.requestObj.insuranceDetailsWrapperList[i].insuranceDetails.payload.nomineeRelation =
+                    coNomineeRelationshipInput;
+                req.apiRequest.requestObj.insuranceDetailsWrapperList[i].insuranceDetails.payload.coApplicantInsurance = 'Yes';
+                req.apiRequest.requestObj.insuranceDetailsWrapperList[i].insuranceDetails.payload.insuranceReqd = 'Y';
+                req.apiRequest.requestObj.insuranceDetailsWrapperList[i].insuranceDetails.payload.nomineeAdded = "No";
+            } else {
+                //
+            }
+        })
+    } else if (currSection === 'Joint') {
+        let applicationId = inSessionStore.insuranceDetailsWrapperList[0].insuranceDetails.applicationId;
+        let InsurancePremium = $("#CrdAss__Insurancedetails__B_insurancePremiumInput").val();
+        loanAmount = $("#CrdAss__Insurancedetails__B_sumAssuredInput").val();
+        insurerName = $("#CrdAss__Insurancedetails__B_nameOfInsurerInput").val();
+        gender = $("#CrdAss__Insurancedetails__BA_genderInput").val();
+        gender = gender === 'Please Select' ? '' : gender
+        nomineeInsurence = $("#CrdAss__Insurancedetails__BA_nomineeInsurenceInput").val();
+        dob = $("#CrdAss__Insurancedetails__BA_dobInput").val();
+        age = $("#CrdAss__Insurancedetails__BA_ageOfNomineeInput").val();
+        nomineeRelationshipInput = $("#CrdAss__Insurancedetails__BA_nomineeRelationshipInput").val();
+        nomineeRelationshipInput = nomineeRelationshipInput === 'Please Select' ? '' : nomineeRelationshipInput
+        let hasJoint = inSessionStore.insuranceDetailsWrapperList.find(item => item.insuranceDetails.payload.insuredName === 'Joint');
+        if (hasJoint) {
+            hasJoint.insuranceDetails.payload.loanAmount = loanAmount;
+            hasJoint.insuranceDetails.payload.insurerName = insurerName;
+            hasJoint.insuranceDetails.payload.insurancePremium = InsurancePremium;
+            hasJoint.insuranceDetails.payload.nomineeName = nomineeInsurence;
+            hasJoint.insuranceDetails.payload.gender = gender;
+            hasJoint.insuranceDetails.payload.nomineeDob = dob;
+            hasJoint.insuranceDetails.payload.age = age;
+            hasJoint.insuranceDetails.payload.nomineeRelation = nomineeRelationshipInput;
+            hasJoint.insuranceDetails.payload.nomineeAdded = apz.getElmValue(insuranceDetailsScrId + "el_rdo_2") === 'N' ? 'No' : 'Yes';
+        } else {
+            let newEntry = {
+                "insuranceDetails": {
+                    "applicationId": applicationId,
+                    "versionNum": 1,
+                    "appId": gAppId,
+                    "payload": {
+                        "insuranceReqd": '',
+                        "insuredName": "Joint",
+                        "nomineeName": nomineeInsurence,
+                        "nomineeRelation": nomineeRelationshipInput,
+                        "nomineeDob": dob,
+                        "coApplicantInsurance": '',
+                        "age": age,
+                        "rpcEditCheck": false,
+                        "gender": gender,
+                        "loanAmount": loanAmount,
+                        "insurerName": insurerName,
+                        "insurancePremium": InsurancePremium,
+                        "insuranceOption": customerType,
+                        "nomineeAdded": apz.getElmValue(insuranceDetailsScrId + "el_rdo_2") === 'N' ? 'No' : 'Yes'
+                    }
+                }
+            };
+            inSessionStore.insuranceDetailsWrapperList.push(newEntry);
+        }
+        if (larg === 'verify') {
+            req.apiRequest.requestObj.insuranceDetailsWrapperList.forEach(function(k, i) {
+                req.apiRequest.requestObj.insuranceDetailsWrapperList[i].insuranceDetails.payload.insuranceOption = customerType;
+            })
+        }
+    } else {
+        req.apiRequest.requestObj.insuranceDetailsWrapperList.forEach(function(k, i) {
+            req.apiRequest.requestObj.insuranceDetailsWrapperList[i].insuranceDetails.payload.insuranceOption = customerType;
+            req.apiRequest.requestObj.insuranceDetailsWrapperList[i].insuranceDetails.payload.nomineeAdded = "No";
+        })
+    }
+    apz.startLoader();
+    setTimeout(() => {
+        ApzCOB.serverBuildParam(gAppId, "UploadCALoanData", "N", "N", req, false, apz.app.Insurancedetails.insuranceDetailsServiceCB);
+    }, 1000)
+}
+apz.app.Insurancedetails.insuranceDetailsServiceCB = function(params) {
+    let errMsg = "";
+    if (!apz.isNull(params.resFull.appzillonBody.APZCBO__UploadCALoanData_Res)) {
+        if ((params.resFull.appzillonBody.APZCBO__UploadCALoanData_Res.apiResponse.ResponseHeader.ResponseCode != '0') && (params.res
+                .APZCBO__UploadCALoanData_Res.apiResponse.ResponseBody.responseObj != ApzCOB.getDescfromLitCode("LIT_fetchLockAppli"))) {
+            errMsg = "Fetch Application Data Service Failed." + "\n" + params.resFull.appzillonBody.APZCBO__UploadCALoanData_Res.apiResponse
+                ?.ResponseBody?.responseObj;
+        } else {
+            errMsg = params.res.APZCBO__UploadCALoanData_Res.apiResponse.ResponseBody.responseObj;
+        }
+    } else {
+        errMsg = "Fetch Application Data Service Failed";
+    }
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            apz.stopLoader();
+            ApzCOB.updateInsessionData(params);
+            apz.app.Cabase.storeWindowData();
+            if (params.req.apiRequest.requestObj.requestType === 'Edit') {
+                $(`#${insuranceDetailsScrId}edit_col`).removeClass("sno");
+                fieldsToDisableEnable.forEach((field) => ApzCOB.addDisableToInput(`${insuranceDetailsScrId}${field}`));
+                baseBtns.forEach((btn) => $(`#${baseScrId}${btn}`).removeClass("sno"));
+                ["cancel_btn", "save_btn"].forEach((btn) => $(`#${baseScrId}${btn}`).addClass("sno"));
+                apz.app.Insurancedetails.paintInsuranceDetails();
+            } else {
+                ApzCOB.launchSubScreen('CaIncomeDetails', "CrdAss__Cabase__caLaunchCol", "")
+                apz.app.Cabase.SidebarSelect.moveToNextStep();
+            }
+            $(`#${insuranceDetailsScrId}edit_col`).removeClass("sno");
+            fieldsToDisableEnable.forEach((field) => ApzCOB.addDisableToInput(`${insuranceDetailsScrId}${field}`));
+            baseBtns.forEach((btn) => $(`#${baseScrId}${btn}`).removeClass("sno"));
+            ["cancel_btn", "save_btn"].forEach((btn) => $(`#${baseScrId}${btn}`).addClass("sno"));
+        } else {
+            apz.stopLoader();
+            $(`#${scrId}locktxt_txtcnt`).text(errMsg);
+            ApzCOB.toggleModal(scrId + 'lockModal');
+            ApzCOB.showCaModals({
+                text: ApzCOB.getDescfromLitCode("LIT_COMM_ERR_TXT_TECHNICAL"),
+                Btn1: {
+                    text: "OK",
+                    onClick: "apz.app.Cabase.closeCaErrMdl()"
+                }
+            }, "Error");
+        }
+    } catch {
+        apz.stopLoader();
+        ApzCOB.showCaModals({
+            text: ApzCOB.getDescfromLitCode("LIT_COMM_ERR_TXT_TECHNICAL"),
+            Btn1: {
+                text: "OK",
+                onClick: "apz.app.Cabase.closeCaErrMdl()"
+            }
+        }, "Error");
+    }
+};
+apz.app.Insurancedetails.insurancePremium = function() {
+    let req = {
+        "apiRequest": {
+            "requestObj": {},
+            "userId": LoggedInUserDetails.loginResponse.userDet.id,
+            "appId": gAppId,
+            "interfaceName": "FetchInsurancePremiumMaster"
+        }
+    }
+    apz.startLoader();
+    setTimeout(() => {
+        ApzCOB.serverBuildParam(gAppId, "FetchInsurancePremiumMaster", "N", "N", req, false, apz.app.Insurancedetails.insurancePremiumCB);
+    }, 1000)
+};
+apz.app.Insurancedetails.insurancePremiumCB = function(params) {
+    let loanAmt = inSessionStore.loanDetails.loanAmount
+    let errMsg = "";
+    if (!apz.isNull(params.resFull.appzillonBody.APZCBO__FetchInsurancePremiumMaster_Res)) {
+        if ((params.resFull.appzillonBody.APZCBO__FetchInsurancePremiumMaster_Res.apiResponse.ResponseHeader.ResponseCode != '0') && (params.res
+                .APZCBO__FetchInsurancePremiumMaster_Res.apiResponse.ResponseBody.responseObj != ApzCOB.getDescfromLitCode("LIT_fetchLockAppli")
+                )) {
+            errMsg = "Fetch Application Data Service Failed." + "\n" + params.resFull.appzillonBody.APZCBO__FetchInsurancePremiumMaster_Res
+                .apiResponse?.ResponseBody?.responseObj;
+        } else {
+            errMsg = params.res.APZCBO__FetchInsurancePremiumMaster_Res.apiResponse.ResponseBody.responseObj;
+        }
+    } else {
+        errMsg = "Fetch Application Data Service Failed";
+    }
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            apz.stopLoader();
+            window.insurancePremiumData = JSON.parse(params.resFull.appzillonBody.APZCBO__FetchInsurancePremiumMaster_Res.apiResponse?.ResponseBody
+                ?.responseObj)
+            if (!apz.isNull(inSessionStore.loanDetails.loanAmount)) {
+                if (inSessionStore.loanDetails.loanAmount > 200000) {
+                    loanAmt = 200000;
+                }
+                insurancePremiumData.forEach(function(k, i) {
+                    if (insurancePremiumData[i].loanAmount === loanAmt) {
+                        window.insurancePremium = insurancePremiumData[i];
+                        $(`#${insuranceDetailsScrId}A_insurancePremiumInput`).val(ApzCOB.formatamountVal(insurancePremium.actualMemberPremium));
+                        $(`#${insuranceDetailsScrId}CA_insurancePremiumInput`).val(ApzCOB.formatamountVal(insurancePremium.actualMemberPremium));
+                        $(`#${insuranceDetailsScrId}CC_insurancePremiumInput`).val(ApzCOB.formatamountVal(insurancePremium.actualCoborrowerPremium));
+                        $(`#${insuranceDetailsScrId}B_insurancePremiumInput`).val(ApzCOB.formatamountVal(insurancePremium.totalPremium));
+                        if (currSection === 'Applicant') {
+                            $(`#${insuranceDetailsScrId}totalInsurPremium`).text(ApzCOB.formatamountVal(insurancePremium.actualMemberPremium));
+                        } else {
+                            $(`#${insuranceDetailsScrId}totalInsurPremium`).text(ApzCOB.formatamountVal(insurancePremium.totalPremium));
+                        }
+                    }
+                })
+            }
+        } else {
+            apz.stopLoader();
+            ApzCOB.showCaModals({
+                text: "Error Fetching the insurance premium amount",
+                Btn1: {
+                    text: "OK",
+                    onClick: "apz.app.Cabase.closeCaErrMdl()"
+                }
+            }, "Error");
+        }
+    } catch {
+        apz.stopLoader();
+        ApzCOB.showCaModals({
+            text: ApzCOB.getDescfromLitCode("LIT_COMM_ERR_TXT_TECHNICAL"),
+            Btn1: {
+                text: "OK",
+                onClick: "apz.app.Cabase.closeCaErrMdl()"
+            }
+        }, "Error");
+    }
+};
+apz.app.Insurancedetails.isValidAlphaSpaceSpcl = function(input) {
+    const regex = /^[A-Za-z@#&%!'.\s\-]*$/;
+    return regex.test(input);
+};
+apz.app.Insurancedetails.validatemaxlength = function(input) {
+    input.value = input.value.trim();
+    input.value = input.value.replace(/\d/g, '');
+    if (input.value.length < 3) {
+        ApzCOB.fnDisplayMsg("Please enter at least 3 characters", "E");
+        return;
+    }
+    if (input.value.length > 50) {
+        ApzCOB.fnDisplayMsg("Maximum 50 characters allowed", "E");
+        input.value = input.value.substring(0, 50);
+    }
+};
+apz.app.Insurancedetails.changeDOBFormat = function(ldate){
+    let regex = /^\d{2}\/\d{2}\/\d{4}$/;
+    if (!regex.test(ldate) && !apz.isNull(ldate)) {
+        ldate = ApzCOB.dateformatter(ldate,  "d/m/Y");
+    }
+    return ldate || '';
+};

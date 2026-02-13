@@ -1,0 +1,85 @@
+apz.startLoader();
+RPC_CURRENT_STAGE = 'OtherInformationRPC';
+RPC_CURRENT_STAGE_NO = RPC_STAGES[RPC_CURRENT_STAGE]?.id;
+var scrid = "RPC__OtherInformationRPC__";
+apz.app.onLoad_OtherInformationRPC = function() {
+    ApzCOB.launchRpcCommonSection();
+    ApzCOB.fetchRpcStageFields();
+};
+apz.app.onShown_OtherInformationRPC = function() {
+    apz.stopLoader();
+    // var element = document.getElementById("RPC__OtherInformationRPC__gr_col_2");
+    // element.style.marginLeft = "233px";
+    // $("#" + scrid + "Applicant").click();
+};
+apz.app.OtherInformationRPC.tabSwitch = function(params) {
+    var applic = ["ct_frm_8", "ct_frm_6", "ct_frm_3", "ct_frm_1"];
+    var coApplic = ["ct_frm_9", "ct_frm_10", ];
+    if (params.textContent == 'Co-Applicant') {
+        $("#" + scrid + "Applicant").removeClass("active");
+        $("#" + scrid + "Co_Applicant").addClass("active");
+        for (let i = 0; i < coApplic.length - 1; i++) {
+            $("#" + scrid + coApplic[i]).removeClass("sno");
+        }
+        for (let i = 0; i < applic.length - 1; i++) {
+            $("#" + scrid + applic[i]).addClass("sno");
+        }
+    } else {
+        $("#" + scrid + "Applicant").addClass("active");
+        $("#" + scrid + "Co_Applicant").removeClass("active");
+        for (let i = 0; i < applic.length - 1; i++) {
+            $("#" + scrid + applic[i]).removeClass("sno");
+        }
+        for (let i = 0; i < coApplic.length - 1; i++) {
+            $("#" + scrid + coApplic[i]).addClass("sno");
+        }
+    }
+};
+apz.app.OtherInformationRPC.formhandle = function() {
+    
+};
+apz.app.OtherInformationRPC.downloadCBReport = function() {
+    let custDetailID = ApzCOB.getCustDetailID(custType);
+    CB_LOAN_ID = '';
+    CB_LOAN_ID = inSessionStore.cibilDetailsWrapperList.filter(el => el.cibilDetails.custDtlId === custDetailID)[0].cibilDetails.payload.cbLoanId;
+    ApzCOB.downloadBRECbReport(custDetailID);
+}
+apz.app.OtherInformationRPC.removeLoanDetails = function() {
+    const elementId1 = `#RPC__${RPC_CURRENT_STAGE}__ct_frm_5`;
+    const elementId2 = `#RPC__${RPC_CURRENT_STAGE}__ct_frm_4`;
+    const elementId3 = `#RPC__${RPC_CURRENT_STAGE}__coApplicantInsurance`;
+    const elementId5 = `#RPC__${RPC_CURRENT_STAGE}__insuranceReqd`;
+
+    if (custType === "Applicant") {
+        $(elementId1).removeClass('sno');
+        $(elementId2).removeClass('sno');
+        $(elementId3).addClass('sno');
+        $(elementId5).removeClass('sno');
+    } else {
+        $(elementId1).addClass('sno');
+        $(elementId2).addClass('sno');
+        $(elementId3).removeClass('sno');
+        $(elementId5).addClass('sno');
+    }
+
+    if ($(`#RPC__${RPC_CURRENT_STAGE}__kendraId`).hasClass("sno") || $(`#RPC__${RPC_CURRENT_STAGE}__kendraName`).hasClass("sno")) {
+        $(`#RPC__${RPC_CURRENT_STAGE}__ct_frm_1`).addClass("sno");
+    } else {
+        $(`#RPC__${RPC_CURRENT_STAGE}__ct_frm_1`).removeClass("sno");
+    }
+
+    apz.app.OtherInformationRPC.updateCbTriggeredDate();
+};
+apz.app.OtherInformationRPC.updateCbTriggeredDate = function () {
+    let custDtlId = custType === 'Applicant' ? Number(gApzCOB.userDetails.custDtlId) : gApzCOB.userDetails.CoApplicantCustomerId;
+    const cibilDetails = inSessionStore.cibilDetailsWrapperList.find(cibil => Number(cibil.cibilDetails.custDtlId) === Number(custDtlId))?.cibilDetails;
+    if (typeof cibilDetails.cbDate === 'object') {
+        const dateObj = cibilDetails.cbDate;
+        const cbFormattedDate = `${String(dateObj.day).padStart(2, '0')}/${String(dateObj.month).padStart(2, '0')}/${dateObj.year}`;
+        $(`#${scrid}cbTriggeredDate`).text("Last CB Triggered Date - "+ cbFormattedDate);
+    }
+    let roiVal = ApzCOB.getPayloadDatafromWrapper('roi', 'Co-App', 'cibilDetailsWrapperList');
+    $(`#RPC__${RPC_CURRENT_STAGE}__roiInput`).val(roiVal);
+};
+
+

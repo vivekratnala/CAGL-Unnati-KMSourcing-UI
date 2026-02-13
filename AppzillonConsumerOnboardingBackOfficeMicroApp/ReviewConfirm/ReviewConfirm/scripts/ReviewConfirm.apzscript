@@ -1,0 +1,1567 @@
+var CardServiceScrId = 'CardSe__CardService__';
+var rvwScrId = 'RevCof__ReviewConfirm__';
+var rvwScrNomDataId = 'RevCof__IPaintData__o__RevCof__IPaintData_Res__';
+var temp;
+var finalimgdata = [];
+var fileName = "";
+var tempFileArr = [];
+var docCallBackCounter = 0;
+var allFileNames = [];
+var allDocTypes = [];
+var allAppDocID = [];
+var customerDetails1 = [];
+var bankFacilityPayload = [];
+var payloadno = 0;
+window.applicationDocumentsCount = 0;
+window.dontReloadRC = false;
+window.reviewConfirmJoint = true;
+window.coApplicantInsuranceFlag = '';
+var homeMakerFlag = false;
+var coAppInsuranceFlag = false;
+var occupationValue;
+var documentName = "";
+var currTab;
+apz.app.onLoad_ReviewConfirm = function() {
+    //apz.app.BaseScreens.fetchFAQs();
+    apz.app.BaseScreens.contactus();
+    apz.app.BaseScreens.hideNshowbackIcon();
+    apz.app.ReviewConfirm.tabsHideNshow();
+    apz.app.ReviewConfirm.setStageNo();
+    if (Number(gApzCOB.noOfApplicants) > 1) {
+        window.itreviewconfirm = true;
+        window.dontReloadRC = true;
+        // ApzCOB.FetchApplication();
+    }
+}
+apz.app.onShown_ReviewConfirm = function() {
+    /*window.counter++
+    if (apz.deviceType !== 'WEB' && Number(gApzCOB.noOfApplicants) > 1) {
+       ApzCOB.FetchApplication();
+    }*/
+    if (window.isRevAndConfEdit) {
+        gApzCOB.currentApplicant = window.isRevAndConfEditCustType;
+    }
+    apz.startLoader();
+    $("#APZCBO__BaseScreens__LoanSuccTxt").text('Application Submitted Successfully!');
+    if (gApzCOB.product === "CARDS") {
+        $("#" + CardServiceScrId + "imageDiv").addClass('sno');
+        $("#" + CardServiceScrId + "CardDiv").addClass('sno');
+    }
+    gApzCOB.userDetails.currentStage = 'reviewandconfirm';
+    if ($('#' + BaseScrId + 'backIcon').hasClass('sno')) {
+        $('#' + rvwScrId + 'subHeaderRow').addClass('var1')
+    }
+    window.addEventListener('scroll', function() {
+        pageYOffset < document.documentElement.clientHeight ? $('#' + rvwScrId + 'toparrow').addClass('sno') : $('#' + rvwScrId +
+            'toparrow').removeClass('sno');
+    });
+    $('#' + rvwScrId + 'collapseText').addClass('sno');
+    $('#' + rvwScrId + 'pdE').trigger('click');
+    $('#' + rvwScrId + 'backTotoprow').addClass('sno');
+    apz.stopLoader();
+    ApzCOB.showLanguageSelect();
+    if (Number(gApzCOB.noOfApplicants) > 1 && gApzCOB.currentApplicant !== Number(gApzCOB.noOfApplicants) && gApzCOB.applicationType ===
+        'Joint Account') {
+        // $('#' + rvwScrId + 'jointRow').removeClass('sno');
+        $('#' + rvwScrId + 'currentApplicantNum_txtcnt').text(gApzCOB.currentApplicant + 1);
+    }
+    if (gApzCOB.applicationType === 'Joint Account') {
+        $('#' + rvwScrId + 'person2DetailsForm').removeClass('sno');
+    } else {
+        $('#' + rvwScrId + 'person2DetailsForm').addClass('sno');
+    }
+    apz.app.BaseScreens.HeaderFooterData();
+    //currTab = inSessionStore.customerDetailsList[0].customerType;
+    //if (currTab == 'Applicant') {
+    //    $('#' + rvwScrId + 'custTypeLabel').text(ApzCOB.getDescfromLitCode("LIT_MEMBER_TYPE"))
+    //    $('#' + rvwScrId + 'custIdLabel').text(ApzCOB.getDescfromLitCode("LIT_MEMBER_ID"))
+    //    $('#' + rvwScrId + 'custNameLabel').text(ApzCOB.getDescfromLitCode("LIT_MEMBER_NAME"))
+    //}
+    if (Number(gApzCOB.noOfApplicants) > 1) {
+        apz.app.ReviewConfirm.paintApplicants();
+        $('#' + rvwScrId + 'applicantNameList .pri').removeClass('active');
+        $('#' + rvwScrId + 'applicantNameList_row_' + (gApzCOB.currentApplicant - 1)).addClass('active');
+    } else {
+        apz.app.ReviewConfirm.paintAllonScreen();
+    }
+    var ApplicantToPaint = gApzCOB.currentApplicant - 1;
+    $('#RevCof__IPaintJointNames__o__RevCof__IPaintJointNames_Res__applicantName_' + ApplicantToPaint).trigger('click');
+    $('#APZCBO__BaseScreens__continue').attr('disabled', false)
+    $(`#${rvwScrId}el_btn_10`).addClass('visibleHidden'); //PersonalDetails Edit btn
+    ApzCOB.AddOrRemoveDisableFields([`${BaseScrId}backIcon`], false);
+    $(`#${BaseScrId}custIDandName`).removeClass('sno');
+}
+apz.app.ReviewConfirm.paintAllonScreen = function(iSingle) {
+    apz.app.ReviewConfirm.tabsHideNshow();
+    apz.app.ReviewConfirm.perDetails(iSingle);
+    apz.app.ReviewConfirm.empDetails();
+    apz.app.ReviewConfirm.LoadCardsFunctions();
+    /*if (gApzCOB.product === "CARDS") {
+        if (window.pendingApplication) {
+            apz.app.ReviewConfirm.downloadFileFromserverforcards();
+            apz.app.ReviewConfirm.paindetcardSevice();
+        } else {
+            apz.app.ReviewConfirm.cardSevice();
+        }
+    }*/
+    apz.app.BaseScreens.fetchNominee();
+    apz.app.ReviewConfirm.fatcaDetails();
+    apz.app.ReviewConfirm.crsDetails();
+    apz.app.ReviewConfirm.uploadDocs(iSingle);
+    //apz.app.ReviewConfirm.configureFields();
+    // apz.app.ReviewConfirm.perDetails(iSingle);
+    if (apz.deviceType === "ANDROID" && (gApzCOB.product === "LOAN" || gApzCOB.product === "CARDS")) {
+        apz.app.BaseScreens.HeaderFooterData();
+    }
+    apz.app.ReviewConfirm.bankFac();
+    apz.app.ReviewConfirm.nomineeDetails();
+    apz.app.ReviewConfirm.paintLoanDetails();
+    //apz.app.ReviewConfirm.paintEMIDetails();
+    //apz.app.ReviewConfirm.paintCreditDetails();
+    $('#' + rvwScrId + 'backTotoprow').addClass('sno');
+    apz.stopLoader();
+    ApzCOB.showLanguageSelect();
+    if (gApzCOB.requestNodes.customerDetailsList.length > 1 && gApzCOB.product === 'CASA') {
+        payloadno = gApzCOB.requestNodes.customerDetailsList.length - 1;
+    }
+    if (gApzCOB.product === 'LOAN' && gApzCOB.ExistingCustomer && window.pendingApplication) {
+        customerDetails1 = gApzCOB.requestNodes.customerDetailsList.length === 1 ? gApzCOB.requestNodes.customerDetailsList[0].payload : gApzCOB
+            .requestNodes.customerDetailsList[1].payload;
+    } else {
+        customerDetails1 = gApzCOB.requestNodes.customerDetailsList.length === 1 ? gApzCOB.requestNodes.customerDetailsList[0].payload : gApzCOB
+            .requestNodes.customerDetailsList[payloadno].payload;
+    }
+    var mstatus1 = customerDetails1.maritalStatus.toLocaleLowerCase();
+    if (mstatus1 !== 'married') {
+        $('#' + rvwScrId + 'RevSpouseNameDiv').addClass('sno')
+    }
+    if (parseInt(gApzCOB.noOfApplicants) === gApzCOB.requestNodes.customerDetailsList.length && window.istrueyes) {
+        $.each(gApzCOB.requestNodes.customerDetailsList, function(index, values) {
+            customerNames = customerNames + values.customerName + ', '
+        })
+        window.customerNamess = customerNames.slice(0, -2)
+        window.istrueyes = false;
+    }
+    // LoanDetails Hide and Show
+    $(`#${rvwScrId}el_btn_55`).removeClass('visibleHidden'); //Co-App CB Report Issue Fix
+    /*if (currTab.toLowerCase() === "applicant") {
+        $(`#${rvwScrId}el_btn_55`).removeClass('visibleHidden');
+    } else {
+        $(`#${rvwScrId}el_btn_55`).addClass('visibleHidden');
+    }*/
+}
+var expandType = ""
+apz.app.ReviewConfirm.setStageNo = function() {
+    if (!revAndConf) {
+        window.revConfBaseRow = baseRow - 1;
+        window.revConfSTAGENO = STAGE_NO - 1;
+    }
+}
+apz.app.ReviewConfirm.hideAndShowTabs = function(pthis, params) {
+    var selectedTabId = $('#' + pthis.id + '_ul').parent().parent().parent().parent()[0]['id'];
+    for (var i = 0; i < $(rvwScrId + 'DetailsForm').children().length; i++) {
+        var id = $('#' + rvwScrId + 'DetailsForm').children()[i]['id'];
+        $('#' + id).removeClass('active')
+    }
+    if (expandType === "") {
+        if ($('#' + selectedTabId).hasClass('active')) {
+            $('#' + selectedTabId).removeClass('active');
+            if (params === "Nominee") {
+                $('#' + rvwScrId + 'nomineeDetrow').removeClass('active');
+            }
+            if (params === "Crs") {
+                $('#' + rvwScrId + 'crsDetailsRow').removeClass('active');
+            }
+            if (params === "fatca") {
+                $('#' + rvwScrId + 'fatcaDetRow').removeClass('active');
+            }
+            if (params === "docs") {
+                $('#' + rvwScrId + 'docDetrow').removeClass('active');
+            }
+            if (params === "Card") {
+                $('#' + rvwScrId + 'cardServiceDiv').removeClass('active');
+            }
+            if (params === "loanDetails") {
+                $('#' + rvwScrId + 'loanDetailsDiv').removeClass('active');
+            }
+            if (params === "EMIDetails") {
+                $('#' + rvwScrId + 'EMIDetailsDiv').removeClass('active');
+            }
+            if (params === "CreditDetails") {
+                $('#' + rvwScrId + 'CreditDetailsDiv').removeClass('active');
+            }
+            if (params === "deposit") {
+                $('#' + rvwScrId + 'depositDetRow').removeClass('active');
+            }
+        } else {
+            $('#' + rvwScrId + 'personalDetDiv').removeClass('active');
+            $('#' + rvwScrId + 'empDetDiv').removeClass('active');
+            $('#' + rvwScrId + 'uploadDoc').removeClass('active');
+            $('#' + rvwScrId + 'bankingDetRow').removeClass('active');
+            $('#' + rvwScrId + 'nomineeDetrow').removeClass('active');
+            $('#' + rvwScrId + 'docDetrow').removeClass('active');
+            $('#' + rvwScrId + 'fatcaDetRow').removeClass('active');
+            $('#' + rvwScrId + 'crsDetailsRow').removeClass('active');
+            $('#' + rvwScrId + 'fatcaDetRow').removeClass('active');
+            $('#' + rvwScrId + 'loanDetailsDiv').removeClass('active');
+            $('#' + rvwScrId + 'EMIDetailsDiv').removeClass('active');
+            $('#' + rvwScrId + 'CreditDetailsDiv').removeClass('active');
+            $('#' + selectedTabId).addClass('active');
+            if (params === "Nominee") {
+                $('#' + rvwScrId + 'nomineeDetrow').addClass('active');
+            }
+            if (params === "Crs") {
+                $('#' + rvwScrId + 'crsDetailsRow').addClass('active');
+            }
+            if (params === "fatca") {
+                $('#' + rvwScrId + 'fatcaDetRow').addClass('active');
+            }
+            if (params === "docs") {
+                $('#' + rvwScrId + 'docDetrow').addClass('active');
+            }
+            if (params === "Card") {
+                $('#' + rvwScrId + 'cardServiceDiv').addClass('active');
+            }
+            if (params === "loanDetails") {
+                $('#' + rvwScrId + 'loanDetailsDiv').addClass('active');
+            }
+            if (params === "EMIDetails") {
+                $('#' + rvwScrId + 'EMIDetailsDiv').addClass('active');
+            }
+            if (params === "CreditDetails") {
+                $('#' + rvwScrId + 'CreditDetailsDiv').addClass('active');
+            }
+            if (params === "deposit") {
+                $('#' + rvwScrId + 'depositDetRow').addClass('active');
+            }
+        }
+    }
+    if (expandType === "expand") {
+        $('#' + rvwScrId + 'backTotoprow').removeClass('sno')
+        $('#' + selectedTabId).addClass('active');
+        $('#' + rvwScrId + 'nomineeDetrow').addClass('active');
+        $('#' + rvwScrId + 'docDetrow').addClass('active');
+        $('#' + rvwScrId + 'fatcaDetRow').addClass('active');
+        $('#' + rvwScrId + 'crsDetailsRow').addClass('active');
+        $('#' + rvwScrId + 'fatcaDetRow').addClass('active');
+        $('#' + rvwScrId + 'collapseText').removeClass('sno');
+        $('#' + rvwScrId + 'cardServiceDiv').addClass('active');
+        $('#' + rvwScrId + 'loanDetailsDiv').addClass('active');
+        $('#' + rvwScrId + 'EMIDetailsDiv').addClass('active');
+        $('#' + rvwScrId + 'CreditDetailsDiv').addClass('active');
+        $('#' + rvwScrId + 'depositDetRow').addClass('active');
+        $('#' + rvwScrId + 'expandText').addClass('sno');
+    }
+    if (expandType === "collapse") {
+        $('#' + rvwScrId + 'backTotoprow').addClass('sno')
+        $('#' + selectedTabId).removeClass('active');
+        $('#' + rvwScrId + 'nomineeDetrow').removeClass('active');
+        $('#' + rvwScrId + 'docDetrow').removeClass('active');
+        $('#' + rvwScrId + 'fatcaDetRow').removeClass('active');
+        $('#' + rvwScrId + 'crsDetailsRow').removeClass('active');
+        $('#' + rvwScrId + 'fatcaDetRow').removeClass('active');
+        $('#' + rvwScrId + 'depositDetRow').removeClass('active');
+        $('#' + rvwScrId + 'collapseText').addClass('sno');
+        $('#' + rvwScrId + 'cardServiceDiv').removeClass('active');
+        $('#' + rvwScrId + 'loanDetailsDiv').removeClass('active');
+        $('#' + rvwScrId + 'EMIDetailsDiv').removeClass('active');
+        $('#' + rvwScrId + 'CreditDetailsDiv').removeClass('active');
+        $('#' + rvwScrId + 'expandText').removeClass('sno');
+    }
+}
+apz.app.ReviewConfirm.expandCollapse = function(params) {
+    expandType = params;
+    $('#' + rvwScrId + 'pdE').trigger('click')
+    $('#' + rvwScrId + 'edE').trigger('click')
+    $('#' + rvwScrId + 'niE').trigger('click')
+    $('#' + rvwScrId + 'bfE').trigger('click')
+    $('#' + rvwScrId + 'faE').trigger('click')
+    $('#' + rvwScrId + 'crsE').trigger('click')
+    $('#' + rvwScrId + 'diE').trigger('click')
+    expandType = "";
+}
+apz.app.ReviewConfirm.configureFields = function() {
+    var a = {
+        fieldName: 'PerDetName',
+        fieldDivId: [rvwScrId + 'RevNameDiv']
+    }
+    var b = {
+        fieldName: 'PerDetLastName',
+        fieldDivId: [rvwScrId + 'RevLastNameDiv']
+    }
+    var c = {
+        fieldName: 'MobileNo',
+        fieldDivId: [rvwScrId + 'RevTitleDiv']
+    }
+    var d = {
+        fieldName: 'PerDetDOB',
+        fieldDivId: [rvwScrId + 'RevDobDiv']
+    };
+    var e = {
+        fieldName: 'PerDetGender',
+        fieldDivId: [rvwScrId + 'RevGenderDiv']
+    };
+    var f = {
+        fieldName: 'PerDetFatherName',
+        fieldDivId: [rvwScrId + 'RevFatherNameDiv']
+    }
+    var g = {
+        fieldName: 'PerDetNationality',
+        fieldDivId: [rvwScrId + 'RevNationalityDiv']
+    };
+    var h = {
+        fieldName: 'PerDetMaritalStatus',
+        fieldDivId: [rvwScrId + 'RevMaritalStatusDiv']
+    };
+    var i = {
+        fieldName: 'PerDetSpouseName',
+        fieldDivId: [rvwScrId + 'RevSpouseNameDiv']
+    };
+    var j = {
+        fieldName: 'PerDetMobileNo',
+        fieldDivId: [rvwScrId + 'RevMobileNumberDiv']
+    };
+    var k = {
+        fieldName: 'PerDetEmail',
+        fieldDivId: [rvwScrId + 'RevEmailDiv']
+    };
+    var l = {
+        fieldName: 'PerDetAsdressAsAadhar',
+        fieldDivId: [rvwScrId + 'RevAddressAsAadharDiv']
+    };
+    var m = {
+        fieldName: 'PerDetPanNo',
+        fieldDivId: [rvwScrId + 'RevPanCardDiv']
+    };
+    var n = {
+        fieldName: 'EmpDetOccType',
+        fieldDivId: [rvwScrId + 'RevOccuDiv']
+    };
+    var o = {
+        fieldName: 'EmpDetYrsOfExp',
+        fieldDivId: [rvwScrId + 'RevYrsExpDiv']
+    };
+    var p = {
+        fieldName: 'EmpDetCurrEmpName',
+        fieldDivId: [rvwScrId + 'RevEmployNameDiv']
+    };
+    var q = {
+        fieldName: 'EmpDetEmpID',
+        fieldDivId: [rvwScrId + 'RevEmployIdDiv']
+    };
+    var r = {
+        fieldName: 'EmpDetDesignation',
+        fieldDivId: [rvwScrId + 'RevDesignDiv']
+    }
+    var s = {
+        fieldName: 'EmpDetCurrEmpYrs',
+        fieldDivId: [rvwScrId + 'RevCurEmpYrsDiv']
+    };
+    var t = {
+        fieldName: 'EmpDetGrossIncome',
+        fieldDivId: [rvwScrId + 'RevGrossIncDiv']
+    };
+    var u = {
+        fieldName: 'EmpDetNetTakeHome',
+        fieldDivId: [rvwScrId + 'RevNetTakeHomeDiv']
+    };
+    var v = {
+        fieldName: 'EmpDetAnnualIncome',
+        fieldDivId: [rvwScrId + 'RevAnuIncDiv']
+    };
+    var w = {
+        fieldName: 'EmpDetOfcAddress',
+        fieldDivId: [rvwScrId + 'RevOfcAdrDiv']
+    }
+    var x = {
+        fieldName: 'EmpDetLandLineNum',
+        fieldDivId: [rvwScrId + 'RevLlineDiv']
+    };
+    var y = {
+        fieldName: 'EmpDetOfcEmail',
+        fieldDivId: [rvwScrId + 'RevCmpnyEmailDiv']
+    };
+    var z = {
+        fieldName: 'BankFacMB',
+        fieldDivId: [rvwScrId + 'RevMbDiv']
+    };
+    var aa = {
+        fieldName: 'BankFacIB',
+        fieldDivId: [rvwScrId + 'RevIbDiv']
+    };
+    var bb = {
+        fieldName: 'BankFacDebitCard',
+        fieldDivId: [rvwScrId + 'RevDebitCardDiv']
+    };
+    var cc = {
+        fieldName: 'BankFacSMSAlerts',
+        fieldDivId: [rvwScrId + 'RevSmsDiv']
+    };
+    var dd = {
+        fieldName: 'BankFacEStatement',
+        fieldDivId: [rvwScrId + 'RevEStatementDiv']
+    };
+    var ee = {
+        fieldName: 'BankFacChequeBook',
+        fieldDivId: [rvwScrId + 'RevChequeDiv']
+    };
+    var ff = {
+        fieldName: 'BankFacPassbook',
+        fieldDivId: [rvwScrId + 'RevPassbookDiv']
+    };
+    var gg = {
+        fieldName: 'NomDetName',
+        fieldDivId: [rvwScrId + 'nomNameCol' + '_li'],
+        nomineefieldId: [rvwScrNomDataId + 'nomineeName_'],
+        nomineefieldColId: rvwScrId + 'nomName' + '_li'
+    };
+    var hh = {
+        fieldName: 'NomDetRelationShip',
+        fieldDivId: [rvwScrId + 'nomRelCol' + '_li'],
+        nomineefieldId: [rvwScrNomDataId + 'nomineeRelation_'],
+        nomineefieldColId: rvwScrId + 'nomRel' + '_li'
+    };
+    var ii = {
+        fieldName: 'NomDetDOB',
+        fieldDivId: [rvwScrId + 'nomDobCol' + '_li'],
+        nomineefieldId: [rvwScrNomDataId + 'nomineeDob_'],
+        nomineefieldColId: rvwScrId + 'nomDob' + '_li'
+    };
+    var ll = {
+        fieldName: 'NomDetPhone',
+        fieldDivId: [rvwScrId + 'nomMobNoCol' + '_li'],
+        nomineefieldId: [rvwScrNomDataId + 'nomineeMobNo_'],
+        nomineefieldColId: rvwScrId + 'nomMobNo' + '_li'
+    };
+    var uu = {
+        fieldName: 'NomDetGuardianName',
+        fieldDivId: [rvwScrId + 'nomGrdNameCol' + '_li'],
+        nomineefieldId: [rvwScrNomDataId + 'nomineeGrdName_'],
+        nomineefieldColId: rvwScrId + 'nomGrdName' + '_li'
+    };
+    var lv = {
+        fieldName: 'BankFacChequeBookLeaves',
+        fieldDivId: [rvwScrId + 'Checkbookleaves']
+    };
+    ApzCOB.ConfigureFields([a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z, aa, bb, cc, dd, ee, ff, gg, hh, ii, ll,
+        lv,
+        uu
+    ], 'CONFIRMATION', 'CONFIRMATION');
+};
+apz.app.ReviewConfirm.goToTop = function() {
+    if (apz.deviceType !== "WEB") {
+        window.scroll(0, 0);
+    } else {
+        ApzCOB.scrollToTop();
+    }
+}
+apz.app.ReviewConfirm.tabsHideNshow = function() {
+    STAGES.forEach(function(m, n) {
+        ConfigureScrJson.forEach(function(i, k) {
+            if (i.confParamName === m.split('~')[0].toUpperCase()) {
+                $('#' + rvwScrId + i.reviewNconfirm).removeClass("sno");
+            }
+        })
+    })
+}
+apz.app.ReviewConfirm.perDetails = function(iSingle) {
+    var index = 0;
+    var customerDetails = [];
+    if (!apz.isNull(gApzCOB.requestNodes.customerDetailsList) && gApzCOB.requestNodes.customerDetailsList.length > 0) {
+        gApzCOB.requestNodes.customerDetailsList.findIndex(function(e) {
+            if (!apz.isNull(e.custDtlId)) {
+                return e.custDtlId === window.latestcustDtlId
+            } else {
+                return index;
+            }
+        })
+        /*customerDetails = iSingle === 'single' ? gApzCOB.requestNodes.customerDetailsList[0].payload : gApzCOB.requestNodes.customerDetailsList[gApzCOB.currentApplicant -
+            1].payload;*/
+        if (gApzCOB.product === 'LOAN' && gApzCOB.ExistingCustomer && window.pendingApplication) {
+            if (gApzCOB.requestNodes.customerDetailsList.length === 1) {
+                index = 0;
+            } else {
+                index = 1;
+            }
+        }
+        if (gApzCOB.requestNodes.customerDetailsList.length > 1 && gApzCOB.product === 'CASA') {
+            index = gApzCOB.requestNodes.customerDetailsList.length - 1;
+        }
+        currTab = gApzCOB.requestNodes.customerDetailsList[index].customerType;
+        if (currTab == 'Applicant') {
+            ['relationwithAppDiv'].hide();
+            ['nameasKYCDiv', 'RevGenderDiv', 'coApplInsurDiv', 'LoanDetailsHideShow', 'BankDetailsDiv'].show();
+            $('#' + rvwScrId + 'custTypeLabel').text(ApzCOB.getDescfromLitCode("LIT_MEMBER_TYPE"))
+            $('#' + rvwScrId + 'custIdLabel').text(ApzCOB.getDescfromLitCode("LIT_MEMBER_ID"))
+            $('#' + rvwScrId + 'custNameLabel').text(ApzCOB.getDescfromLitCode("LIT_MEMBER_NAME"))
+        } else {
+            ['nameasKYCDiv', 'relationwithAppDiv', 'RevGenderDiv'].show();
+            ['coApplInsurDiv', 'LoanDetailsHideShow', 'BankDetailsDiv'].hide();
+            $('#' + rvwScrId + 'custTypeLabel').text(ApzCOB.getDescfromLitCode("LIT_RC_LBL_CUST_TYP"))
+            $('#' + rvwScrId + 'custIdLabel').text(ApzCOB.getDescfromLitCode("LIT_RC_LBL_CUSTID"))
+            $('#' + rvwScrId + 'custNameLabel').text(ApzCOB.getDescfromLitCode("LIT_REVCONF_LBL_TXT_CUSTOMERNAME"))
+        }
+        customerDetails = gApzCOB.requestNodes.customerDetailsList.length === 1 ? gApzCOB.requestNodes.customerDetailsList[0].payload : gApzCOB.requestNodes.customerDetailsList[index].payload;
+        customerDetailsNpl = gApzCOB.requestNodes.customerDetailsList.length === 1 ? gApzCOB.requestNodes.customerDetailsList[0] : gApzCOB
+            .requestNodes.customerDetailsList[index];
+        if (!apz.isNull(customerDetails.title)) {
+            $('#' + rvwScrId + 'title').text(customerDetails.title);
+        }
+        var personName = apz.isNull(gApzCOB.requestNodes.customerDetailsList[index]) ? gApzCOB.userDetails.userName : gApzCOB.requestNodes
+            .customerDetailsList[index]["customerName"];
+        
+        /*Disability Status*/
+        var disFields = ['typeOfImpairDiv', 'udidDiv', 'percentImpDiv'];
+        
+       //var currCusDtlId = ApzCOB.getCustDetailID(gApzCOB.currentApplicant === 1 ? 'Applicant' : 'Co-App');
+       let currCusDtlId = gApzCOB.requestNodes.customerDetailsList[index].custDtlId;
+       var curindex = inSessionStore.customerDetailsList.findIndex(el => el.custDtlId === currCusDtlId);
+        
+        var disSts = inSessionStore.customerDetailsList[curindex].payload.isDisabled;
+        var payloaddata = inSessionStore.customerDetailsList[curindex].payload;
+        if (payloaddata.UDID) {
+            if (disSts == 'Y') {
+                disFields.show();
+                $(`#${rvwScrId}appDisaSts`).text('Yes');
+                var typImpair = inSessionStore.customerDetailsList[curindex].payload.disabilityList;;
+                 typImpair = typImpair.join(", ");
+                 var udidno = 
+                $(`#${rvwScrId}typeofImpair`).text(typImpair);
+                $(`#${rvwScrId}udid`).text(inSessionStore.customerDetailsList[curindex].payload.UDID);
+                $(`#${rvwScrId}percentImp`).text(inSessionStore.customerDetailsList[curindex].payload.disabilityPercentage);
+                
+            }else if (disSts == 'N') {
+                disFields.hide();
+                $(`#${rvwScrId}appDisaSts`).text('No');
+                
+            }
+        }else
+        {
+            ['DisabilityDetailsDiv'].hide();
+        }
+            
+    
+        /* if (apz.isNull(iSingle === 'single' ? gApzCOB.requestNodes.customerDetailsList[0] : gApzCOB.requestNodes.customerDetailsList[gApzCOB.currentApplicant -
+                 1])) {
+             personName = gApzCOB.userDetails.userName;
+         } else {
+             personName = iSingle === 'single' ? gApzCOB.requestNodes.customerDetailsList[0].customerName : gApzCOB.requestNodes.customerDetailsList[
+                 gApzCOB.currentApplicant - 1].customerName;
+         }*/
+        $('#' + rvwScrId + 'custType').text(apz.isNull(customerDetails.gkCustomerType) ? "---" : customerDetails.gkCustomerType);
+        $('#' + rvwScrId + 'custId').text(apz.isNull(customerDetails.custId) ? "---" : customerDetails.custId);
+        $('#' + rvwScrId + 'custName').text(apz.isNull(personName) ? "---" : personName);
+        $('#' + rvwScrId + 'age').text(apz.isNull(customerDetails.age) ? "---" : customerDetails.age);
+        $('#' + rvwScrId + 'firstName').text(customerDetails.firstName);
+        $('#' + rvwScrId + 'midName').text(customerDetails.middleName);
+        $('#' + rvwScrId + 'lname').text(customerDetails.lastName);
+        // $('#' + rvwScrId + 'fname').text(personName);
+        var DOBText = apz.isNull(customerDetails.dob) ? "---" : ApzCOB.dateformatter(customerDetails.dob, 'd M Y')
+        $('#' + rvwScrId + 'dob').text(DOBText);
+        var GenderTxt = (apz.isNull(customerDetails.gender) ? "---" : customerDetails.gender)
+        $('#' + rvwScrId + 'gender').text(GenderTxt);
+        $('#' + rvwScrId + 'fatherName').text(apz.isNull(customerDetails.fathersName) ? "---" : customerDetails.fathersName);
+        $('#' + rvwScrId + 'nationality').text()
+        var mstatus = customerDetails.maritalStatus;
+        var spouseName = customerDetails.spouseName
+        // if (mstatus === "Single") {
+        //     mstatus = "Single"
+        //     $('#' + rvwScrId + 'RevSpouseNameDiv').addClass('sno')
+        // } else if (mstatus === "Married") {
+        //     mstatus = "Married"
+        //     $('#' + rvwScrId + 'RevSpouseNameDiv').removeClass('sno')
+        // } else if (mstatus === "Others") {
+        //     mstatus = "Others"
+        //     $('#' + rvwScrId + 'spouseName').text("---")
+        // }
+        $('#' + rvwScrId + 'spouseName').text(apz.isNull(spouseName) ? "---" : spouseName)
+        $('#' + rvwScrId + 'Mstatus').text(mstatus);
+        $('#' + rvwScrId + 'pKycType').text(apz.isNull(customerDetails.primaryKycType) ? "---" : customerDetails.primaryKycType);
+        $('#' + rvwScrId + 'pKycName').text(apz.isNull(customerDetails.primaryKycId) ? "---" : customerDetails.primaryKycId);
+        $(`#${rvwScrId}altVoterId`).text(apz.isNull(customerDetails.alternateVoterId) ? "---" : customerDetails.alternateVoterId);
+        $(`#${rvwScrId}cKYC`).text(apz.isNull(customerDetails.ckyc) ? "---" : customerDetails.ckyc);
+        $('#' + rvwScrId + 'sKycType').text(apz.isNull(customerDetails.secondaryKycType) ? "---" : customerDetails.secondaryKycType);
+        $('#' + rvwScrId + 'sKycName').text(apz.isNull(customerDetails.secondaryKycId) ? "---" : customerDetails.secondaryKycId);
+        $('#' + rvwScrId + 'occupation').text(apz.isNull(customerDetails.occupation) ? "---" : customerDetails.occupation);
+        $('#' + rvwScrId + 'annualIncome').text(apz.isNull(customerDetails.annualIncome) ? "---" : ApzCOB.fn_FormatAmount(customerDetails.annualIncome));
+        $(`#${rvwScrId}relationwithApp`).text(apz.isNull(customerDetails.relationShipWithApplicant) ? "---" : customerDetails
+            .relationShipWithApplicant);
+        $(`#${rvwScrId}nameasKYC`).text(apz.isNull(customerDetails.namePerKyc) ? "---" : customerDetails.namePerKyc);
+        $(`#${rvwScrId}perDetReligion`).text(apz.isNull(customerDetails.religion) ? "---" : customerDetails.religion);
+        $(`#${rvwScrId}perDetCaste`).text(apz.isNull(customerDetails.caste) ? "---" : customerDetails.caste);
+        $(`#${rvwScrId}perDetEducation`).text(apz.isNull(customerDetails.education) ? "---" : customerDetails.education);
+        $(`#${rvwScrId}secMbNum`).text(apz.isNull(customerDetails.secMobileNo) ? "---" : customerDetails.secMobileNo);
+        $(`#${rvwScrId}branchMail`).text(apz.isNull(customerDetails.emailId) ? "---" : customerDetails.emailId);
+        $(`#${rvwScrId}panNumber`).text(apz.isNull(customerDetails.panNumber) ? "---" : customerDetails.panNumber === 'Not Available' ? '' : customerDetails.panNumber);
+        if (customerDetails.occupation === 'Homemaker') {
+            ['occupationDetailsDiv', 'sc_row_706'].hide();
+            occupationValue = customerDetails.occupation;
+            homeMakerFlag = true
+        } else {
+            ['occupationDetailsDiv', 'sc_row_706'].show();
+            homeMakerFlag = false
+        }
+        if (customerDetails.occupation === 'Self Employed') {
+            ['streetVendorDiv', 'bssPerOwnRowid'].show();
+            ['empProofRowid'].hide();
+        }
+        if (customerDetails.occupation === 'Salaried') {
+            ['empProofRowid'].show();
+            ['streetVendorDiv', 'bssPerOwnRowid'].hide();
+        }
+        if (customerDetails.occupation === 'Wage earner') {
+            ['streetVendorDiv', 'bssPerOwnRowid', 'empProofRowid'].hide();
+        }
+        apz.app.ReviewConfirm.hideNshowAdditionalDetails();
+    }
+    if (!apz.isNull(gApzCOB.requestNodes.addressDetailsWrapperList)) {
+        //var addressDetails = gApzCOB.requestNodes.addressDetailsWrapperList;
+        //var a;
+        $('#' + rvwScrId + 'addr').text(apz.isNull(gApzCOB.nationalIdDetails.address) ? "---" : gApzCOB.nationalIdDetails.address);
+        if (!apz.isNull(gApzCOB.userDetails.mobileNum)) {
+            $('#' + rvwScrId + 'mobno').text(gApzCOB.userDetails.mobileNum)
+        } else {
+            if (!apz.isNull(customerDetailsNpl.mobileNumber)) {
+                $('#' + rvwScrId + 'mobno').text(customerDetailsNpl.mobileNumber);
+            } else {
+                $(`#${rvwScrId}mobno`).text('---');
+            }
+        }
+        var EmailTxt = (apz.isNull(customerDetails.emailId) ? "---" : customerDetails.emailId)
+        var commAddrSame = "";
+        if (CUST_ADDRESS[0].addressDetailsList[0].payload.addressList.length > 0 && !apz.isNull(CUST_ADDRESS[0].addressDetailsList[0].payload
+                .addressList[0].addressSameAs)) {
+            commAddrSame = CUST_ADDRESS[0].addressDetailsList[0].payload.addressList[0].addressSameAs === 'Y' ? 'Yes' : 'No';
+        }
+        $('#' + rvwScrId + 'email').text(EmailTxt);
+        $('#' + rvwScrId + 'commAddr').text(commAddrSame);
+        if (!apz.isNull(window.CUST_ADDRESS && window.EMP_ADDRESS.length > 0)) {
+            if (window.CUST_ADDRESS[0]["addressDetailsList"][0]["payload"]["addressList"].length > 0) {
+                var a = window.CUST_ADDRESS[0]["addressDetailsList"][0]["payload"]["addressList"][0];
+                var RCfullAddress;
+                if (a.state === ApzCOB.getDescfromLitCode("LIT_COMM_MSG_PLEASE_SELECT")) {
+                    RCfullAddress = a.addressLine1 + ' ' + a.addressLine2 + ' ' + a.addressLine3 + ' ' + a.pinCode;
+                } else {
+                    RCfullAddress = a.addressLine1 + ' ' + a.addressLine2 + ' ' + a.addressLine3 + ' ' + a.city + ' ' + a.state + ' ' + a.pinCode;
+                }
+                $('#' + rvwScrId + 'addr_li').text(RCfullAddress);
+                $(`#${rvwScrId}addressType`).text(apz.isNull(a.addressType) ? "---" : a.addressType);
+                $(`#${rvwScrId}addressLine1`).text(apz.isNull(a.addressLine1) ? "---" : a.addressLine1);
+                $(`#${rvwScrId}addressLine2`).text(apz.isNull(a.addressLine2) ? "---" : a.addressLine2);
+                $(`#${rvwScrId}addressLine3`).text(apz.isNull(a.addressLine3) ? "---" : a.addressLine3);
+                $(`#${rvwScrId}pin`).text(apz.isNull(a.pinCode) ? "---" : a.pinCode);
+                $(`#${rvwScrId}city`).text(apz.isNull(a.city) ? "---" : a.city);
+                $(`#${rvwScrId}district`).text(apz.isNull(a.district) ? "---" : a.district);
+                $(`#${rvwScrId}state`).text(apz.isNull(a.state) ? "---" : a.state);
+                $(`#${rvwScrId}country`).text(apz.isNull(a.country) ? "---" : a.country);
+                $(`#${rvwScrId}presArea`).text(apz.isNull(a.area) ? "---" : a.area);
+                $(`#${rvwScrId}presLandmark`).text(apz.isNull(a.landMark) ? "---" : a.landMark);
+                $('#' + rvwScrId + 'residenceOwnership').text(apz.isNull(a.residenceOwnership) ? "---" : a.residenceOwnership);
+                $('#' + rvwScrId + 'residenceCitySince').text(apz.isNull(a.residenceCitySince) ? "---" : a.residenceCitySince);
+                $('#' + rvwScrId + 'residenceAddressSince').text(apz.isNull(a.residenceAddressSince) ? "---" : a.residenceAddressSince);
+                $('#' + rvwScrId + 'residenceProof').text(apz.isNull(a.currentAddressProof) ? "---" : a.currentAddressProof);
+                $('#' + rvwScrId + 'communctionAddress').text(apz.isNull(a.communctionAddress) ? "---" : a.communctionAddress);
+                $('#' + rvwScrId + 'locateCoOrdinatesFor').text(apz.isNull(a.locateCoOrdinatesFor) ? "---" : a.locateCoOrdinatesFor);
+                $('#' + rvwScrId + 'locateCoOrdinates').text(apz.isNull(a.locateCoOrdinates) ? "---" : a.locateCoOrdinates);
+                $(`#${rvwScrId}typeOfHouse`).text(apz.isNull(a.houseType) ? "---" : a.houseType);
+                let permAddrDtls = window.CUST_ADDRESS[0]["addressDetailsList"][0].payload.addressList[1];
+                if (permAddrDtls.addressSameAs == 'Y') {
+                    $(`#${rvwScrId}permanentAdd`).text("Yes");
+                    ['permanentAddNoDiv'].hide();
+                } else {
+                    ['permanentAddNoDiv'].show();
+                    $(`#${rvwScrId}permanentAdd`).text("No");
+                    $(`#${rvwScrId}permanentAddres1`).text(apz.isNull(permAddrDtls.addressLine1) ? "---" : permAddrDtls.addressLine1);
+                    $(`#${rvwScrId}permanentAddres2`).text(apz.isNull(permAddrDtls.addressLine2) ? "---" : permAddrDtls.addressLine2);
+                    $(`#${rvwScrId}permanentAddres3`).text(apz.isNull(permAddrDtls.addressLine3) ? "---" : permAddrDtls.addressLine3);
+                    $(`#${rvwScrId}permanentPincode`).text(apz.isNull(permAddrDtls.pinCode) ? "---" : permAddrDtls.pinCode);
+                    $(`#${rvwScrId}permanentcity`).text(apz.isNull(permAddrDtls.city) ? "---" : permAddrDtls.city);
+                    $(`#${rvwScrId}permanentDist`).text(apz.isNull(permAddrDtls.district) ? "---" : permAddrDtls.district);
+                    $(`#${rvwScrId}permanentState`).text(apz.isNull(permAddrDtls.state) ? "---" : permAddrDtls.state);
+                    $(`#${rvwScrId}permanentCountry`).text(apz.isNull(permAddrDtls.country) ? "---" : permAddrDtls.country);
+                    $(`#${rvwScrId}permArea`).text(apz.isNull(permAddrDtls.area) ? "---" : permAddrDtls.area);
+                    $(`#${rvwScrId}permLandmark`).text(apz.isNull(permAddrDtls.landMark) ? "---" : permAddrDtls.landMark);
+                }
+                let commAddrDtls = window.CUST_ADDRESS[0]["addressDetailsList"][0].payload.addressList[2];
+                $(`#${rvwScrId}communctionAddress`).text(commAddrDtls.addressSameAs);
+                if (commAddrDtls.addressSameAs != 'other') {
+                    ['commAddRadioShowDiv'].hide();
+                } else {
+                    ['commAddRadioShowDiv'].show();
+                    $(`#${rvwScrId}commAddress1`).text(apz.isNull(commAddrDtls.addressLine1) ? "---" : commAddrDtls.addressLine1);
+                    $(`#${rvwScrId}commAddress2`).text(apz.isNull(commAddrDtls.addressLine2) ? "---" : commAddrDtls.addressLine2);
+                    $(`#${rvwScrId}commAddress3`).text(apz.isNull(commAddrDtls.addressLine3) ? "---" : commAddrDtls.addressLine3);
+                    $(`#${rvwScrId}commPincode`).text(apz.isNull(commAddrDtls.pinCode) ? "---" : commAddrDtls.pinCode);
+                    $(`#${rvwScrId}commCity`).text(apz.isNull(commAddrDtls.city) ? "---" : commAddrDtls.city);
+                    $(`#${rvwScrId}commDist`).text(apz.isNull(commAddrDtls.district) ? "---" : commAddrDtls.district);
+                    $(`#${rvwScrId}commState`).text(apz.isNull(commAddrDtls.state) ? "---" : commAddrDtls.state);
+                    $(`#${rvwScrId}commCountry`).text(apz.isNull(commAddrDtls.country) ? "---" : commAddrDtls.country);
+                    $(`#${rvwScrId}commArea`).text(apz.isNull(commAddrDtls.area) ? "---" : commAddrDtls.area);
+                    $(`#${rvwScrId}commLandmark`).text(apz.isNull(commAddrDtls.landMark) ? "---" : commAddrDtls.landMark);
+                }
+            }
+            var offAddr;
+            var newArr = gApzCOB.requestNodes.addressDetailsWrapperList[0].addressDetailsList.filter(function(el) {
+                return el.addressType == "Occupation";
+            })
+            if (newArr.length > 0) {
+                if (newArr.length == 2 && currTab != 'Applicant') {
+                    offAddr = newArr[1].payload.addressList[0];
+                } else {
+                    offAddr = newArr[0].payload.addressList[0];
+                }
+                $(`#${rvwScrId}offAddrSameAs`).text(apz.isNull(offAddr.addressSameAs) ? "---" : offAddr.addressSameAs);
+                $(`#${rvwScrId}bussAddr1`).text(apz.isNull(offAddr.addressLine1) ? "---" : offAddr.addressLine1);
+                $(`#${rvwScrId}bussAddr2`).text(apz.isNull(offAddr.addressLine2) ? "---" : offAddr.addressLine2);
+                $(`#${rvwScrId}bussAddr3`).text(apz.isNull(offAddr.addressLine3) ? "---" : offAddr.addressLine3);
+                $(`#${rvwScrId}bussPincode`).text(apz.isNull(offAddr.pinCode) ? "---" : offAddr.pinCode);
+                $(`#${rvwScrId}bussCity`).text(apz.isNull(offAddr.city) ? "---" : offAddr.city);
+                $(`#${rvwScrId}bussDistrict`).text(apz.isNull(offAddr.district) ? "---" : offAddr.district);
+                $(`#${rvwScrId}bussState`).text(apz.isNull(offAddr.state) ? "---" : offAddr.state);
+                $(`#${rvwScrId}bussCountry`).text(apz.isNull(offAddr.country) ? "---" : offAddr.country);
+                $(`#${rvwScrId}bussArea`).text(apz.isNull(offAddr.area) ? "---" : offAddr.area);
+                $(`#${rvwScrId}bussLandmark`).text(apz.isNull(offAddr.landMark) ? "---" : offAddr.landMark);
+                $(`#${rvwScrId}locationcoordinatesfor`).text(apz.isNull(offAddr.locateCoOrdinatesFor) ? "---" : offAddr.locateCoOrdinatesFor);
+                $(`#${rvwScrId}locationcoordinate`).text(apz.isNull(offAddr.locateCoOrdinates) ? "---" : offAddr.locateCoOrdinates);
+            }
+            /*if (window.CUST_ADDRESS[0]["addressDetailsList"][0]["payload"].commAddEqPerAdd === 'N') {
+                var a = window.CUST_ADDRESS[0]["addressDetailsList"][0]["payload"]["addressList"][0];
+                var RCfullAddress;
+                if (a.state === ApzCOB.getDescfromLitCode("LIT_COMM_MSG_PLEASE_SELECT")) {
+                    RCfullAddress = a.addressLine1 + ' ' + a.addressLine2 + ' ' + a.landMark + ' ' + a.pinCode;
+                } else {
+                    RCfullAddress = a.addressLine1 + ' ' + a.addressLine2 + ' ' + a.landMark + ' ' + a.city + ' ' + a.state + ' ' + a.pinCode;
+                }
+                $('#' + rvwScrId + 'addr_li').text(RCfullAddress);
+            } else {
+                var a = window.CUST_ADDRESS[0]["addressDetailsList"][0]["payload"]["addressList"][0];
+                var RCfullAddress;
+                if (a.state === ApzCOB.getDescfromLitCode("LIT_COMM_MSG_PLEASE_SELECT")) {
+                    RCfullAddress = a.addressLine1 + ' ' + a.addressLine2 + ' ' + a.landMark + ' ' + a.pinCode;
+                } else {
+                    RCfullAddress = a.addressLine1 + ' ' + a.addressLine2 + ' ' + a.landMark + ' ' + a.city + ' ' + a.state + ' ' + a.pinCode;
+                }
+                $('#' + rvwScrId + 'addr_li').text(RCfullAddress);
+            }*/
+        }
+    }
+}
+apz.app.ReviewConfirm.nomineeDetails = function() {
+    if (!apz.isNull(apz.data.scrdata.NomDet__FetchNominee_Res) && apz.data.scrdata.NomDet__FetchNominee_Res.length !== 0) {
+        var nomineeName = [],
+            nomineeRel = [];
+        apz.data.scrdata.RevCof__IPaintData_Res = {}
+        for (var i = 0; i < apz.data.scrdata.NomDet__FetchNominee_Res.length; i++) {
+            nomineeName.push(apz.data.scrdata.NomDet__FetchNominee_Res[i].nomineeName)
+            nomineeRel.push(apz.data.scrdata.NomDet__FetchNominee_Res[i].nomineeRelationship);
+        }
+        var nomineeDetails = []
+        $.each(nomineeName, function(a, b) {
+            var obj = {
+                "nomineeName": nomineeName[a],
+                "nomineeRelation": nomineeRel[a]
+            }
+            nomineeDetails.push(obj);
+        })
+        $('#' + rvwScrId + 'nomineeHeaderRow').removeClass('sno');
+        $('#' + rvwScrId + 'nomineeListRow').removeClass('sno');
+        $('#' + rvwScrId + 'noNomineeRow').addClass('sno');
+        apz.data.scrdata.RevCof__IPaintData_Res = apz.data.scrdata.NomDet__FetchNominee_Res
+        $.each(apz.data.scrdata.RevCof__IPaintData_Res, function(a, b) {
+            apz.data.scrdata.RevCof__IPaintData_Res[a].nomineeDob = ApzCOB.dateformatter(b.nomineeDob, 'd M Y')
+            if (apz.isNull(b.guardianName)) {
+                apz.data.scrdata.RevCof__IPaintData_Res[a].guardianName = "N/A"
+            }
+            if (apz.isNull(b.nomineeMobile)) {
+                apz.data.scrdata.RevCof__IPaintData_Res[a].nomineeMobile = "---"
+            }
+        })
+        apz.data.loadData("IPaintData", apz.currAppId);
+    } else {
+        $('#' + rvwScrId + 'nomineeHeaderRow').addClass('sno');
+        $('#' + rvwScrId + 'nomineeListRow').addClass('sno');
+        $('#' + rvwScrId + 'noNomineeRow').removeClass('sno');
+    }
+}
+apz.app.ReviewConfirm.empDetails = function() {
+     let custDetails = [];
+    if (currTab === "Applicant") {
+        custDetails = gApzCOB.requestNodes.customerDetailsList.filter(
+        cust => cust.customerType.toLowerCase() === 'applicant');
+    } else {
+        custDetails = gApzCOB.requestNodes.customerDetailsList.filter(
+        cust => cust.customerType.toLowerCase() !== 'applicant');
+    }
+    if (custDetails.length > 0) {
+        const occupation = custDetails[0].payload.occupation;
+        if (occupation === 'Salaried') {
+            $('#' + rvwScrId + 'el_txt_268').text('Office Address Details');
+        } else {
+            $('#' + rvwScrId + 'el_txt_268').text('Business Address Details');
+        }
+    }
+    if (!apz.isNull(gApzCOB.requestNodes.occupationDetailsWrapperList) && gApzCOB.requestNodes.occupationDetailsWrapperList.length > 0) {
+        var index = gApzCOB.requestNodes.occupationDetailsWrapperList.findIndex(function(e) {
+            return e.occupationDetails.custDtlId === window.latestcustDtlId
+        })
+        var occupationPayload = gApzCOB.requestNodes.occupationDetailsWrapperList.length === 1 ? gApzCOB.requestNodes
+            .occupationDetailsWrapperList[0].occupationDetails.payload : gApzCOB.requestNodes.occupationDetailsWrapperList[index]
+            .occupationDetails.payload
+        //var a;
+        var totalexperience = ""
+        var yrs = occupationPayload.experience.split(" ")[0]
+        if (yrs === "") {
+            yrs = "0 years "
+        } else {
+            yrs = yrs + " years "
+        }
+        var mons = occupationPayload.experience.split(" ")[2]
+        if (mons === "") {
+            mons = "0 months"
+        } else {
+            mons = mons + " months"
+        }
+        totalexperience = yrs + mons;
+        // var ProfOccTxt = (apz.isNull(occupationPayload.occupationType) ? "---" : occupationPayload.occupationType);
+        // $('#' + rvwScrId + 'profOccu').text(ProfOccTxt);
+        $('#' + rvwScrId + 'yrsOfExp').text(totalexperience);
+        var DesignTxt = (apz.isNull(occupationPayload.designation) ? "---" : occupationPayload.designation);
+        $('#' + rvwScrId + 'designation').text(DesignTxt);
+        /*var GrossIncTxt = (apz.isNull(ApzCOB.fn_FormatAmount(occupationPayload.annualIncome / 12)) ? "---" : ApzCOB.fn_FormatAmount(occupationPayload.annualIncome / 12));*/
+        if (apz.isNull(occupationPayload.grossIncome)) {
+            $('#' + rvwScrId + 'grossInc').text("---");
+        } else {
+            var GrossIncTxt = ApzCOB.fn_FormatAmount(occupationPayload.grossIncome);
+            $('#' + rvwScrId + 'grossInc').text(ApzCOB.GetCommonCodes("PRIMARYCURRENCY") + " " + GrossIncTxt);
+        }
+        if (apz.isNull(occupationPayload.netTakeHome)) {
+            $('#' + rvwScrId + 'netTakeHome').text("---");
+        } else {
+            var netTakeHomeTxt = ApzCOB.fn_FormatAmount(occupationPayload.netTakeHome);
+            $('#' + rvwScrId + 'netTakeHome').text(ApzCOB.GetCommonCodes("PRIMARYCURRENCY") + " " + netTakeHomeTxt);
+        }
+        var LanNoTxt = (apz.isNull(occupationPayload.officePhone) ? "---" : occupationPayload.officePhone);
+        $('#' + rvwScrId + 'lanNo').text(LanNoTxt);
+        var CEmailTxt = (apz.isNull(occupationPayload.officeEmail) ? "---" : occupationPayload.officeEmail);
+        $('#' + rvwScrId + 'cEmail').text(CEmailTxt);
+        //var OrgAddressTxt = (apz.isNull(occupationPayload.organisationAddress) ? "---" : occupationPayload.organisationAddress);
+        //$('#' + rvwScrId + 'ofcAddr').text(OrgAddressTxt);
+        if (!apz.isNull(window.EMP_ADDRESS && window.EMP_ADDRESS.length > 0)) {
+            var a = window.EMP_ADDRESS[0]["addressDetailsList"][0]["payload"]["addressList"][0];
+            var RCEmpfullAddress;
+            if (a.state === ApzCOB.getDescfromLitCode("LIT_COMM_MSG_PLEASE_SELECT")) {
+                RCEmpfullAddress = a.addressLine1 + ' ' + a.addressLine2 + ' ' + a.landMark + ' ' + a.pinCode;
+            } else {
+                RCEmpfullAddress = a.addressLine1 + ' ' + a.addressLine2 + ' ' + a.landMark + ' ' + a.city + ' ' + a.state + ' ' + a.pinCode;
+            }
+            $('#' + rvwScrId + 'ofcAddr').text(RCEmpfullAddress);
+        }
+        var CurrEmpTxt = apz.isNull(occupationPayload.employeeSince) ? "---" : occupationPayload.employeeSince;
+        $('#' + rvwScrId + 'curEmpyrs').text(CurrEmpTxt);
+        var EmpIdTxt = (apz.isNull(occupationPayload.employeeId) ? "---" : occupationPayload.employeeId);
+        $('#' + rvwScrId + 'empId').text(EmpIdTxt);
+        var EmplrTxt = (apz.isNull(occupationPayload.employer) ? "---" : occupationPayload.employer);
+        $('#' + rvwScrId + 'curEmployer').text(EmplrTxt);
+        $(`#${rvwScrId}modeOfIncome`).text(apz.isNull(occupationPayload.modeOfIncome) ? "---" : occupationPayload.modeOfIncome);
+        $(`#${rvwScrId}streetVendor`).text(apz.isNull(occupationPayload.streetVendor) ? "---" : occupationPayload.streetVendor);
+        $(`#${rvwScrId}employmentStartdate`).text(apz.isNull(occupationPayload.businessEmpStartDate) ? "---" : occupationPayload
+            .businessEmpStartDate);
+        $(`#${rvwScrId}employmentVintage`).text(apz.isNull(occupationPayload.businessEmpVintageYear) ? "---" : occupationPayload
+            .businessEmpVintageYear);
+        if (apz.isNull(occupationPayload.annualIncome)) {
+            $('#' + rvwScrId + 'annualInc').text("---");
+        } else {
+            var AnnualIncTxt = ApzCOB.fn_FormatAmount(occupationPayload.annualIncome);
+            $('#' + rvwScrId + 'annualInc').text(ApzCOB.GetCommonCodes("PRIMARYCURRENCY") + " " + AnnualIncTxt);
+        }
+        var NatureOfBusi = (apz.isNull(occupationPayload.occupationType) ? "---" : occupationPayload.occupationType);
+        if (NatureOfBusi == 'Please Select') {
+            $(`#${rvwScrId}profOccu`).text("---");
+        } else {
+            $(`#${rvwScrId}profOccu`).text(NatureOfBusi);
+        }
+        var typbssEmpentTxt = (apz.isNull(occupationPayload.typeofbusiness) ? "---" : occupationPayload.typeofbusiness);
+        if (typbssEmpentTxt == 'Please Select') {
+            $('#' + rvwScrId + 'typbssEmpentRw').text("---");
+            $('#' + rvwScrId + 'typEmpentRw').text("---");
+        } else {
+            $('#' + rvwScrId + 'typbssEmpentRw').text(typbssEmpentTxt);
+            $('#' + rvwScrId + 'typEmpentRw').text(typbssEmpentTxt);
+        }
+        var bssEmpAccTxt = (apz.isNull(occupationPayload.employeeActivity) ? "---" : occupationPayload.employeeActivity);
+        if (bssEmpAccTxt == 'Please Select') {
+            $('#' + rvwScrId + 'bssEmpAccRw').text("---");
+        } else {
+            $('#' + rvwScrId + 'bssEmpAccRw').text(bssEmpAccTxt);
+        }
+        var bssAddrProofTxt = (apz.isNull(occupationPayload.businessAddressProof) ? "---" : occupationPayload.businessAddressProof);
+        if (bssAddrProofTxt == 'Please Select') {
+            $('#' + rvwScrId + 'bssAddrProofRw').text("---");
+        } else {
+            $('#' + rvwScrId + 'bssAddrProofRw').text(bssAddrProofTxt);
+        }
+        var empProofTxt = (apz.isNull(occupationPayload.employmentProof) ? "---" : occupationPayload.employmentProof);
+        if (empProofTxt == 'Please Select') {
+            $('#' + rvwScrId + 'empProofRw').text("---");
+        } else {
+            $('#' + rvwScrId + 'empProofRw').text(empProofTxt);
+        }
+        var bssPerOwnTxt = (apz.isNull(occupationPayload.businessPremiseOwnerShip) ? "---" : occupationPayload.businessPremiseOwnerShip);
+        if (bssPerOwnTxt == 'Please Select') {
+            $('#' + rvwScrId + 'bssPerOwnRw').text("---");
+        } else {
+            $('#' + rvwScrId + 'bssPerOwnRw').text(bssPerOwnTxt);
+        }
+        var freqOfIncTxt = (apz.isNull(occupationPayload.freqOfIncome) ? "---" : occupationPayload.freqOfIncome);
+        if (freqOfIncTxt == 'Please Select') {
+            $('#' + rvwScrId + 'freqOfIncRw').text("---");
+        } else {
+            $('#' + rvwScrId + 'freqOfIncRw').text(freqOfIncTxt);
+        }
+        var othSrcIncTxt = (apz.isNull(occupationPayload.otherSourceIncome) ? "---" : occupationPayload.otherSourceIncome);
+        if (othSrcIncTxt == 'Please Select') {
+            $('#' + rvwScrId + 'othSrcIncRw').text("---");
+        } else {
+            $('#' + rvwScrId + 'othSrcIncRw').text(othSrcIncTxt);
+        }
+        if (apz.isNull(occupationPayload.otherSourceAnnualIncome)) {
+            $('#' + rvwScrId + 'othSrcAnnIncRw').text("---");
+        } else {
+            var othSrcAnnIncTxt = ApzCOB.fn_FormatAmount(occupationPayload.otherSourceAnnualIncome);
+            $('#' + rvwScrId + 'othSrcAnnIncRw').text(ApzCOB.GetCommonCodes("PRIMARYCURRENCY") + " " + othSrcAnnIncTxt);
+        }
+        var retirementAgeTxt = (apz.isNull(occupationPayload.retirementAge) ? "---" : occupationPayload.retirementAge);
+        if (retirementAgeTxt == 'Please Select') {
+            $('#' + rvwScrId + 'retirementAge').text("---");
+        } else {
+            $('#' + rvwScrId + 'retirementAge').text(retirementAgeTxt);
+        }
+        var LastEmplrTxt = (apz.isNull(occupationPayload.lastEmployer) ? "---" : occupationPayload.lastEmployer);
+        $('#' + rvwScrId + 'prevEmployer').text(LastEmplrTxt);
+        var prevJobYrsTxt = apz.isNull(occupationPayload.previousJobYears) ? "---" : occupationPayload.previousJobYears;
+        $('#' + rvwScrId + 'prevEmpyrs').text(prevJobYrsTxt);
+    }
+    /*BankDetails*/
+    if (!apz.isNull(gApzCOB.requestNodes.bankDetailsWrapperList) && gApzCOB.requestNodes.bankDetailsWrapperList.length > 0) {
+        let currIndex = ApzCOB.getIndexforBankWrapper("Applicant");
+        var bankdetlsPayload = gApzCOB.requestNodes.bankDetailsWrapperList[currIndex]?.bankDetails?.payload;
+        var accountNameTxt = (apz.isNull(bankdetlsPayload.accountName) ? "---" : bankdetlsPayload.accountName);
+        if (accountNameTxt == 'Please Select') {
+            $('#' + rvwScrId + 'accHolderName').text("---");
+        } else {
+            $('#' + rvwScrId + 'accHolderName').text(accountNameTxt);
+        }
+        var accountNumberTxt = (apz.isNull(bankdetlsPayload.accountNumber) ? "---" : bankdetlsPayload.accountNumber);
+        $('#' + rvwScrId + 'accNumber').text(accountNumberTxt);
+        var accountTypeTxt = (apz.isNull(bankdetlsPayload.accountType) ? "---" : bankdetlsPayload.accountType);
+        if (accountTypeTxt == 'Please Select') {
+            $('#' + rvwScrId + 'accType').text("---");
+        } else {
+            $('#' + rvwScrId + 'accType').text(accountTypeTxt);
+        }
+        var bankNameTxt = (apz.isNull(bankdetlsPayload.bankName) ? "---" : bankdetlsPayload.bankName);
+        $('#' + rvwScrId + 'bankName').text(bankNameTxt);
+        var ifscTxt = (apz.isNull(bankdetlsPayload.ifsc) ? "---" : bankdetlsPayload.ifsc);
+        $('#' + rvwScrId + 'ifscCode').text(ifscTxt);
+        var branchNameTxt = (apz.isNull(bankdetlsPayload.branchName) ? "---" : bankdetlsPayload.branchName);
+        $('#' + rvwScrId + 'branchName').text(branchNameTxt);
+        let bankDataEditOption = (apz.isNull(bankdetlsPayload.editBankDetails) ? "---" : bankdetlsPayload.editBankDetails);
+        $(`#${rvwScrId}AccDetRadio`).text(bankDataEditOption);
+    }
+    /*insuranceDetails*/
+    var insFields = ['insuranceForDiv', 'nomineeInsuranceDiv', 'relationNomineeDiv', 'dobnomineeDiv', 'ageNomineeyrsDiv'];
+    if (!apz.isNull(gApzCOB.requestNodes.insuranceDetailsWrapperList) && gApzCOB.requestNodes.insuranceDetailsWrapperList.length > 0) {
+        ['InsuranceDetailsDiv', 'applicantInsurDiv', 'coApplInsurDiv'].show();
+        var insurancePayload = gApzCOB.requestNodes.insuranceDetailsWrapperList[0].insuranceDetails.payload;
+        var insuredNameTxt = (apz.isNull(insurancePayload.insuredName) ? "---" : insurancePayload.insuredName);
+        $('#' + rvwScrId + 'insuranceFor').text(insuredNameTxt);
+        var nomineeNameTxt = (apz.isNull(insurancePayload.nomineeName) ? "---" : insurancePayload.nomineeName);
+        $('#' + rvwScrId + 'nomineeInsurance').text(nomineeNameTxt);
+        var nomineeRelationTxt = (apz.isNull(insurancePayload.nomineeRelation) ? "---" : insurancePayload.nomineeRelation);
+        if (nomineeRelationTxt == 'Please Select') {
+            $('#' + rvwScrId + 'relationNominee').text("---");
+        } else {
+            $('#' + rvwScrId + 'relationNominee').text(nomineeRelationTxt);
+        }
+        var nomineeDobTxt = (apz.isNull(insurancePayload.nomineeDob) ? "---" : insurancePayload.nomineeDob);
+        $('#' + rvwScrId + 'dobnominee').text(nomineeDobTxt);
+        var ageTxt = (apz.isNull(insurancePayload.nomineeDob) ? "---" : ApzCOB.getAge(insurancePayload.nomineeDob));
+        $('#' + rvwScrId + 'ageNomineeyrs').text(ageTxt);
+        var coApplIns = insurancePayload.coApplicantInsurance;
+        window.coApplicantInsuranceFlag = (!apz.isNull(coApplIns) && coApplIns == 'No') ? "No" : "Yes";
+        if (insurancePayload.insuranceReqd == 'Y') {
+            insFields.show();
+            $(`#${rvwScrId}applicantInsur`).text('Yes');
+            $(`#${rvwScrId}coApplInsur`).text(apz.isNull(coApplIns) ? "---" : coApplIns);
+        } else if (insurancePayload.insuranceReqd == 'N') {
+            ['InsuranceDetailsDiv'].show();
+            insFields.hide();
+            $(`#${rvwScrId}applicantInsur`).text('No');
+            $(`#${rvwScrId}coApplInsur`).text('No');
+        }
+        if (currTab === 'Applicant') {
+            //window.coAppInsurance = insurancePayload.coApplicantInsurance;
+            gApzCOB.requestNodes.insuranceDetailsWrapperList.forEach(function(i, k) {
+                if (i.insuranceDetails.custDtlId === gApzCOB.userDetails.custDtlId) {
+                    window.coAppInsurance = i.insuranceDetails.payload.coApplicantInsurance;
+                    return;
+                }
+            })
+        }
+        if (currTab != 'Applicant') {
+            if (!apz.isNull(window.coApplicantInsuranceFlag) && window.coApplicantInsuranceFlag == 'Yes') {
+                ['InsuranceDetailsDiv'].show();
+                ['applicantInsurDiv', 'coApplInsurDiv'].hide();
+                coAppInsuranceFlag = false;
+            } else if (!apz.isNull(window.coApplicantInsuranceFlag) && window.coApplicantInsuranceFlag == 'No') {
+                ['InsuranceDetailsDiv'].hide();
+                coAppInsuranceFlag = true;
+            }
+            if (coAppInsurance === 'No') {
+                ['InsuranceDetailsDiv'].hide();
+            }
+            if (coAppInsurance === 'No' && occupationValue === 'Homemaker') {
+                coAppInsuranceFlag = true;
+            }
+        }
+    }
+    if (gApzCOB.requestNodes.insuranceDetailsWrapperList === undefined && occupationValue === 'Homemaker') {
+        ['InsuranceDetailsDiv'].hide();
+        coAppInsuranceFlag = true;
+    }
+    apz.app.ReviewConfirm.hideNshowAdditionalDetails();
+}
+apz.app.ReviewConfirm.hideNshowAdditionalDetails = function() {
+    if (coAppInsuranceFlag && homeMakerFlag) {
+        ['empDetDiv'].hide();
+        coAppInsuranceFlag = false;
+        homeMakerFlag = false;
+    } else {
+        ['empDetDiv'].show();
+    }
+}
+apz.app.ReviewConfirm.fatcaDetails = function() {
+    if (!apz.isNull(gApzCOB.requestNodes.fatcaDetailsList) && gApzCOB.requestNodes.fatcaDetailsList.length > 0) {
+        var index = gApzCOB.requestNodes.fatcaDetailsList.findIndex(function(e) {
+            return e.custDtlId === window.latestcustDtlId
+        })
+        var fatcaPayload = gApzCOB.requestNodes.fatcaDetailsList.length === 1 ? gApzCOB.requestNodes.fatcaDetailsList[0].payload : gApzCOB
+            .requestNodes.fatcaDetailsList[index].payload
+        var isUSCitizen = (apz.isNull(fatcaPayload.usCitizenFlag) ? "---" : fatcaPayload.usCitizenFlag);
+        if (isUSCitizen === 'Y') {
+            documentName = (apz.isNull(fatcaPayload.documentIdName) ? "---" : fatcaPayload.documentIdName);
+            var documentNumber = (apz.isNull(fatcaPayload.documentIdValue) ? "---" : fatcaPayload.documentIdValue);
+            $('#' + rvwScrId + 'nationalityTxt').text(ApzCOB.getDescfromLitCode("LIT_REVCONF_TXT_FATCADTLS_US_CITIZEN"));
+            $('#' + rvwScrId + 'wNineDetRow').removeClass('sno');
+            apz.app.ReviewConfirm.LoadDocumentTypes();
+            /*if (documentName === 'SSN') {
+                $('#' + rvwScrId + 'documentType').text(ApzCOB.getDescfromLitCode("LIT_REVCONF_TXT_FATCADTLS_SSN"));
+                $('#' + rvwScrId + 'docNumTxt').text(ApzCOB.getDescfromLitCode("LIT_REVCONF_TXT_FATCADTLS_SSN"));
+            } else if (documentName === 'employerIdNum') {
+                $('#' + rvwScrId + 'documentType').text(ApzCOB.getDescfromLitCode("LIT_REVCONF_TXT_FATCADTLS_EIN"));
+                $('#' + rvwScrId + 'docNumTxt').text(ApzCOB.getDescfromLitCode("LIT_REVCONF_TXT_FATCADTLS_EIN"));
+            }*/
+            $('#' + rvwScrId + 'documentNumber').text(documentNumber);
+        } else {
+            $('#' + rvwScrId + 'nationalityTxt').text(ApzCOB.getDescfromLitCode("LIT_REVCONF_TXT_FATCADTLS_NON_US_PERSON"));
+            $('#' + rvwScrId + 'wNineDetRow').addClass('sno');
+        }
+    }
+}
+apz.app.ReviewConfirm.crsDetails = function() {
+    apz.data.scrdata.RevCof__IPaintCrsDetails_Res = [];
+    if (!apz.isNull(gApzCOB.requestNodes.crsDetailsList) && gApzCOB.requestNodes.crsDetailsList.length > 0) {
+        var index = gApzCOB.requestNodes.crsDetailsList.findIndex(function(e) {
+            return e.custDtlId === window.latestcustDtlId
+        });
+        var crsPayload = gApzCOB.requestNodes.crsDetailsList.length === 1 ? gApzCOB.requestNodes.crsDetailsList[0].payload : gApzCOB.requestNodes
+            .crsDetailsList[index].payload
+        //  var crsPayload = gApzCOB.requestNodes.crsDetailsList;
+        if (crsPayload.otherCountryTaxResidant === 'Y') {
+            $('#' + rvwScrId + 'resTxt').text(ApzCOB.getDescfromLitCode("LIT_REVCONF_TXT_CARDDTLS_YES"));
+            $('#' + rvwScrId + 'taxDetRow').removeClass('sno');
+            if (crsPayload.taxDetailsList.length > 0) {
+                for (var k = 0; k < crsPayload.taxDetailsList.length; k++) {
+                    var newObj = {};
+                    newObj.countryResidence = crsPayload.taxDetailsList[k].country;
+                    newObj.tinType = crsPayload.taxDetailsList[k].tinType;
+                    newObj.tinNumber = crsPayload.taxDetailsList[k].tin;
+                    newObj.remark = crsPayload.taxDetailsList[k].remarks;
+                    newObj.reason = crsPayload.taxDetailsList[k].reason;
+                    apz.data.scrdata.RevCof__IPaintCrsDetails_Res.push(newObj);
+                    apz.data.loadData("IPaintCrsDetails", apz.currAppId);
+                }
+            }
+        } else {
+            $('#' + rvwScrId + 'resTxt').text(ApzCOB.getDescfromLitCode("LIT_REVCONF_TXT_CARDDTLS_NO"));
+            $('#' + rvwScrId + 'taxDetRow').addClass('sno');
+        }
+    }
+}
+apz.app.ReviewConfirm.bankFac = function() {
+    if (!apz.isNull(gApzCOB.requestNodes.bankingFacilityList) && gApzCOB.requestNodes.bankingFacilityList.length > 0) {
+        bankFacilityPayload = gApzCOB.requestNodes.bankingFacilityList[0].payload;
+        apz.app.ReviewConfirm.LoadBankingFacServices();
+        /*$('#' + rvwScrId + 'ib').text(bankFacilityPayload.ibRequired === "Y" ? "Yes" : "No")
+        $('#' + rvwScrId + 'mb').text(bankFacilityPayload.mbRequired === "Y" ? "Yes" : "No");
+        $('#' + rvwScrId + 'sms').text(bankFacilityPayload.smsAlertsRequired === "Y" ? "Yes" : "No")
+        $('#' + rvwScrId + 'estatement').text(bankFacilityPayload.eStmtRequired === "Y" ? "Yes" : "No")
+        $('#' + rvwScrId + 'passbook').text(bankFacilityPayload.passBookRequired === "Y" ? "Yes" : "No")
+        $('#' + rvwScrId + 'chequebook').text(bankFacilityPayload.chequeBookRequired === "Y" ? "Yes" : "No")
+        $('#' + rvwScrId + 'debitcard').text(bankFacilityPayload.debitCardRequired === "Y" ? "Yes" : "No")
+        $('#' + rvwScrId + 'branchNAme').text(apz.isNull(bankFacilityPayload.branchName) ? "---" : bankFacilityPayload.branchName);
+        $('#' + rvwScrId + 'branchAdd').text(apz.isNull(bankFacilityPayload.branchAddress) ? "---" : bankFacilityPayload.branchAddress);*/
+        $("#RevCof__ReviewConfirm__Checkbookleaves").removeClass('sno');
+        $('#' + rvwScrId + 'chequebook').text(bankFacilityPayload.chequeBookRequired === "Y" ? "Yes" : "No")
+        var lv = {
+            fieldName: 'BankFacChequeBookLeaves',
+            fieldDivId: [rvwScrId + 'Checkbookleaves']
+        };
+        ApzCOB.ConfigureFields([lv], 'CONFIRMATION', 'CONFIRMATION');
+        gApzCOB.requestNodes.bankingFacilityList[0].payload.chequeBookRequired === "Y" ? $("#RevCof__ReviewConfirm__leaves").text(gApzCOB
+            .requestNodes.bankingFacilityList[0].payload.noOfChequeLeaves) : $("#RevCof__ReviewConfirm__Checkbookleaves").addClass('sno')
+        if (bankFacilityPayload.debitCardRequired !== 'Y') {
+            $('#' + rvwScrId + 'RevCardNameDiv').addClass('sno')
+        } else {
+            $('#' + rvwScrId + 'RevCardNameDiv').removeClass('sno')
+            $('#' + rvwScrId + 'nameCard').text(apz.isNull(bankFacilityPayload.nameOnCard) ? "---" : bankFacilityPayload.nameOnCard);
+        }
+    }
+}
+apz.app.ReviewConfirm.uploadDocs = function(iSingle) {
+    finalimgdata = [];
+    allFileNames = [];
+    window.applicationDocumentsCount = 0;
+    apz.data.scrdata.RevCof__IPaintDocs_Res = {}
+    //var data = gApzCOB.requestNodes.applicationDocumentsWrapperList[0]["applicationDocumentsList"];
+    if (!apz.isNull(gApzCOB.requestNodes.applicationDocumentsWrapperList) && gApzCOB.requestNodes.applicationDocumentsWrapperList.length !== 0) {
+        gApzCOB.requestNodes.applicationDocumentsWrapperList[0].applicationDocumentsList = ApzCOB.sortDocuments(gApzCOB.requestNodes.applicationDocumentsWrapperList[0]?.applicationDocumentsList);
+        let responseDocData = gApzCOB.requestNodes.applicationDocumentsWrapperList[0].applicationDocumentsList;
+        let filteredDocsData = [];
+        if (currTab === "Applicant") {
+            filteredDocsData = responseDocData.filter(docData => parseInt(docData.custDtlId) === parseInt(gApzCOB.userDetails.custDtlId));
+        } else {
+            filteredDocsData = responseDocData.filter(docData => parseInt(docData.custDtlId) === parseInt(gApzCOB.userDetails
+                .CoApplicantCustomerId));
+        }
+        allDocTypes = [];
+        allAppDocID = [];
+        if (filteredDocsData.length > 0) {
+            $.each(filteredDocsData, function(i, k) {
+                // var condition = !apz.isNull(window.latestcustDtlId) ? window.latestcustDtlId === gApzCOB.requestNodes.applicationDocumentsWrapperList[
+                //     0]["applicationDocumentsList"][i].custDtlId : true;
+                //  if (condition) {
+                window.applicationDocumentsCount++;
+                fileName = k.payload.documentFileName
+                allFileNames.push(fileName);
+                if (k.payload.screenId === "KYCVerification" && k.payload.docSide === 'Front') {
+                    allDocTypes.push('National ID Front');
+                } else if (k.payload.screenId === "KYCVerification" && k.payload.docSide === 'Back') {
+                    allDocTypes.push('National ID Back');
+                } else if (k.payload.docSide === 'Photo' || k.payload.docSide === 'Sign') {
+                    allDocTypes.push(k.payload.docSide);
+                } else if (k.payload.documentType === 'AddressProof' || k.payload.documentType === 'IdentityProof') {
+                    allDocTypes.push(k.payload.documentName + ' ' + k.payload.docSide);
+                } else if (k.payload.documentType === 'OtherDocs') {
+                    allDocTypes.push(k.payload.documentName);
+                } else {
+                    allDocTypes.push(k.payload.documentType.replaceAll('_',' '));
+                     allAppDocID.push(k.appDocId);
+                }
+                // }
+            })
+        }
+    }
+    apz.app.ReviewConfirm.LoadDownloadDocForWeb();
+    /*if (apz.deviceType === 'WEB') {
+        docCallBackCounter = 0;
+        apz.app.ReviewConfirm.downloadFileFromserver(0);
+    } else {
+        $('#RevCof__IPaintDocs__o__RevCof__IPaintDocs_Res__docs_0').parent().parent().addClass('sno');
+        apz.app.ReviewConfirm.paintDocNames(allDocTypes);
+    }*/
+}
+apz.app.ReviewConfirm.paintDocNames = function(aDT) {
+    apz.data.scrdata.RevCof__IPaintDocs_Res = [];
+    aDT.forEach(function(e, i) {
+        apz.data.scrdata.RevCof__IPaintDocs_Res.push({
+            'docs': '',
+            'docname': e,
+             'appDocId': allAppDocID[i]
+        });
+    });
+    apz.data.loadData("IPaintDocs", apz.currAppId);
+};
+apz.app.ReviewConfirm.downloadFileFromserver = function(fileCounter) {
+    /*if(gApzCOB.mainProductGroupCode === 'DEPOSIT' || gApzCOB.mainProductGroupCode === 'LOAN'){
+        var applnId = (!gApzCOB.ExistingCustomer) ? gApzCOB.relatedApplicationId : gApzCOB.userDetails.applicationId;
+        gApzCOB.userDetails.applicationId = applnId;
+    }*/
+    if (apz.isNull(fileCounter)) {
+        apz.startLoader();
+    }
+    var obj = {
+        "docname": fileName
+    };
+    tempFileArr.push(obj);
+    //var flname = allFileNames[fileCounter];
+    var json = {
+        "destinationPath": "",
+        "filePath": (gApzCOB.requestNodes.appId).concat("/").concat(gApzCOB.product).concat("/").concat(gApzCOB.userDetails.applicationId),
+        "sessionReq": "N" //Y or N
+    };
+    json.destinationPath = "docs";
+    json.fileName = apz.isNull(fileCounter) ? fileName : allFileNames[fileCounter];
+    json.base64 = "Y";
+    json.filePath = (gApzCOB.requestNodes.appId).concat("/").concat(gApzCOB.product).concat("/").concat(gApzCOB.userDetails.applicationId);
+    json.id = "";
+    json.callBack = apz.isNull(fileCounter) ? apz.app.ReviewConfirm.viewDocMBCB : apz.app.ReviewConfirm.downloadFileFromserverCB;
+    apz.startLoader();
+    setTimeout(() => {
+        apz.ns.downloadFile(json);
+    }, 1000)
+};
+/**** Callback function will be called only if bsae64 image is requested *********/
+apz.app.ReviewConfirm.downloadFileFromserverCB = function(params) {
+    if (!apz.isNull(params.base64)) {
+        var obj = {
+            "docs": params.base64,
+            "docname": allDocTypes[docCallBackCounter]
+        };
+        finalimgdata.push(obj);
+    }
+    if (docCallBackCounter === window.applicationDocumentsCount) {
+        apz.stopLoader();
+        apz.data.scrdata.RevCof__IPaintDocs_Res = finalimgdata;
+        apz.data.loadData("IPaintDocs", apz.currAppId);
+        docCallBackCounter = 0;
+    } else {
+        if (finalimgdata.length < window.applicationDocumentsCount) {
+            docCallBackCounter++;
+            apz.app.ReviewConfirm.downloadFileFromserver(docCallBackCounter);
+        } else {
+            apz.stopLoader();
+            if (finalimgdata.length === window.applicationDocumentsCount) {
+                apz.data.scrdata.RevCof__IPaintDocs_Res = finalimgdata;
+                apz.data.loadData("IPaintDocs", apz.currAppId);
+                docCallBackCounter = 0;
+            }
+        }
+    }
+};
+apz.app.ReviewConfirm.viewDocMB = function(pthis) {
+    fileName = gApzCOB.requestNodes.applicationDocumentsWrapperList[0]["applicationDocumentsList"][Number($("#" + pthis.id).attr('rowno'))]
+        .payload.documentFileName;
+    let lobj = gApzCOB.requestNodes.applicationDocumentsWrapperList[0]["applicationDocumentsList"][Number($("#" + pthis.id).attr('rowno'))]
+        .payload;
+        window.ImageLocationDetails = {
+                latitude: lobj.latitude || "",
+                longitude: lobj.longitude || "",
+                uploadedTs: lobj.uploadedTs || "",
+                documentFileName: lobj.documentFileName || ""
+            }; 
+    //var data = gApzCOB.requestNodes.applicationDocumentsWrapperList[0]["applicationDocumentsList"];
+    apz.app.ReviewConfirm.downloadFileFromserver();
+};
+apz.app.ReviewConfirm.viewDocMBCB = function(param) {
+    ApzCOB.toggleModal(rvwScrId + "viewUploadedFileModal");
+    $('#' + rvwScrId + 'mbImageView').attr('src', 'data:image/png;base64,' + param.base64);
+    let id = '#' + rvwScrId + 'mbImageView';
+    if (Object.keys(window.ImageLocationDetails).length > 0) {
+        apz.app.BaseScreens.paintImageLocationDetails(id, window.ImageLocationDetails);
+    }
+    apz.stopLoader();
+};
+apz.app.ReviewConfirm.paintApplicants = function() {
+    $('#' + rvwScrId + 'applicantNameList').removeClass('sno');
+    apz.data.scrdata.RevCof__IPaintJointNames_Res = [];
+    var tempName = '';
+    var custDet = inSessionStore.customerDetailsList;
+    if (custDet[0]["seqNumber"] === custDet.length) {
+        for (var i = custDet.length - 1; i >= 0; i--) {
+            tempName = {
+                'applicantName': custDet[i]['customerName'],
+                'id': apz.isNull(custDet[i]['custDtlId']) ? gApzCOB.userDetails.custDtlId : custDet[i]['custDtlId']
+            }
+            apz.data.scrdata.RevCof__IPaintJointNames_Res.push(tempName);
+        }
+    } else {
+        custDet.forEach(function(k, i) {
+            tempName = {
+                'applicantName': k.customerName,
+                'id': k.custDtlId === undefined ? gApzCOB.userDetails.custDtlId : k.custDtlId
+            }
+            apz.data.scrdata.RevCof__IPaintJointNames_Res.push(tempName);
+        })
+    }
+    apz.data.loadData('IPaintJointNames', 'RevCof');
+};
+apz.app.ReviewConfirm.getApplicantDetails = function(pthis) {
+    // $('#' + rvwScrId + 'applicantNameList .pri').children().removeClass('active');
+    $('#' + pthis.id).parent().parent().addClass('active');
+    window.dontReloadRC = true;
+    var rowNo = $('#' + pthis.id).attr('rowno');
+    var removeActive = (rowNo == 0) ? 1 : 0;
+    $(`#${rvwScrId}applicantNameList_row_${removeActive}`).removeClass('active');
+    $('#' + 'RevCof__ReviewConfirm__personalDetDiv').removeClass('active')
+    // var id = 'RevCof__IPaintJointNames__o__RevCof__IPaintJointNames_Res__applicantName_0'
+    // if (id == pthis.id) {
+    //     $('#' + rvwScrId + 'custTypeLabel').text(ApzCOB.getDescfromLitCode("LIT_MEMBER_TYPE"))
+    //     $('#' + rvwScrId + 'custIdLabel').text(ApzCOB.getDescfromLitCode("LIT_MEMBER_ID"))
+    //     $('#' + rvwScrId + 'custNameLabel').text(ApzCOB.getDescfromLitCode("LIT_MEMBER_NAME"))
+    // } else {
+    //     $('#' + rvwScrId + 'custTypeLabel').text(ApzCOB.getDescfromLitCode("LIT_CUSTOMER_TYPE"))
+    //     $('#' + rvwScrId + 'custIdLabel').text(ApzCOB.getDescfromLitCode("LIT_CUSTOMER_ID"))
+    //     $('#' + rvwScrId + 'custNameLabel').text(ApzCOB.getDescfromLitCode("LIT_CUSTOMER_NAME"))
+    // }
+    var curApplicantId = Number(apz.data.scrdata.RevCof__IPaintJointNames_Res[rowNo].id);
+    apz.app.ReviewConfirm.expandCollapse("collapse");
+    ApzCOB.FetchApplication(curApplicantId);
+};
+apz.app.ReviewConfirm.cardSevice = function() {
+    var imageData = {};
+    // //apz.data.scrdata.RevCof__IPaintImage_Res.imageNode = [];
+    // imageData = apz.data.scrdata.CardSe__IpaintFileUpload_Res.fileDetails;
+    // apz.data.scrdata.RevCof__IPaintImage_Res.imageNode = [];
+    var obj = {};
+    // obj.image = imageData[0].imgSrc
+    // apz.data.scrdata.RevCof__IPaintImage_Res.imageNode.push(obj);
+    // apz.data.loadData("IPaintImage", "RevCof");
+    if (gApzCOB.product === "CARDS") {
+        apz.setElmValue(rvwScrId + "ApproxElig", gApzCOB.userDetails.allCardInfo.currency + " " + ApzCOB.fn_FormatAmount(gApzCOB.userDetails
+            .allCardInfo.creditLimit));
+        apz.setElmValue(rvwScrId + "WithdrawLimit", gApzCOB.userDetails.allCardInfo.currency + " " + ApzCOB.fn_FormatAmount(gApzCOB.userDetails
+            .allCardInfo.withdrawalLimit));
+        apz.setElmValue(rvwScrId + "NameonCardReview", gApzCOB.userDetails.NameOnCard);
+        apz.setElmValue(rvwScrId + "SELCARDNAME_0", gApzCOB.userDetails.NameOnCard);
+        apz.setElmValue(rvwScrId + "SubProdcutName_0", gApzCOB.subProduct);
+        apz.setElmValue(rvwScrId + "ModeofDelivry", gApzCOB.userDetails.ModeofDelivry);
+        apz.data.scrdata.Select__IpaintProductDetails_Res.data.forEach(function(m, n) {
+            if (apz.data.scrdata.Select__IpaintProductDetails_Res.data[n].productCode === gApzCOB.productCode) {
+                apz.setElmValue(rvwScrId + "Feature1", apz.data.scrdata.Select__IpaintProductDetails_Res.data[n].value[0]);
+                apz.setElmValue(rvwScrId + "Feature2", apz.data.scrdata.Select__IpaintProductDetails_Res.data[n].value[1]);
+            }
+        })
+        imageData = apz.data.scrdata.CardSe__IpaintFileUpload_Res.fileDetails;
+        apz.data.scrdata.RevCof__IPaintImage_Res = [];
+        if (!apz.isNull(imageData)) {
+            obj = {};
+            obj.image = imageData[0].imgSrc
+            apz.data.scrdata.RevCof__IPaintImage_Res.push(obj);
+            apz.data.loadData("IPaintImage", "RevCof");
+        } else {
+            obj = {};
+            obj.image = SelectedCardThemeName
+            apz.data.scrdata.RevCof__IPaintImage_Res.push(obj);
+            apz.data.loadData("IPaintImage", "RevCof");
+        }
+    }
+};
+apz.app.ReviewConfirm.paindetcardSevice = function() {
+    if (gApzCOB.requestNodes.cardDetails.currency === undefined || gApzCOB.requestNodes.cardDetails.creditLimit === undefined || gApzCOB
+        .requestNodes.cardDetails.withdrawalLimit === undefined) {
+        apz.setElmValue(rvwScrId + "ApproxElig", gApzCOB.userDetails.allCardInfo.currency + " " + ApzCOB.fn_FormatAmount(gApzCOB.userDetails
+            .allCardInfo.creditLimit));
+        apz.setElmValue(rvwScrId + "WithdrawLimit", gApzCOB.userDetails.allCardInfo.currency + " " + ApzCOB.fn_FormatAmount(gApzCOB.userDetails
+            .allCardInfo.withdrawalLimit));
+    } else {
+        apz.setElmValue(rvwScrId + "ApproxElig", gApzCOB.requestNodes.cardDetails.currency + " " + ApzCOB.fn_FormatAmount(gApzCOB.requestNodes
+            .cardDetails.creditLimit));
+        apz.setElmValue(rvwScrId + "WithdrawLimit", gApzCOB.requestNodes.cardDetails.currency + " " + ApzCOB.fn_FormatAmount(gApzCOB.requestNodes
+            .cardDetails.withdrawalLimit));
+    }
+    apz.setElmValue(rvwScrId + "NameonCardReview", gApzCOB.requestNodes.cardDetails.nameOnCard);
+    apz.setElmValue(rvwScrId + "SELCARDNAME_0", gApzCOB.requestNodes.cardDetails.nameOnCard);
+    apz.setElmValue(rvwScrId + "SubProdcutName_0", gApzCOB.requestNodes.cardDetails.cardName);
+    //apz.setElmValue(rvwScrId + "ModeofDelivry", gApzCOB.userDetails.ModeofDelivry);
+    apz.data.scrdata.Select__IpaintProductDetails_Res.data.forEach(function(m, n) {
+        if (apz.data.scrdata.Select__IpaintProductDetails_Res.data[n].productCode === gApzCOB.productCode) {
+            apz.setElmValue(rvwScrId + "Feature1", apz.data.scrdata.Select__IpaintProductDetails_Res.data[n].value[0]);
+            apz.setElmValue(rvwScrId + "Feature2", apz.data.scrdata.Select__IpaintProductDetails_Res.data[n].value[1]);
+        }
+    })
+};
+apz.app.ReviewConfirm.downloadFileFromserverforcards = function() {
+    var filepth = '';
+    var json = {
+        "destinationPath": "",
+        "filePath": (gApzCOB.requestNodes.appId).concat("/").concat(gApzCOB.userDetails.applicationId),
+        "sessionReq": "N" //Y or N
+    };
+    if (gApzCOB.requestNodes.cardDetails.theme === "N") {
+        filepth = ('APZCOB').concat("/").concat(gApzCOB.product).concat("/").concat("DefaultImages");
+    } else {
+        filepth = (gApzCOB.requestNodes.appId).concat("/").concat(gApzCOB.product).concat("/").concat(gApzCOB.userDetails.applicationId);
+    }
+    json.destinationPath = "image";
+    json.fileName = gApzCOB.requestNodes.cardDetails.customTheme;
+    json.base64 = "Y";
+    json.filePath = filepth;
+    json.id = "";
+    json.callBack = apz.app.ReviewConfirm.downloadFileFromserverCBforcards;
+    apz.ns.downloadFile(json);
+};
+/**** Callback function will be called only if bsae64 image is requested *********/
+apz.app.ReviewConfirm.downloadFileFromserverCBforcards = function(params) {
+    var finalimgdataforc = []
+    if (!apz.isNull(params.base64)) {
+        var obj = {
+            "image": params.base64,
+            // "docname": allDocTypes[docCallBackCounter]
+        };
+        //docCallBackCounter++;
+        finalimgdataforc.push(obj);
+        apz.data.scrdata.RevCof__IPaintImage_Res = finalimgdataforc;
+        apz.data.loadData("IPaintImage", apz.currAppId);
+    }
+};
+apz.app.ReviewConfirm.paintLoanDetails = function() {
+    if (!apz.isObjectEmpty(gApzCOB.requestNodes.loanDetails)) {
+        $('#' + rvwScrId + 'LoanDetails').text(gApzCOB.subProduct + ' ' + 'Details');
+        var response = gApzCOB.requestNodes.loanDetails;
+        var loanRespDtls = gApzCOB.requestNodes.loanDetails.payload;
+        $('#' + rvwScrId + 'LoanAmount').text(ApzCOB.GetCommonCodes("PRIMARYCURRENCY") + " " + ApzCOB.fn_FormatAmount(response.loanAmount));
+        $('#' + rvwScrId + 'TenureinMonths').text(response.tenure);
+        $('#' + rvwScrId + 'rateofInterest').text(response.roi + '%');
+        $('#' + rvwScrId + 'purposeLoan').text(loanRespDtls.loanPurpose);
+        var subCategoryTxt = (apz.isNull(loanRespDtls.subCategory) ? "---" : loanRespDtls.subCategory);
+        var freqOfRepay = (apz.isNull(loanRespDtls.frequencyOfRepayment) ? "---" : loanRespDtls.frequencyOfRepayment);
+        if (subCategoryTxt == 'Please Select') {
+            $('#' + rvwScrId + 'subCategory').text("---");
+        } else {
+            $('#' + rvwScrId + 'subCategory').text(subCategoryTxt);
+        }
+        $('#' + rvwScrId + 'modeDisbursement').text(apz.isNull(loanRespDtls.modeOfDisbursement) ? "---" : loanRespDtls.modeOfDisbursement);
+        $('#' + rvwScrId + 'modeSecurity').text(apz.isNull(loanRespDtls.modeOfSecurity) ? "---" : loanRespDtls.modeOfSecurity);
+        if (freqOfRepay == 'Please Select') {
+            $('#' + rvwScrId + 'freqOfRepayment').text("---");
+        } else {
+            $('#' + rvwScrId + 'freqOfRepayment').text(freqOfRepay);
+        }
+        $(`#${rvwScrId}commLanguage`).text(apz.isNull(loanRespDtls.language) ? "---" : loanRespDtls.language);
+        //$('#' + rvwScrId + 'monthlyEMI').text(ApzCOB.GetCommonCodes("PRIMARYCURRENCY") + " " + ApzCOB.fn_FormatAmount(response.monthlyEmi));
+    }
+    if (gApzCOB.product === 'LOAN' && window.pendingApplication) {
+        if (gApzCOB.requestNodes.customerDetailsList.length === 1) {
+            index = 0;
+        } else {
+            index = 1;
+        }
+    }
+    let cibilDtls = gApzCOB.requestNodes.cibilDetailsWrapperList.length === 1 ? gApzCOB.requestNodes.cibilDetailsWrapperList[0].cibilDetails
+        .payload : gApzCOB.requestNodes.cibilDetailsWrapperList[index].cibilDetails.payload;
+        cbSummaryArr.forEach(el => ApzCOB.beautifyCbDtlsSummary(el, cibilDtls));
+    if (!apz.isNull(cibilDtls.finalDecision)) {
+        // var cibiDtls = cibilDtls[0];
+        $('#' + rvwScrId + 'bureauName').text(cibilDtls.bureauName);
+        $('#' + rvwScrId + 'hitNohit').text(cibilDtls.hitNohit);
+        $('#' + rvwScrId + 'cbScore').text(cibilDtls.cbScore);
+        $('#' + rvwScrId + 'cbROI').text(cibilDtls.roi ? `${cibilDtls.roi}%` : '');
+        $('#' + rvwScrId + 'totalIndebtedness').text(cibilDtls.totIndebtness);
+        $('#' + rvwScrId + 'lastSixtyMonths').text(cibilDtls.NoParInLastMonths);
+        $('#' + rvwScrId + 'dpdLastMonth').text(cibilDtls.maxDpdInLastMonths);
+        $('#' + rvwScrId + 'suitWrittenoff').text(cibilDtls.writeoffSuitFiledFlag);
+        $('#' + rvwScrId + 'overlapMMFL').text(cibilDtls.overlapWithMmfl);
+        $('#' + rvwScrId + 'overdueAmount').text(cibilDtls.overdueAmt);
+        $('#' + rvwScrId + 'writtenoffAmt').text(cibilDtls.writtenOff);
+        $('#' + rvwScrId + 'finalDecision').text(cibilDtls.finalDecision);
+        $('#' + rvwScrId + 'eligbAmount').text(cibilDtls.eligibleAmt);
+        $('#' + rvwScrId + 'runningEmi').text(apz.isNull(cibilDtls.foir) ? "---" : cibilDtls.foir);
+        $('#' + rvwScrId + 'caglDpd').text(apz.isNull(cibilDtls.caglDpdFlag) ? "---" : cibilDtls.caglDpdFlag);
+        $(`#${rvwScrId}individualIndebtness`).text(apz.isNull(cibilDtls.individualIndebtness) ? "---" : cibilDtls.individualIndebtness);
+        if (!apz.isNull(cibilDtls.bureauName)) {
+            if (cibilDtls.bureauName === "BRE") {
+                $('#' + rvwScrId + 'suitWrittenoff').text(cibilDtls.writeoffSuitFiledFlag);
+                ['hitNohitDiv', 'runningEmiDiv'].hide();
+                ['individualIndebtDiv'].show();
+                if (gApzCOB.currentApplicant <= 1) {
+                    ['totalIndebtednessDiv'].hide();
+                } else {
+                    ['totalIndebtednessDiv'].show();
+                }
+            } else {
+                ['hitNohitDiv', 'runningEmiDiv', 'totalIndebtednessDiv'].show();
+                ['individualIndebtDiv'].hide();
+            }
+        }
+    }
+}
+apz.app.ReviewConfirm.paintEMIDetails = function() {
+    if (gApzCOB.product === 'LOAN') {
+        if (!apz.isNull(gApzCOB.requestNodes.loanDetails.autoEmiAccount)) {
+            $('#' + rvwScrId + 'EMIAmount').text(ApzCOB.GetCommonCodes("PRIMARYCURRENCY") + " " + ApzCOB.fn_FormatAmount(LOAN_OBJ.monthlyEmi));
+            $('#' + rvwScrId + 'EMIDebitDate').text(LOAN_OBJ.emiDate);
+            $('#' + rvwScrId + 'EMIFromAccount').text(LOAN_OBJ.autoEmiAccount);
+        }
+    }
+}
+apz.app.ReviewConfirm.paintCreditDetails = function() {
+    if (gApzCOB.product === 'LOAN') {
+        if (!apz.isNull(gApzCOB.requestNodes.loanDetails.loanCrAccount)) {
+            $('#' + rvwScrId + 'CreditAccount').text(LOAN_OBJ.loanCrAccount);
+        }
+    }
+}
+apz.app.ReviewConfirm.LoadCardsFunctions = function() {
+    if (gApzCOB.product === "CARDS") {
+        if (window.pendingApplication) {
+            apz.app.ReviewConfirm.downloadFileFromserverforcards();
+            apz.app.ReviewConfirm.paindetcardSevice();
+        } else {
+            apz.app.ReviewConfirm.cardSevice();
+        }
+    }
+}
+apz.app.ReviewConfirm.LoadDocumentTypes = function() {
+    if (documentName === 'SSN') {
+        $('#' + rvwScrId + 'documentType').text(ApzCOB.getDescfromLitCode("LIT_REVCONF_TXT_FATCADTLS_SSN"));
+        $('#' + rvwScrId + 'docNumTxt').text(ApzCOB.getDescfromLitCode("LIT_REVCONF_TXT_FATCADTLS_SSN"));
+    } else if (documentName === 'employerIdNum') {
+        $('#' + rvwScrId + 'documentType').text(ApzCOB.getDescfromLitCode("LIT_REVCONF_TXT_FATCADTLS_EIN"));
+        $('#' + rvwScrId + 'docNumTxt').text(ApzCOB.getDescfromLitCode("LIT_REVCONF_TXT_FATCADTLS_EIN"));
+    }
+}
+apz.app.ReviewConfirm.LoadDownloadDocForWeb = function() {
+    if (apz.deviceType === 'WEB') {
+        docCallBackCounter = 0;
+        apz.app.ReviewConfirm.downloadFileFromserver(0);
+    } else {
+        $('#RevCof__IPaintDocs__o__RevCof__IPaintDocs_Res__docs_0').parent().parent().addClass('sno');
+        apz.app.ReviewConfirm.paintDocNames(allDocTypes);
+    }
+}
+apz.app.ReviewConfirm.LoadBankingFacServices = function() {
+    $('#' + rvwScrId + 'ib').text(bankFacilityPayload.ibRequired === "Y" ? "Yes" : "No")
+    $('#' + rvwScrId + 'mb').text(bankFacilityPayload.mbRequired === "Y" ? "Yes" : "No");
+    $('#' + rvwScrId + 'sms').text(bankFacilityPayload.smsAlertsRequired === "Y" ? "Yes" : "No")
+    $('#' + rvwScrId + 'estatement').text(bankFacilityPayload.eStmtRequired === "Y" ? "Yes" : "No")
+    $('#' + rvwScrId + 'passbook').text(bankFacilityPayload.passBookRequired === "Y" ? "Yes" : "No")
+    $('#' + rvwScrId + 'chequebook').text(bankFacilityPayload.chequeBookRequired === "Y" ? "Yes" : "No")
+    $('#' + rvwScrId + 'debitcard').text(bankFacilityPayload.debitCardRequired === "Y" ? "Yes" : "No")
+    $('#' + rvwScrId + 'branchNAme').text(apz.isNull(bankFacilityPayload.branchName) ? "---" : bankFacilityPayload.branchName);
+    $('#' + rvwScrId + 'branchAdd').text(apz.isNull(bankFacilityPayload.branchAddress) ? "---" : bankFacilityPayload.branchAddress);
+}
+apz.app.ReviewConfirm.applicationEdit = function(stageName, divName) {
+    window.isRevAndConfEdit = true;
+    if (currTab === "Applicant") {
+        gApzCOB.currentApplicant = 1;
+    } else {
+        gApzCOB.currentApplicant = 2
+    }
+    window.isRevAndConfEditCustType = gApzCOB.currentApplicant;
+    let currentStage = ApzCOB.getStageNoForEdit(stageName);
+    if (!apz.isNull(CURRENT_STAGE_NO)) {
+        CURRENT_STAGE_NO = parseInt(currentStage);
+        window.PREV_STAGE_NO = CURRENT_STAGE_NO - 1;
+        window.STAGE_NO = CURRENT_STAGE_NO + 1;
+        window.CURRENT_STAGE_NAME = STAGES[CURRENT_STAGE_NO - 1].split('~')[0];
+        if (!apz.isNull(STAGES[CURRENT_STAGE_NO])) {
+            window.NEXT_STAGE_NAME = STAGES[CURRENT_STAGE_NO].split('~')[0];
+        } else {
+            window.NEXT_STAGE_NAME = STAGES[CURRENT_STAGE_NO - 1].split('~')[0];
+        }
+        ApzCOB.editlaunch(stageName, divName, true, parseInt(CURRENT_STAGE_NO));
+    } else {
+        ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_EDIT_FAILED"), "E");
+    }
+}

@@ -1,0 +1,98 @@
+var searchLeadId = 'Widget__SearchLeads__',
+    searchVal = "";
+apz.app.onLoad_SearchLeads = function() {
+};
+apz.app.onShown_SearchLeads = function() {
+    $(`#${searchLeadId}noRecordsRow`).addClass('sno');
+    $(`#${searchLeadId}ct_lst_1`).addClass('sno');
+    $(`#${searchLeadId}SearchLeads`).addClass('sno');
+    ApzCOB.setMinMaxLength([{
+        'fieldName': 'SearchID',
+        'fieldId': searchLeadId + 'searchInput'
+    }]);
+};
+apz.app.SearchLeads.searchLeadsById = function() {
+    let searchVal = $(`#${searchLeadId}searchInput`).val();
+    let leadsList = [];
+    if (apz.app.SearchLeads.validateSearch(searchVal)) {
+        for (let i = 0; i < leads.length; i++) {
+            let elem = {};
+            if (searchVal == leads[i].map.customerId || searchVal == leads[i].map.kendraId) {
+                elem.custName = leads[i].map.fullName;
+                elem.customerID = leads[i].map.customerId;
+                elem.kendraID = leads[i].map.kendraId;
+                leadsList.push(elem);
+            }
+        }
+        if (leadsList.length > 0) {
+            apz.data.scrdata.Widget__IPaintWidgetLeads_Res = {};
+            apz.data.scrdata.Widget__IPaintWidgetLeads_Res = leadsList;
+            apz.data.loadData('IPaintWidgetLeads', 'Widget');
+            $(`#${searchLeadId}searchLeadImgRow`).addClass('sno');
+            $(`#${searchLeadId}findLeadLbl`).addClass('sno');
+            $(`#${searchLeadId}ct_lst_1`).removeClass('sno');
+            $(`#${searchLeadId}SearchLeads`).removeClass('sno');
+            $(`#${searchLeadId}noRecordsRow`).addClass('sno');
+        } else {
+            $(`#${searchLeadId}ct_lst_1`).addClass('sno');
+            $(`#${searchLeadId}SearchLeads`).addClass('sno');
+            $(`#${searchLeadId}noRecordsRow`).removeClass('sno');
+            $(`#${searchLeadId}searchLeadImgRow`).addClass('sno');
+            $("")
+        }
+    }
+}
+apz.app.SearchLeads.validateSearch = function(pval) {
+    if (pval == ''/*|| pval.length < 7*/) {
+        return false;
+    } else {
+        return true;
+    }
+}
+
+apz.app.SearchLeads.onClickSearchLeadsRow = function(pthis) {
+    let rowNo = $(pthis).attr('rowno');
+    let selIndexId = parseInt($('#Widget__IPaintWidgetLeads__o__Widget__IPaintWidgetLeads_Res__customerID_' + rowNo).text());
+    let selectedLeadInfo = leads.filter(function(item) {
+        return item.map.customerId == selIndexId;
+    })
+    gApzCOB.selLeadDtls = selectedLeadInfo[0].map;
+
+    let JointSupported = '';
+    let AccountHolderForLoan = '';
+    for (let i = 0; i < gApzCOB.CommonCodes.length; i++) {
+        if (gApzCOB.CommonCodes[i].paramName === 'LOANCASAJTACC') {
+            JointSupported = gApzCOB.CommonCodes[i].paramValue.split('~')[0]
+            AccountHolderForLoan = gApzCOB.CommonCodes[i].paramValue.split('~')[1]
+        }
+    }
+    if (JointSupported === 'Y') {
+        gApzCOB.NoOfJointHolder = AccountHolderForLoan;
+        apz.app.BaseScreens.paintApplicatonTypes()
+        apz.app.BaseScreens.defaultApplicationType();
+        ApzCOB.toggleModal(BaseScrId + 'applicationTypeModal');
+        $('#' + BaseScrId + 'continueBtn').attr("onclick", "").unbind("click");
+        $('#' + BaseScrId + 'continueBtn').attr("onclick", "apz.app.ApplicationList.onClickJointContinue()");
+        apz.stopLoader();
+        return;
+    } else {
+        gApzCOB.applicationType = JointAccount;
+        gApzCOB.currentApplicant = 1;
+        gApzCOB.noOfApplicants = 2;
+    }
+    window.ConfigureScrJson = ApzCOB.GetCommonCodes("LAUNCH", "LOAN_BO_ETB")["LAUNCH"];
+    window.STAGES = ApzCOB.GetCommonCodes("FUNCTIONSEQUENCE", "LOAN_BO_ETB")["FUNCTIONSEQUENCE"];
+    window.STAGE_NO = 3;
+    window.CURRENT_STAGE_NO = STAGE_NO - 1;
+    window.PREV_STAGE_NO = CURRENT_STAGE_NO - 1;
+    window.baseRow = STAGE_NO;
+    window.currRow = baseRow - 1;
+    window.prevRow = currRow - 1 === -1 ? 0 : currRow - 1;
+    window.CURRENT_STAGE_NAME = STAGES[CURRENT_STAGE_NO - 1].split('~')[0];
+    window.NEXT_STAGE_NAME = STAGES[CURRENT_STAGE_NO - 1].split('~')[0];
+    $(BaseScroll).addClass(SecondaryProduct);
+    $("#APZCBO__BaseScreens__sidebarController").addClass('sno');
+    let reqObj = {};
+    reqObj.memberId = gApzCOB.selLeadDtls.customerId;
+    ApzCOB.fetchExistingLoans(reqObj);
+};

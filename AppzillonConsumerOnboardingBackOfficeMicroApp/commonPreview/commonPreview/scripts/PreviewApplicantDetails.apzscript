@@ -1,0 +1,736 @@
+window.PreviewAppscrId = 'cmnPre__PreviewApplicantDetails__';
+var rpcOccupationsTab = [];
+var addrType = "personal",
+    subAddrType = "present";
+pcount = 0;
+window.PreviewApplicantDetailsStageDocuments = [];
+var custPhotos = [];
+var currentStageDocObj = {}
+var applImgObj = {};
+var DOC_INDEX = 0;
+var APPL_INDEX = 0;
+var RC_DOCUMENT_NAME = '';
+var custType = "Applicant";
+var queryStageID;
+var applicantImageId;
+window.insObj = {
+    ids : []
+};
+RPC_CURRENT_STAGE = "ReviewConfirm";
+RPC_CURRENT_STAGE_NO = 10;
+var selfEmployed = ["loanPurpose", "subCategory", "typeofbusiness", "natureOfOccupation", "employeeActivity","businessEmpStartDate", "businessEmpVintageYear", "organisationName", "businessPremiseOwnerShip", "freqOfIncome", "annualIncome", "otherSourceIncome", "otherSourceAnnualIncome", "streetVendor"];
+var salaried = ["typeofbusiness", "natureOfOccupation", "employeeActivity","businessEmpStartDate", "businessEmpVintageYear",  "organisationName","employmentProof", "freqOfIncome", "annualIncome", "otherSourceIncome", "otherSourceAnnualIncome"];
+var wageEarner = ["freqOfIncome", "annualIncome"];
+var labelChangeFields = {
+        "typeofbusiness": "Employer Entity",
+        "natureOfOccupation": "Nature of Employer",
+        "employeeActivity": "Employment Activity",
+        "businessEmpStartDate": "Employment Start date",
+        "businessEmpVintageYear": "Employment Vintage (Years)",
+        "organisationName": "Name of Employer",
+        "employmentProof": "Employment Proof"
+    };
+var fieldHide = {
+    "Salaried":salaried,
+    "Self Employed":selfEmployed,
+    "Wage earner": wageEarner
+};
+apz.app.onLoad_PreviewApplicantDetails = function() {
+    // $('body').addClass(' unati crdas dbkit ');
+}
+apz.app.onShown_PreviewApplicantDetails = function () {
+    window.isRpcPreviewEnabled = true;
+    window.rpcStepperStatus = [];
+    window.presentStageFromPreview = 'NewDashBoard';
+    apz.store("isApplicationPreview", true);
+    if (RPC_ALL_STAGE_QUERIES.length === 0 || RPC_ALL_STAGE_FIELDS.length === 0) ApzCOB.fetchRpcStageFields("ReviewConfirm");
+    ApzCOB.fetchRpcOccupationTabs();
+    apz.app.PreviewApplicantDetails.paintStages();
+}
+
+
+
+apz.app.PreviewApplicantDetails.paintStages = function() {
+    gApzCOB.rpcStages = Object.values(RPC_STAGES);
+if (!RPC_ALL_STAGE_FIELDS || Object.keys(RPC_ALL_STAGE_FIELDS).length === 0) return;
+    let parsedStageFields = RPC_ALL_STAGE_FIELDS.map(stage => ({
+        ...stage,
+        stage_dtls: JSON.parse(stage.stage_dtls),
+        queries: JSON.parse(stage.queries)
+    }));
+    let selectElementID = "cmnPre__PreviewApplicantDetails__RpcStage_0";
+    let parentDiv = $("#cmnPre__PreviewApplicantDetails__previewrow");
+    if (gApzCOB.rpcStages.length > 0) {
+        gApzCOB.rpcStages.forEach((stage, index) => {
+            if (stage.id === 10) return;
+            let currentIndex = index + 1;
+            let newId = ApzCOB.cloneDashboardDivs(selectElementID, parentDiv, currentIndex);
+            $(`#${newId} .stageLabel label`).text(stage.name);
+            $(`#${newId}`).removeClass("sno");
+            if([2, 4, 5, 7].includes(stage.id)) ApzCOB.mapAddrTypeforStageId(stage.id);
+            let subMenu = stage.subMenu || [];
+            if (subMenu.length > 0) {
+                let subSelectElementID = "cmnPre__PreviewApplicantDetails__AppDetail_SubStage_0";
+                let subParentDiv = $(`#${newId}`);
+                subMenu.forEach((subStage, subIndex) => {
+                    window.occType = '';
+                    if([6,7].includes(stage.id) && subMenu.length === 1) {
+                        let subStageId= ApzCOB.setcustTypeforOccuStages(subMenu[0]);
+                        window.occType = subStage;
+                        subStage = (subStageId === 1) ? 'Applicant' : 'Co-Applicant';
+                        subIndex = --subStageId;
+                    } else if([6,7].includes(stage.id) && subMenu.length === 2){
+                        window.occType = subStage;
+                        subStage = (subIndex === 0) ? 'Applicant' : 'Co-Applicant';
+                    }
+                    let subMenuID = subStage === 'Applicant' ? 1 : 2;
+                    let newSubStage = subStage;
+                    let subCurrentIndex = subIndex + 1;
+                    let subNewId = ApzCOB.cloneDashboardDivs(subSelectElementID, subParentDiv, subCurrentIndex);
+                    let imageId = $(`#${newId} #${subNewId} .rcImgClass img`);
+                    imageId.attr('id', `rpcRevCnfmImg_${stage.id}_${subCurrentIndex}`);
+                    imageId.addClass("loader");
+                    let documentId = $(`#${newId} #${subNewId} .rcDocumentName p`);
+                    documentId.attr('id', `rpcRevCnfDoc_${stage.id}_${subCurrentIndex}`)
+                    applicantImageId = $(`#${newId} #${subNewId} .applicantImgClass img`);
+                    applicantImageId.attr('id', `rpcRevCnfappl_${stage.id}_${subCurrentIndex}`)
+                    applicantImageId.addClass("loader")
+                    let coApplicantImgId = $(`#${newId} #${subNewId} .applicantImgClass img`);
+                    coApplicantImgId.attr('id', `rpcRevCnfappl_${stage.id}_${subCurrentIndex}`)
+                    let nextButtonId = $(`#${newId} #${subNewId} .rcBtnNext button`);
+                    nextButtonId.attr('id', `rpcRevCnfNextBtn_${stage.id}_${subCurrentIndex}`);
+                    nextButtonId.attr("data-stage", stage.id);
+                    nextButtonId.attr("data-substage", subCurrentIndex);
+                    imageId.attr("docarray", 0);
+                    let prevButtonId = $(`#${newId} #${subNewId} .rcBtnPrv button`);
+                    prevButtonId.attr('id', `rpcRevCnfPrevBtn_${stage.id}_${subCurrentIndex}`);
+                    prevButtonId.attr("data-stage", stage.id);
+                    prevButtonId.attr("data-substage", subCurrentIndex);
+                    imageId.attr("docarray", 0);
+                    queryStageID = $(`#${newId} #${subNewId} .queryClass span`);
+                    queryStageID.attr('id', `cmnPre__PreviewApplicantDetails__AppDetail_queryStage_${stage.id}_${subCurrentIndex}`);
+                    $(`#${newId} #${subNewId}`).removeClass("sno");
+                    let stageStatus = ApzCOB.getStageStatus(stage.id,subMenuID);
+                    let subMenuElem = $(`#${newId} #${subNewId} .subStageLabel p span`);
+                    let svgTag = subMenuElem.parent().find('svg');
+                    let svgUseTag = svgTag.find('use');
+                    if(!apz.isNull(stageStatus)){
+                    svgUseTag.attr('xlink:href',`#${stageStatus}`);
+                    svgTag.removeClass('sno'); 
+                    } else {
+                       svgTag.addClass('sno'); 
+                    }
+                    subMenuElem.text(occType ? occType : subStage);
+                    if (subStage !== "Applicant") {
+                        newSubStage = "Co-App";
+                    }
+                    if (stage.id != 1) {
+                        $(applicantImageId).parents(".applicant-img").addClass("sno")
+                    }
+                    if (stage.id !== 1) {
+                        $(`#${newId} #${subNewId} #${'cmnPre__PreviewApplicantDetails__el_img_7_ul'}`).addClass("sno");
+                    }
+                    window.insObj = {
+                        ids: []
+                    };
+                    parsedStageFields.sort((a, b) => a.id - b.id);
+                    parsedStageFields.forEach(item => {
+                        if (item.stage_name === stage.screenName) {
+                            let fldSelectElementID = "cmnPre__PreviewApplicantDetails__AppDetail_FeildStage_0";
+                            let fldParentDiv = $(`#${newId} #${subNewId} #cmnPre__PreviewApplicantDetails__AppDetail_FeildStage_col`);
+                            Object.keys(item.stage_dtls).forEach(applicantType => {
+                                if (applicantType === newSubStage) {
+                                    let rcEditApplicantType = applicantType;
+                                    if(rcEditApplicantType === 'Applicant'){
+                                        rcEditApplicantType = 'A'
+                                    } else if(rcEditApplicantType === 'Co-App' || rcEditApplicantType === 'Co-Applicant'){
+                                        rcEditApplicantType = 'C'
+                                    }
+                                    item.stage_dtls[applicantType].forEach((field, fieldIndex) => {
+                                        const [visibilityAttr, mandatoryAttr, editAttribute] = field
+                                            .fieldAttr.split("~");
+                                        if (visibilityAttr === 'Y') {
+                                            let fieldCurrentIndex = fieldIndex + 1;
+                                            let fieldNewId = ApzCOB.cloneDashboardDivs(fldSelectElementID,
+                                                fldParentDiv, fieldCurrentIndex);
+                                            $(`#${newId} #${subNewId} #${fieldNewId}`).removeClass("sno");
+                                            $(`#${newId} #${subNewId} #${fieldNewId} .fieldLabel label`)
+                                                .text(field.label);
+                                            fieldVal = ApzCOB.getPayloadData(field.fieldId, newSubStage,
+                                                stage.screenName);
+                                            $(`#${newId} #${subNewId} #${fieldNewId} .edited`).remove();
+                                            if (inSessionStore.hasOwnProperty('rpcStatDetails')) {
+                                                if (inSessionStore.rpcStatDetails.length > 0) {
+                                                    let rcEditedFields = inSessionStore.rpcStatDetails.filter(id => id.stageID === stage.id && id?.custType === rcEditApplicantType)
+                                                    if (typeof rcEditedFields !== 'undefined' && rcEditedFields?.length > 0) {
+                                                        rcEditedFields = rcEditedFields[0];
+                                                        if (rcEditedFields.editedFields.length > 0) {
+                                                            if (rcEditedFields.editedFields.includes(field.fieldId)) {
+                                                                let editSpan = '<span class="fieldEditedTag">Edited</span>';
+                                                                $(`#${newId} #${subNewId} #${fieldNewId}`).append(editSpan);
+                                                                $(`#${newId} #${subNewId} #${fieldNewId}`).addClass("rc-edited-field");
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            if (amtFields.includes(field.fieldId)) {
+                                                fieldVal = ApzCOB.formatIndianRupees(fieldVal);
+                                            }
+                                            if(field.fieldId === 'roi') fieldVal = fieldVal + '%';
+                                            $(`#${newId} #${subNewId} #${fieldNewId} #${'cmnPre__PreviewApplicantDetails__fldValue_0'}`).text(fieldVal || '---');
+                                            if (stage.id === 6) {
+                                                currOcc = (applicantType === 'Co-App') ? coAppOccupation : applicantOccupation;
+                                                if (!fieldHide[currOcc].includes(field.fieldId)) {
+                                                    $(`#${newId} #${subNewId} #${fieldNewId}`).addClass('sno');
+                                                } else if (currOcc === 'Salaried' && labelChangeFields[field.fieldId]) {
+                                                    $(`#${newId} #${subNewId} #${fieldNewId} .fieldLabel label`).text(labelChangeFields[field.fieldId]);
+                                                }
+                                            }
+                                            if (stage.id === 9) {
+                                                insObj.applType = applicantType;
+                                                if(insFields.includes(field.fieldId) && !insObj.ids.includes(field.fieldId)) insObj.ids.push(`#${newId} #${subNewId} #${fieldNewId}`);
+                                                if (field.fieldId === "insuranceReqd") insObj.applInsId = `#${newId} #${subNewId} #${fieldNewId} #${'cmnPre__PreviewApplicantDetails__fldValue_0'}`;
+                                                if (field.fieldId === "coApplicantInsurance" && applicantType !== 'Applicant') insObj.coApplInsId = `#${newId} #${subNewId} #${fieldNewId} #${'cmnPre__PreviewApplicantDetails__fldValue_0'}`;
+                                            }
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    });
+                    if (stage.id === 9) ApzCOB.insDataHandling(stage.id, insObj.applType, insObj.ids);
+                    if ([6, 7].includes(stage.id) && !apz.isNull(occType)) subStage = occType;
+                    apz.app.PreviewApplicantDetails.paintQueries(subStage, stage.id, subMenuID);
+                });
+            } else {
+                let subNewId = "cmnPre__PreviewApplicantDetails__AppDetail_SubStage_0";
+                if(stage.id === 3){
+                    newSubStage = "Co-App";
+                    $(`#${newId} #${subNewId} .subStageLabel p span`).text('Co-Applicant');
+                } else {
+                    newSubStage = "Applicant";
+                    $(`#${newId} #${subNewId} .subStageLabel p span`).text(newSubStage);
+                }
+                let imageId = $(`#${newId} .rcImgClass img`);
+                imageId.attr('id',`rpcRevCnfmImg_${stage.id}_1`)
+                imageId.addClass("loader");
+                applicantImageId = $(`#${newId} .applicantImgClass img`);
+                applicantImageId.attr('id', `rpcRevCnfappl_${stage.id}_1`)
+                applicantImageId.addClass("loader")
+                queryStageID = $(`#${newId} .queryClass span`);
+                queryStageID.attr('id', `RPC__PreviewApplicantDetails__AppDetail_queryStage_${stage.id}_1`);
+                $(queryStageID).parent().removeClass("sno");
+                let documentId = $(`#${newId} .rcDocumentName p`);
+                documentId.attr('id',`rpcRevCnfDoc_${stage.id}_1`)
+                let nextButtonId = $(`#${newId} .rcBtnNext button`);
+                nextButtonId.attr('id',`rpcRevCnfNextBtn_${stage.id}_1`)
+                nextButtonId.attr("data-stage",stage.id);
+                nextButtonId.attr("data-substage","1");
+                imageId.attr("docarray","0");
+                let prevButtonId = $(`#${newId} .rcBtnPrv button`);
+                prevButtonId.attr('id',`rpcRevCnfPrevBtn_${stage.id}_1`)
+                prevButtonId.attr("data-stage",stage.id);
+                prevButtonId.attr("data-substage","1");
+                imageId.attr("docarray","0");
+                //  let applicantImageId = $(`#${newId} #${subNewId} .applicantImgClass img`);
+                $(`#${newId} #${subNewId}`).removeClass("sno");
+                let stageStatus = ApzCOB.getStageStatus(stage.id, stage.subMenu);
+                let subMenuElem = $(`#${newId} #${subNewId} .subStageLabel p span`);
+                let svgTag = subMenuElem.parent().find('svg');
+                let svgUseTag = svgTag.find('use');
+                if (!apz.isNull(stageStatus)) {
+                    svgUseTag.attr('xlink:href', `#${stageStatus}`);
+                    svgTag.removeClass('sno');
+                } else {
+                    svgTag.addClass('sno');
+                }
+                subMenuElem.text(newSubStage.includes('Co-App') ? 'Co-Applicant' : newSubStage);
+                $(`#${newId} #${subNewId} #${'cmnPre__PreviewApplicantDetails__el_img_7_ul'}`).addClass("sno");
+                if(stage.id != 1){
+                    $(applicantImageId).parents(".applicant-img").addClass("sno")
+                }
+                parsedStageFields.sort((a, b) => a.id - b.id);
+                parsedStageFields.forEach(item => {
+                    if (item.stage_name === stage.screenName) {
+                        let fldSelectElementID = "cmnPre__PreviewApplicantDetails__AppDetail_FeildStage_0";
+                        let fldParentDiv = $(`#${newId} #${subNewId} #cmnPre__PreviewApplicantDetails__AppDetail_FeildStage_col`);
+                        let stageDetails = item?.stage_dtls?.[newSubStage];
+                        if (stageDetails) {
+                            stageDetails.forEach((field, fieldIndex) => {
+                                let rcEditApplicantType = newSubStage;
+                                if(rcEditApplicantType === 'Applicant'){
+                                    rcEditApplicantType = 'A'
+                                } else if(rcEditApplicantType === 'Co-App' || rcEditApplicantType === 'Co-Applicant'){
+                                    rcEditApplicantType = 'C'
+                                }
+                                const [visibilityAttr, mandatoryAttr, editAttribute] = field.fieldAttr.split("~");
+                                if (visibilityAttr === 'Y') {
+                                    let fieldCurrentIndex = fieldIndex + 1;
+                                    let fieldNewId = ApzCOB.cloneDashboardDivs(fldSelectElementID, fldParentDiv,
+                                        fieldCurrentIndex);
+                                    $(`#${newId} #${subNewId} #${fieldNewId}`).removeClass("sno");
+                                    $(`#${newId} #${subNewId} #${fieldNewId} .fieldLabel label`).text(field.label);
+                                    fieldVal = ApzCOB.getPayloadData(field.fieldId, newSubStage, stage.screenName);
+                                    $(`#${newId} #${subNewId} #${fieldNewId} .edited`).remove();
+                                    if (inSessionStore.hasOwnProperty('rpcStatDetails')) {
+                                        if (inSessionStore.rpcStatDetails.length > 0) {
+                                            let rcEditedFields = inSessionStore.rpcStatDetails.find(id => id.stageID === stage.id)
+                                            if (rcEditedFields != undefined && rcEditedFields.custType === rcEditApplicantType && rcEditedFields.editedFields.length > 0) {
+                                                if (rcEditedFields.editedFields.includes(field.fieldId)) {
+                                                    let editSpan = '<span class="fieldEditedTag">Edited</span>';
+                                                    $(`#${newId} #${subNewId} #${fieldNewId}`).append(editSpan);
+                                                    $(`#${newId} #${subNewId} #${fieldNewId}`).addClass("rc-edited-field");
+                                                }
+                                            }
+                                        }
+                                    }
+                                    if (amtFields.includes(field.fieldId)) {
+                                        fieldVal = ApzCOB.formatIndianRupees(fieldVal);
+                                    }
+                                    if (field.fieldId === 'roi') {
+                                        fieldVal = ApzCOB.getPayloadDatafromWrapper('roi', 'Co-App', 'cibilDetailsWrapperList');
+                                        fieldVal = fieldVal + '%';
+                                    }
+                                    $(`#${newId} #${subNewId} #${fieldNewId} #${'cmnPre__PreviewApplicantDetails__fldValue_0'}`).text(fieldVal || '---');
+                                }
+                            });
+                        }
+                    }
+                });
+                apz.app.PreviewApplicantDetails.paintQueries(newSubStage, stage.id);
+            }
+        });
+    }
+    apz.app.PreviewApplicantDetails.paintImage();
+    if (apz.isNull(isRpcPreviewEnabled) || !isRpcPreviewEnabled) {
+        $('#cmnPre__RpcApplicationHeader__currentRoleType').removeClass('sno');
+    } else {
+        $('#cmnPre__RpcApplicationHeader__currentRoleType').removeClass('sno');
+        if (presentStageFromPreview === 'NewDashBoard') {
+            $('#cmnPre__RpcApplicationHeader__currentRoleType').addClass('sno');
+        }
+        $("#APZCBO__BaseScreens__preview_row_apz_1").addClass("sno");
+        $("#APZCBO__BaseScreens__preview_row_apz_2").removeClass("sno ssp");
+        // ApzCOB.toggleModal(`${BaseScrId}preview_modal`);
+        // ApzCOB.scrollToStart("APZCBO__BaseScreens__preview_modal_content");
+        // document.getElementById("APZCBO__BaseScreens__preview_modal_close")?.addEventListener("click", () => {
+        //     isRpcPreview = false;
+        //     apz.childScr = presentStageFromPreview;
+        //     RPC_CURRENT_STAGE = presentStageFromPreview;
+        //     RPC_CURRENT_STAGE_NO = Object.values(RPC_STAGES).find(item => item.screenName === presentStageFromPreview)?.id;
+        // });
+    }
+};
+apz.app.PreviewApplicantDetails.paintQueries = function(applicantType, stageid, applType) {
+   if(stageid === 6 || stageid === 7){
+        if (applicantType === "Employment Proof") {
+            applicantType = "Salaried"
+        } else if (applicantType === "Wage Earning Details") {
+            applicantType = "Wage earner"
+        } else if (applicantType != 'Wage Earning Details' || applicantType != "Employment Proof") {
+            applicantType = "Self Employed"
+        }
+        if (inSessionStore.customerDetailsList.length > 0) {
+            let parsedData = inSessionStore.customerDetailsList.map(item => item.payload);
+            for (let i = 0; i < parsedData.length; i++) {
+                if (parsedData[i].occupation === applicantType) {
+                    applicantType = parsedData[i].gkCustomerType
+                    break;
+                }
+            }
+        }
+        if (applicantOccupation === coAppOccupation) {
+            applicantType = "Applicant";
+            if(applType === 2) applicantType = "Co-App";
+        }
+   }  
+    if (applicantType === 'Applicant') {
+        applicant = 'A';
+    } else if (applicantType === 'Co-Applicant' || applicantType === 'Co-App') {
+        applicant = 'C';
+        applicantType = 'Co-App';
+    }
+    let pushbackQuery = [], stageQueries = [];
+    isPushbackCase = false;
+    const timelineDetails = inSessionStore?.applicationTimelineDtl;
+    if(['RPCPUSHBACK', 'PUSHBACK'].includes(inSessionStore.applicationMaster?.applicationStatus)) {
+        isPushbackCase = true;
+        if (timelineDetails?.length > 0) {
+            rpcPushbackQueries = timelineDetails[timelineDetails.length - 1].rpcStatRemaks || [];
+        }
+        rpcStats = rpcPushbackQueries.filter(timeDtl => timeDtl.stageID === stageid && timeDtl.custType === applicant);
+        pushbackQuery = ApzCOB.chekPushbackQueries(rpcStats);
+    }
+     if (!isPushbackCase) {
+        stageQueries = ApzCOB.paintingQueryReviewConfm(applicant,stageid);
+        $(queryStageID).parent().addClass("sno");
+        if(stageQueries.length <= 0) return;
+        let queryParentDiv = queryStageID;
+        let htmlText = "<ul class='rc-query-list'>";
+        stageQueries.map(querytext => {
+            htmlText += `<li>${querytext.query}</li>`;
+        });
+        htmlText += '</ul>';
+        queryParentDiv.append(htmlText);
+        $(queryStageID).parent().removeClass("sno");
+    } else if (pushbackQuery.length > 0 && isPushbackCase) {
+        let queryParentDiv = queryStageID;
+        let htmlText = "<ul class='rc-query-list'>";
+        pushbackQuery.map(querytext => {
+            htmlText += `<li>${querytext.query}</li>`;
+        });
+        htmlText += '</ul>';
+        queryParentDiv.append(htmlText);
+        $(queryStageID).parent().removeClass("sno");
+        let queryTxtId = $(queryStageID).attr('id');
+        $(`#${queryTxtId} .revCnfrmQueryText label.flb.pri`).text(`${timelineDetails[timelineDetails.length - 1].stage} pushback query (${ApzCOB.formattedTime(timelineDetails[timelineDetails.length - 1].timeStamp)})`);
+    } else {
+        $(queryStageID).parent().addClass("sno");
+    }
+};
+apz.app.PreviewApplicantDetails.paintImage = function(stage) {
+    let stageDetails;
+    let stageFromId;
+    let stages = structuredClone(gApzCOB.rpcStages);
+    if (stages.length > 0) {
+        stages.forEach(stage => {
+            stageDetails = RPC_SCREEN_WRAPPER.find(id => id.stage_id === stage.id);
+            let stageDocType = stageDetails?.docTypes;
+            if (stage.subMenu.length > 0) {
+                stage.subMenu.forEach((subMenu, subIndex) => {
+                    let lobj = { docDetails: {} };
+                    lobj.stageid = stage.id;
+                    if (stage.id === 6 || stage.id === 7) {
+                        let applicantType;
+                        if (stage.subMenu.length === 1) {
+                            let occupation = subMenu === "Employeement Proof" ? "Salaried" 
+                                           : subMenu === "Wage Earning Details" ? "Wage earner" 
+                                           : "Self Employed";
+    
+                            if (inSessionStore.customerDetailsList.length > 0) {
+                                let matchedCustomer = inSessionStore.customerDetailsList
+                                    .map(item => item.payload)
+                                    .find(item => item.occupation === occupation);
+    
+                                if (matchedCustomer) applicantType = matchedCustomer.gkCustomerType;
+                                if (applicantOccupation === coAppOccupation && isAppCoAppOccTagYes) applicantType = 'Applicant';
+                            }
+                            subMenu = applicantType;
+                        } else {
+                            subMenu = subIndex === 0 ? 'Applicant' : 'Co-Applicant';
+                        }
+                    }
+                    subMenu = subMenu === "Co-Applicant" ? 'Co-App' : subMenu;
+                    lobj.custType = subMenu === "Applicant" ? 1 : 2;
+                    let custDetailID = ApzCOB.getCustDetailID(subMenu);
+                    let applicationData = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList
+                        ?.filter(cust => cust.custDtlId === custDetailID) || [];
+                    let occTag = ApzCOB.getPayloadDatafromWrapper('occupationTag', 'Co-App', 'occupationDetailsWrapperList');
+                    if (stage.id === 6 && occTag?.toUpperCase() === 'YES') {
+                        applicationData = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList || [];
+                    }
+                    if (Array.isArray(applicationData) && applicationData.length > 0) {
+                        let rcDocumentArray = [];
+                        if (stage.id !== 9) {
+                        rcDocumentArray = stageDocType?.flatMap(docType => 
+                            applicationData.filter(appDoc => appDoc?.payload?.documentType === docType && appDoc?.payload?.isAdiDoc !== 'Y')
+                        ) || [];
+                        if (stage.id === 7 && !stageDocType.includes("PRIMARY_KYC")) {
+                            let bussAddrProofAsKYC = ApzCOB.getPayloadDatafromWrapper("businessAddressProof", subMenu, 'occupationDetailsWrapperList');
+                            if (bussAddrProofAsKYC === "As per Voter ID") {
+                                let kycdocuments = applicationData.filter(appDoc => {
+                                    return appDoc.payload.documentType === "PRIMARY_KYC" && appDoc.payload.isAdiDoc !== "Y"
+                                });
+                                rcDocumentArray = [...rcDocumentArray, ...kycdocuments]
+                            }
+                        }
+                    } else {
+                        if (stage.id === 9) {
+                            let additionalDocs = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList.filter(id => id.payload.isAdiDoc === 'Y')
+                            var additionalDocTypes = []
+                            additionalDocs.forEach(function(el) {
+                                if (!additionalDocTypes.includes(el.payload.documentType)) additionalDocTypes.push(el.payload.documentType);
+                            })
+                            stageDocType = additionalDocTypes;
+                        }
+                        rcDocumentArray = stageDocType?.flatMap(docType => 
+                            applicationData.filter(appDoc => appDoc?.payload?.isAdiDoc === 'Y')
+                        ) || [];
+                    }
+                        lobj.docDetails = rcDocumentArray;
+                        if (rcDocumentArray.length > 0) {
+                            PreviewApplicantDetailsStageDocuments.push(lobj);
+                        } else {
+                            let imageID = `rpcRevCnfmImg_${lobj?.stageid}_${lobj?.custType}`;
+                            let imageElement = $(`#${imageID}`);
+
+                            if (!imageElement.attr('src')) {
+                                imageElement.addClass("sno").removeClass("loader");
+                                imageElement.parents(".scb-col30").addClass("sno");
+                            }
+                        }
+                    }
+                });
+            } else {
+                if ([3, 4, 5].includes(stage.id)) custType = "Applicant";
+                let lobj = { docDetails: {} };
+                lobj.stageid = stage.id;
+                lobj.custType = custType === "Applicant" ? 1 : 2;
+                let custDetailID = ApzCOB.getCustDetailID(custType);
+                let applicationData = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList
+                    ?.filter(cust => cust.custDtlId === custDetailID) || [];
+                if (Array.isArray(applicationData) && applicationData.length > 0) {
+                    let rcDocumentArray = [], kycdocuments = [];
+                    if (stage.id !== 9) {
+                        rcDocumentArray = stageDocType?.flatMap(docType => 
+                            applicationData.filter(appDoc => appDoc?.payload?.documentType === docType && appDoc?.payload?.isAdiDoc !== 'Y')
+                        ) || [];
+                    } else {
+                        if (stage.id === 9) {
+                            let additionalDocs = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList.filter(id => id.payload.isAdiDoc === 'Y')
+                            var additionalDocTypes = []
+                            additionalDocs.forEach(function(el) {
+                                if (!additionalDocTypes.includes(el.payload.documentType)) additionalDocTypes.push(el.payload.documentType);
+                            })
+                            stageDocType = additionalDocTypes;
+                        }
+                        rcDocumentArray = stageDocType?.flatMap(docType => 
+                            applicationData.filter(appDoc => appDoc?.payload?.isAdiDoc === 'Y')
+                        ) || [];
+                    }
+                    if(stage.id === 4 && !stageDocType.includes("PRIMARY_KYC")) {
+                        let residenceAsKYC = ApzCOB.getPayloadData('currentAddressProof', 'Applicant');
+                        if(ApzCOB.isResidenceSameAsKyc() || residenceAsKYC === "As per Co-Applicant Primary KYC document") {
+                            let kycCustId = ApzCOB.getCustDetailID('Applicant');
+                            if(residenceAsKYC === "As per Co-Applicant Primary KYC document")  kycCustId = ApzCOB.getCustDetailID('Co-App');
+                            applnDocData = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList?.filter(cust => cust.custDtlId === kycCustId) || [];
+                            if (Array.isArray(applnDocData) || applnDocData.length > 0) {
+                                kycdocuments = applnDocData.filter(appDoc => {
+                                    return appDoc.payload.documentType === "PRIMARY_KYC" && appDoc.payload.isAdiDoc !== 'Y';
+                                })
+                                rcDocumentArray = [...kycdocuments, ...rcDocumentArray];
+                            }
+                        }
+                    }
+                    lobj.docDetails = rcDocumentArray;    
+                    if (rcDocumentArray.length > 0) {
+                        PreviewApplicantDetailsStageDocuments.push(lobj);
+                    } else {
+                        let imageID = stage.id === 3 || stage.id === 5
+                            ? `rpcRevCnfmImg_${lobj?.stageid}_1`
+                            : `rpcRevCnfmImg_${lobj?.stageid}_${lobj?.custType}`;
+                        let imageElement = $(`#${imageID}`);
+                        if (!imageElement.attr('src')) {
+                            imageElement.addClass("sno").removeClass("loader");
+                            imageElement.parents(".scb-col30").addClass("sno");
+                        }
+                    }
+                }
+            }
+        });
+    }
+    apz.app.PreviewApplicantDetails.paintDoc(DOC_INDEX);
+}
+
+apz.app.PreviewApplicantDetails.paintDoc = function(docIndex){
+    currentStageDocObj = {
+        "stageID":"",
+        "subStage": ""
+    }
+    if(PreviewApplicantDetailsStageDocuments.length < 0) return;
+   let documents =  PreviewApplicantDetailsStageDocuments[docIndex]?.docDetails;
+   currentStageDocObj.stageID = PreviewApplicantDetailsStageDocuments[docIndex]?.stageid;
+   currentStageDocObj.subStage = PreviewApplicantDetailsStageDocuments[docIndex]?.custType;
+   window.custType = currentStageDocObj.subStage === 1 ? "Applicant" : "Co-App";
+   if(documents.length > 0){
+    let docPayload = {};
+    if(typeof(documents[0]?.payload) === "object" ){
+        docPayload = documents[0]?.payload;
+    } else {
+        docPayload = JSON.parse(documents[0]?.payload)
+    }
+    if([2, 4, 5, 7].includes(currentStageDocObj.stageID)) ApzCOB.mapAddrTypeforStageId(currentStageDocObj.stageID);
+    currApplOccupation = currentStageDocObj.subStage === 1 ? applicantOccupation : coAppOccupation;
+    RC_DOCUMENT_NAME = ([4, 6, 7].includes(currentStageDocObj.stageID)) ? ApzCOB.getDocumentName(currentStageDocObj.stageID) : docPayload.documentName;
+    if (docPayload?.documentType === "BUSINESS_PREMISE_PHOTO") {
+        RC_DOCUMENT_NAME = docPayload.documentName;
+    }
+    if (RC_DOCUMENT_NAME.includes('Pennyless')) RC_DOCUMENT_NAME = 'Exception document';
+    // RC_DOCUMENT_NAME = docPayload.documentName;
+    let docFileName = docPayload.documentFileName;
+    window.ImageLocationDetails = {
+        latitude: docPayload.latitude || "",
+        longitude: docPayload.longitude || "",
+        uploadedTs: docPayload.uploadedTs || "",
+        documentFileName: docPayload.documentFileName || ""
+    };
+    ApzCOB.downloadFileFromServer(docFileName,apz.app.PreviewApplicantDetails.paintImageCB);
+    $(`#rpcRevCnfPrevBtn_${currentStageDocObj?.stageID}_${currentStageDocObj?.subStage}`).attr('disabled',true);
+   } else {
+    // hide the image if document is not available by taking image id and stage id
+    let imageID = "rpcRevCnfmImg_";
+    if(currentStageDocObj.stageID === 3){
+        imageID = $(`#${imageID}${currentStageDocObj?.stageID}_1`).attr('id');
+    } else {
+        imageID = $(`#${imageID}${currentStageDocObj?.stageID}_${currentStageDocObj?.subStage}`).attr('id');
+    }
+    if($(imageID).attr('src') === '' || $(imageID).attr('src') === undefined){
+        $("#"+imageID).addClass("sno");
+        $("#"+imageID).removeClass("loader");
+        let parentDiv = $("#"+imageID).parents(".scb-col30");
+        $(parentDiv).addClass("sno");
+    }
+    DOC_INDEX++;
+    if (DOC_INDEX < PreviewApplicantDetailsStageDocuments.length) {
+        apz.app.PreviewApplicantDetails.paintDoc(DOC_INDEX);
+    }
+   }
+}
+apz.app.PreviewApplicantDetails.paintImageCB = function(params){
+    apz.stopLoader();
+    let imageID = "rpcRevCnfmImg_";
+    /*if([6, 7].includes(currentStageDocObj.stageID)){
+        imageID = $(`#${imageID}${currentStageDocObj?.stageID}_1`).length > 0 ? $(`#${imageID}${currentStageDocObj?.stageID}_1`).attr('id') : $(`#${imageID}${currentStageDocObj?.stageID}_2`).attr('id');
+    } else {
+         imageID = $(`#${imageID}${currentStageDocObj?.stageID}_${currentStageDocObj?.subStage}`).attr('id');
+    }*/
+    imageID = $(`#${imageID}${currentStageDocObj?.stageID}_${currentStageDocObj?.subStage}`).attr('id');
+    let documentPaintId = "rpcRevCnfDoc_";
+    $(`#${documentPaintId}${currentStageDocObj?.stageID}_${currentStageDocObj?.subStage}`).text(`${RC_DOCUMENT_NAME}`);
+    if(!apz.isNull(params.base64)){
+        // imageID = $(`#${imageID}${currentStageDocObj?.stageID}_${currentStageDocObj?.subStage}`).attr('id');
+        $("#"+imageID).removeClass("loader")
+        $("#"+imageID).attr('src', 'data:image/png;base64,' + params.base64);
+        let id = "#" + imageID;
+        if (Object.keys(window.ImageLocationDetails).length > 0) {
+            apz.app.BaseScreens.paintImageLocationDetails(id, window.ImageLocationDetails);
+        }
+        if(PreviewApplicantDetailsStageDocuments[DOC_INDEX].docDetails.length > 0){
+            if(PreviewApplicantDetailsStageDocuments[DOC_INDEX].docDetails.length === 1){
+                $(`#rpcRevCnfPrevBtn_${currentStageDocObj?.stageID}_${currentStageDocObj?.subStage}`).addClass('sno');
+                $(`#rpcRevCnfNextBtn_${currentStageDocObj?.stageID}_${currentStageDocObj?.subStage}`).addClass('sno');
+            } else {
+                // $(`#rpcRevCnfPrevBtn_${currentStageDocObj?.stageID}_${currentStageDocObj?.subStage}`).attr('disabled',true);
+                // $(`#rpcRevCnfNextBtn_${currentStageDocObj?.stageID}_${currentStageDocObj?.subStage}`).attr('disabled',true);
+            }
+        }
+    } else {
+        if($(imageID).attr('src') === '' || $(imageID).attr('src') === undefined){
+           $("#"+imageID).addClass("sno");
+           $("#"+imageID).removeClass("loader");
+           let parentDiv = $("#"+imageID).parents(".scb-col30");
+            $(parentDiv).addClass("sno");
+        }
+    }
+    DOC_INDEX++;
+    if(DOC_INDEX < PreviewApplicantDetailsStageDocuments.length){
+        apz.app.PreviewApplicantDetails.paintDoc(DOC_INDEX);
+    } else {
+        APPL_INDEX = 0;
+        custPhotos = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList.filter(el => el.payload.documentType === "CUSTOMER_PHOTOGRAPH") || [];
+        if(custPhotos.length < 0) return;
+        custPhotos = (custPhotos.length > 1 && custPhotos[0].custDtlId !== ApzCOB.getCustDetailID('Applicant')) ? custPhotos.reverse() : custPhotos;
+        apz.app.PreviewApplicantDetails.paintApplicatImage(APPL_INDEX);
+    }
+} 
+apz.app.PreviewApplicantDetails.paintApplicatImage = function(docIndex){
+    let docPayload = {};
+    let docFileName;
+    let documents = custPhotos[docIndex];
+    if(apz.isNull(documents)) return;
+    docFileName = documents.payload.documentFileName;
+    apz.startLoader();
+    ApzCOB.downloadFileFromServer(docFileName, apz.app.PreviewApplicantDetails.paintApplicatImageCB);
+}
+apz.app.PreviewApplicantDetails.paintApplicatImageCB = function(params){
+    apz.stopLoader();
+    let imageID = "rpcRevCnfappl_";
+    imageID = $(`#cmnPre__PreviewApplicantDetails__RpcStage_1 .applicant-img .applicantImgClass #rpcRevCnfappl_1_${APPL_INDEX+1}`);
+    let parentDiv = imageID.parents(".applicant-img");
+    imageID.removeClass("loader");
+    if(!apz.isNull(params.base64)){
+        imageID.attr('src', 'data:image/png;base64,' + params.base64);
+        // $("#"+imageID).attr('src', 'data:image/png;base64,' + params.base64);
+        parentDiv.removeClass('sno');
+        imageID.removeClass('sno');
+    } else {
+        if(imageID.attr('src') === '' || imageID.attr('src') === undefined){
+            imageID.addClass("sno");
+            parentDiv.addClass("sno");
+        }
+    }
+    APPL_INDEX++;
+    if(APPL_INDEX <= 1){
+        apz.app.PreviewApplicantDetails.paintApplicatImage(APPL_INDEX);
+    }
+}
+apz.app.PreviewApplicantDetails.imageNavigation = function(actionType,pthis){
+    let stageId = parseInt($(pthis).attr('data-stage'));
+    let subStageId = parseInt($(pthis).attr('data-substage')); 
+    let prevBtnElem = $(`#rpcRevCnfPrevBtn_${stageId}_${subStageId}`);
+    let nextBtnElem = $(`#rpcRevCnfNextBtn_${stageId}_${subStageId}`);
+    let imageId = `rpcRevCnfmImg_${stageId}_${subStageId}`;
+    let docIndex = $(`#${imageId}`).attr('docarray');
+    let nextDocIndex = '';
+    if(actionType === 'next'){
+        nextDocIndex = parseInt(docIndex)+1;
+    } else {
+        nextDocIndex = parseInt(docIndex)-1;
+    }
+    currentStageDocObj = {
+        "stageID":stageId,
+        "subStage": subStageId,
+        "actionType": actionType,
+        "docIndex": nextDocIndex,
+        "imageElemId": imageId
+    }  
+    let docPayload = {};
+    window.custType = currentStageDocObj.subStage === 1 ? "Applicant" : "Co-App";
+    let stageDocList = PreviewApplicantDetailsStageDocuments.find(docs => docs.stageid === stageId && docs.custType === subStageId);
+    if(stageDocList?.docDetails.length <= 0) return;
+    docPayload = stageDocList.docDetails[nextDocIndex].payload;
+        // if(docPayload.documentType != "CUSTOMER_PHOTOGRAPH"){
+            let currentDocNum = nextDocIndex + 1;
+           prevBtnElem.attr('disabled',false);
+           nextBtnElem.attr('disabled',false);  
+       if (currentDocNum < stageDocList.docDetails.length) {
+        if (parseInt(currentDocNum) === 1){
+            prevBtnElem.attr('disabled',true);  
+        }
+       } else {
+           nextBtnElem.attr('disabled',true);  
+       }
+           let fileName = docPayload.documentFileName;
+           if([2, 4, 5, 7].includes(stageId)) ApzCOB.mapAddrTypeforStageId(stageId);
+           currApplOccupation = subStageId === 1 ? applicantOccupation : coAppOccupation;
+           RC_DOCUMENT_NAME = ([4, 6, 7].includes(stageId)) ? ApzCOB.getDocumentName(stageId) : docPayload.documentName;
+           if (docPayload?.documentType === "BUSINESS_PREMISE_PHOTO") {
+               RC_DOCUMENT_NAME = docPayload.documentName;
+           }
+           if (RC_DOCUMENT_NAME.includes('Pennyless')) RC_DOCUMENT_NAME = 'Exception document';
+              window.ImageLocationDetails = {
+                latitude: docPayload.latitude || "",
+                longitude: docPayload.longitude || "",
+                uploadedTs: docPayload.uploadedTs || "",
+                documentFileName: docPayload.documentFileName || ""
+            };
+           ApzCOB.downloadFileFromServer(fileName, apz.app.PreviewApplicantDetails.paintDocInReviewCnfmCB);
+    //    }
+}
+apz.app.PreviewApplicantDetails.paintDocInReviewCnfmCB = function(params){
+    apz.stopLoader();
+    if(!apz.isNull(params.base64) && !apz.isObjectEmpty(currentStageDocObj)){
+        let imageID = currentStageDocObj?.imageElemId;
+        $("#"+imageID).removeClass("loader");
+        $("#"+imageID).attr('src', 'data:image/png;base64,' + params.base64);
+        let id = "#" + imageID;
+        if (Object.keys(window.ImageLocationDetails).length > 0) {
+            apz.app.BaseScreens.paintImageLocationDetails(id, window.ImageLocationDetails);
+        }
+        $("#"+imageID).attr('docarray',currentStageDocObj?.docIndex);
+        $(`#rpcRevCnfDoc_${currentStageDocObj?.stageID}_${currentStageDocObj?.subStage}`).text(`${RC_DOCUMENT_NAME}`);
+    } else {
+        ApzCOB.fnDisplayMsg(params.errorMessage,"E")
+    }
+}

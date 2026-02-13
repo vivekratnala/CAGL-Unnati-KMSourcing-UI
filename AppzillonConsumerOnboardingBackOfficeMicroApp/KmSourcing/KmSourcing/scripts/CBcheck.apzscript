@@ -1,0 +1,76 @@
+window.CBcheckScr = 'KmSourc__CBcheck__';
+var screenId = 'KmSourc__CBcheck__';
+
+apz.app.onLoad_CBcheck = function() {
+    apz.app.CBcheck.showSlider();
+    $('#KmSourc__CBcheck__loanSlider').removeClass("wrapped");
+    apz.app.CBcheck.setDefaultSliderValue();
+    apz.populateDropdown(document.getElementById(`${CBcheckScr}relationShipWithApplicant`), ApzCOB.formatDropDownforArray(ApzCOB.filterRelns(
+        relations)));
+    apz.populateDropdown(document.getElementById(`${CBcheckScr}loanPurpose`), ApzCOB.formatDropDownforArray(loanPurpose));
+    apz.populateDropdown(document.getElementById(`${CBcheckScr}subLoanPurpose`), ApzCOB.formatDropDownforArray(
+        [ApzCOB.getDescfromLitCode("LIT_COMM_MSG_PLEASE_SELECT")]));
+    $(`#${CBcheckScr}subLoanPurpose`).attr('disabled', true);
+    apz.populateDropdown(document.getElementById(`${CBcheckScr}gender`), ApzCOB.formatDropDownforArray(gender));
+    apz.populateDropdown(document.getElementById(`${CBcheckScr}frequencyOfRepayment`), ApzCOB.formatDropDownforArray(frequencyOfRepayment));
+};
+apz.app.CBcheck.onChangeLoanPurpose = function(pthis) {
+    let selectedPurpose = $(`#${CBcheckScr}loanPurpose`).val();
+    if (selectedPurpose === PleaseSelect) {
+        $(`#${CBcheckScr}subLoanPurpose`).val(PleaseSelect).attr('disabled', true);
+    } else {
+        // Extract sub purposes from structured object
+        let subPurposeList = loanSubPurpose?.[0]?.[selectedPurpose] || [];
+        let formattedList = [...subPurposeList];
+        // Ensure Please Select is first option
+        if (!formattedList.includes(PleaseSelect)) {
+            formattedList.unshift(ApzCOB.getDescfromLitCode("LIT_COMM_MSG_PLEASE_SELECT"));
+        }
+        apz.populateDropdown(document.getElementById(`${CBcheckScr}subLoanPurpose`), ApzCOB.formatDropDownforArray(formattedList));
+        $(`#${CBcheckScr}subLoanPurpose`).attr('disabled', false);
+    }
+    // Important: Maintain APZ framework behavior
+    ApzCOB.dropDownOnChange(pthis);
+};
+apz.app.CBcheck.showSlider = function() {
+// $('#KmSourc__CBcheck__loanSlider').removeClass("wrapped");
+$("#" + screenId + "loanSlider").slider({
+        range: "min",
+        value: parseInt(fdAmountMin),
+        min: parseInt(fdAmountMin),
+        max: parseInt(fdAmountMax),
+        slide: function(event, ui) {
+            // apz.app.LoanDetails.onChangeofdepoAmountSlider();
+            ui.value = Math.round(ui.value / 1000) * 1000;
+            $("#" + screenId + "loanAmount").val(ApzCOB.fn_FormatAmount(ui.value)).trigger("onchange");
+        },
+        change: function(event, ui) {
+            // apz.app.LoanDetails.onChangeofdepoAmountSlider();
+            ui.value = Math.round(ui.value / 1000) * 1000;
+            $("#" + screenId + "loanAmount").val(ApzCOB.fn_FormatAmount(ui.value));
+        },
+        stop: function(event, ui) {
+            // apz.app.LoanDetails.onChangeofdepoAmountSlider();
+            ui.value = Math.round(ui.value / 1000) * 1000;
+            $("#" + screenId + "loanAmount").val(ApzCOB.fn_FormatAmount(ui.value));
+        }
+    }).slider("pips", {
+        rest: false,
+        //step: ((fdAmountMax - fdAmountMin) / 2) / 5
+        //step: fdAmountMin
+    }).slider("float");
+}
+
+apz.app.CBcheck.setDefaultSliderValue = function() {
+    $("#" + screenId + "loanSlider").slider("option", "value", fdDefaultLoanAmount);
+    $("#" + screenId + "loanAmount").val(ApzCOB.fn_FormatAmount(fdDefaultLoanAmount));
+}
+apz.app.CBcheck.amountSliderControl = function() {
+    var data = ApzCOB.fn_unFormatAmount($("#" + screenId + "loanAmount").val());
+    if (!isNaN(data) && parseInt(data) >= fdAmountMin && parseInt(data) <= fdAmountMax) {
+        $("#" + screenId + "loanSlider").slider("option", "value", data);
+    }
+};
+
+
+apz.app.onShown_CBcheck = function() {};

@@ -1,0 +1,28 @@
+{
+    "Select__SavingsAccount_Res": {
+        "Saving account for minor": [
+            {
+                "Feature": "Savings Account helps you teach your children the importance of savings and gives them a head start in building a strong financial foundation. The Future Stars Savings Account benefits include a personal accident insurance cover of Rs. 2 Lakh for the account holder (in this case it will be your child) and a Visa Platinum Debit Card. If your child is over 10 years of age, you can also get an image of his / her choice printed on the card.",
+                "Benefits": "Savings Account helps you teach your children the importance of savings and gives them a head start in building a strong financial foundation. The Future Stars Savings Account benefits include a personal accident insurance cover of Rs. 2 Lakh for the account holder (in this case it will be your child) and a Visa Platinum Debit Card. If your child is over 10 years of age, you can also get an image of his / her choice printed on the card.",
+                "points": [
+                    "Maximum balance Rs. 10 lakh",
+                    "Cheque book",
+                    "Monthly Average Balance (MAB) requirement not applicable",
+                    "Higher interest"
+                ]
+            }
+        ],
+        "Freedom saving account": [
+            {
+                "Feature": "Savings Account helps you teach your children the importance of savings and gives them a head start in building a strong financial foundation. The Future Stars Savings Account benefits include a personal accident insurance cover of Rs. 2 Lakh for the account holder (in this case it will be your child) and a Visa Platinum Debit Card. If your child is over 10 years of age, you can also get an image of his / her choice printed on the card.",
+                "Benefits": "Savings Account helps you teach your children the importance of savings and gives them a head start in building a strong financial foundation. The Future Stars Savings Account benefits include a personal accident insurance cover of Rs. 2 Lakh for the account holder (in this case it will be your child) and a Visa Platinum Debit Card. If your child is over 10 years of age, you can also get an image of his / her choice printed on the card.",
+                "points": [
+                    "Maximum balance Rs. 10 lakh",
+                    "Cheque book",
+                    "Monthly Average Balance (MAB) requirement not applicable",
+                    "Higher interest"
+                ]
+            }
+        ]
+    }
+}

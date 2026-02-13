@@ -1,0 +1,138 @@
+RPC_CURRENT_STAGE = 'BusinessAddressProofRPC';
+var bussAddrPrfScrId = `RPC__${RPC_CURRENT_STAGE}__`;
+var addSameAsRadio = `${bussAddrPrfScrId}addressSameAsInput`;
+var bussAddrProofTagId = `${bussAddrPrfScrId}businessAddressProofInput`;
+var addrType = "Occupation",
+    subAddrType = "Office";
+window.lAddressSameAs = '', window.validPinCode = false;
+apz.app.onLoad_BusinessAddressProofRPC = function() {
+    //  ApzCOB.fetchRpcOccupationTabs();
+    apz.populateDropdown(document.getElementById(bussAddrProofTagId), ApzCOB.formatDropDownforArray(bssAddrProof));
+    ApzCOB.launchRpcCommonSection();
+    ApzCOB.fetchRpcStageFields();
+};
+apz.app.onShown_BusinessAddressProofRPC = function() {
+    apz.app.BusinessAddressProofRPC.setMinMaxLength();
+};
+apz.app.BusinessAddressProofRPC.setMinMaxLength = function() {
+    const fieldMap = {
+        addressLine1Input: "AddressLine1",
+        addressLine2Input: "AddressLine2",
+        addressLine3Input: "AddressLine3",
+        pinCodeInput: "Pincode",
+        cityInput: "City",
+        districtInput: "District",
+        stateInput: "State",
+        countryInput: "Country",
+        landMarkInput: "Landmark",
+        areaInput: "Area",
+        locateCoOrdinatesInput: "LocationCoord"
+    };
+    ApzCOB.setMinMaxLength(Object.entries(fieldMap).map(([fieldId, fieldName]) => ({
+        fieldName,
+        fieldId: bussAddrPrfScrId + fieldId
+    })));
+};
+apz.app.BusinessAddressProofRPC.onchangepincode = function(pthis){
+    let { value: pincodeVal } = pthis;
+    if (apz.isNull(pincodeVal) || !pinlengthErr) {
+        validPinCode = false;
+        ["areaInput", "cityInput", "districtInput", "stateInput"].forEach(el => {
+            $(`#RPC__${RPC_CURRENT_STAGE}__${el}`).val('');
+        })
+        return;
+    }
+    window.pincodeAddresstype = addressType;
+    ApzCOB.fetchpincodeDtls(pincodeVal, RPC_CURRENT_STAGE);
+};
+apz.app.BusinessAddressProofRPC.paint_pincode = function(params) {
+    $(`#${bussAddrPrfScrId}cityInput`).val(params.city).focus();
+    $(`#${bussAddrPrfScrId}districtInput`).val(params.district).focus();
+    $(`#${bussAddrPrfScrId}stateInput`).val(params.state).focus();
+    $(`#${bussAddrPrfScrId}countryInput`).val(params.country).focus();
+    $(`#${bussAddrPrfScrId}areaInput`).val(params.area).focus();
+};
+apz.app.BusinessAddressProofRPC.configFieldsBasedOnConditions = function() {
+    currApplOccupation = ApzCOB.getPayloadData('occupation', custType, 'BusinessPhotoRPC') ;
+    $(`#${addSameAsRadio} input`).map((el, item) => {
+        fieldId = item.id
+        if (!$(`#${fieldId}`).prop('checked')) {
+            $(`#${fieldId}_lbl_`).addClass('sno');
+        }
+    })
+    $('.rpcEditBtn label.ett-labl').parent().removeClass('sno');
+    lAddressSameAs =ApzCOB.getPayloadData('addressSameAs', custType);
+    if (lAddressSameAs?.toLowerCase() === 'present') {
+        $('.rpcEditBtn label.ett-labl').parent().addClass('sno');
+    }
+}
+apz.app.BusinessAddressProofRPC.editRadioCheck = function() {
+    window.addressradioCheck = '';
+    if ($(`#${bussAddrPrfScrId}addressSameAsInput_option_Present`).is(":checked")) {
+        addressradioCheck = 'Present';
+    } else if ($(`#${bussAddrPrfScrId}addressSameAsInput_option_Permanent`).is(":checked")) {
+        addressradioCheck = 'Permanent';
+    } else if ($(`#${bussAddrPrfScrId}addressSameAsInput_option_Other`).is(":checked")) {
+        addressradioCheck = 'Other';
+    }
+    apz.app.BusinessAddressProofRPC.fetchAddressData(addressradioCheck);
+    window.fields = [`${bussAddrPrfScrId}addressLine1Input`, `${bussAddrPrfScrId}addressLine2Input`, `${bussAddrPrfScrId}addressLine3Input`,
+        `${bussAddrPrfScrId}landMarkInput`, `${bussAddrPrfScrId}pinCodeInput`
+    ];
+    if (addressradioCheck === 'Present') {
+        // Disable all address fields
+        fields.forEach(id => ApzCOB.addDisableToInput(id));
+        ApzCOB.addDisableToInput(`${bussAddrPrfScrId}businessAddressProofInput_ext`);
+    } else if (addressradioCheck === 'Permanent' || addressradioCheck === 'Other') {
+        // Enable all address fields
+        fields.forEach(id => ApzCOB.removeDisableToInput(id));
+        ApzCOB.removeDisableToInput(`${bussAddrPrfScrId}businessAddressProofInput_ext`);
+    }
+};
+
+apz.app.BusinessAddressProofRPC.fetchAddressData = function(checkedaddr) {
+    const addressList = inSessionStore.addressDetailsWrapperList?.[0]?.addressDetailsList || [];
+    const getAddresses = (customerType, mainType, subType, sameAsType) => {
+        const customer = inSessionStore.customerDetailsList.find(c => c.customerType === customerType);
+        if (!customer) return [];
+        return addressList.filter(a => a.custDtlId === customer.custDtlId && a.addressType === mainType && Array.isArray(a.payload
+            ?.addressList)).flatMap(a => a.payload.addressList).filter(addr => {
+            if (sameAsType) {
+                // For 'Other' case
+                return addr.addressSameAs === sameAsType && addr.addressType === subType;
+            } else {
+                // For 'Present' or 'Permanent'
+                return addr.addressType === subType;
+            }
+        });
+    };
+    if (checkedaddr === 'Present') {
+        window.applicantData = getAddresses("Applicant", "Personal", "Present") || [];
+        window.coAppData = getAddresses("Co-App", "Personal", "Present") || [];
+    } else if (checkedaddr === 'Permanent') {
+        window.applicantData = getAddresses("Applicant", "Personal", "Permanent") || [];
+        window.coAppData = getAddresses("Co-App", "Personal", "Permanent") || [];
+    } else if (checkedaddr === 'Other') {
+        // Filter: addressType === 'Occupation' and payload.addressList where addressSameAs === 'Other' and addressType === 'Office'
+        window.applicantData = getAddresses("Applicant", "Occupation", "Office", "Other") || [];
+        window.coAppData = getAddresses("Co-App", "Occupation", "Office", "Other") || [];
+    }
+    apz.app.BusinessAddressProofRPC.mapAddressFields();
+};
+apz.app.BusinessAddressProofRPC.mapAddressFields = function() {
+    const allowedFields = ["addressLine1", "addressLine2", "addressLine3", "landMark", "area", "pinCode", "city", "district", "state", "country",
+        "locateCoOrdinates"
+    ];
+    const fillFields = (custType, data) => {
+        currentTypeFields.filter(f => allowedFields.includes(f.fieldId)).forEach(f => {
+            const selector = `#RPC__${RPC_CURRENT_STAGE}__${f.fieldId}Input`;
+            const value = data?.[0]?.[f.fieldId] || "";
+            $(selector).val(value);
+        });
+    };
+    if (custType == 'Applicant') {
+        fillFields("Applicant", window.applicantData);
+    } else if (custType == 'Co-App') {
+        fillFields("Co-App", window.coAppData);
+    }
+}
