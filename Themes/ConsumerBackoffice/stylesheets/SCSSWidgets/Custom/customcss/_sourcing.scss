@@ -103,6 +103,10 @@ color:#231f20 !important;
         height: unset;
         overflow: scroll;
     }
+    .modal-cnt{
+        padding: 0px 0px !important;
+    }
+    
 }
 .crt-form.btm-seperator, #adrsDetails {
     border-bottom: 1px solid #D4D4D4;
@@ -146,18 +150,56 @@ color:#231f20 !important;
 .fw-600{
       font-weight: 600;
 }
-.otp-input input {
-    border: none !important;
-    border-bottom: 2px solid #cfcfcf !important;
-    background: transparent !important;
-    outline: none !important;
-    box-shadow: none !important;
-    border-radius: 0 !important;
-    height: 44px;
-    text-align: center;
-    font-size: 22px;
+// .otp-input input {
+//     border: none !important;
+//     border-bottom: 2px solid #cfcfcf !important;
+//     background: transparent !important;
+//     outline: none !important;
+//     box-shadow: none !important;
+//     border-radius: 0 !important;
+//     height: 44px;
+//     text-align: center;
+//     font-size: 22px;
+// }
+// .otp-input input:focus {
+//     border-bottom-color: #004a8f !important;
+// }
+.km-uploadDoc-title{
+    font-family: Open Sans;
+    font-weight: 700 !important;
+    font-size: 16px !important;
+    line-height: 24px;
+    color:#231f20 !important;
+    padding-bottom: 24px;
 }
-.otp-input input:focus {
-    border-bottom-color: #004a8f !important;
+.error-inline .etb-slct {
+    border: 1px solid #D92D20 !important;
+    border-radius: 12px !important;
+}
+
+.error-inline input.ett-inpt,
+.error-inline textarea.ett-inpt {
+    border: 1px solid #D92D20 !important;
+    border-radius: 12px !important;
+}
+
+.error-inline .etb-slct input {
+    border: none !important;
+}
+.error-inline .err-msg li {
+    text-align: left;
+    white-space: nowrap !important;
+}
+
+.address-selection .etb-rdio span {
+    white-space: nowrap !important;
+}
+.cb-error-border {
+    border: 1px solid #d32f2f !important;
 }
  
+.cb-error-msg {
+    color: #d32f2f;
+    font-size: 12px;
+    margin-top: 4px;
+}

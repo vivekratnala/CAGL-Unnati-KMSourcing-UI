@@ -1,0 +1,19 @@
+var docScrId = 'KmSourc__documentCapture__';
+apz.app.onLoad_documentCapture = function() {
+    if (apz.app.docType === 'Aadhaar') {
+        $('.doc-upload-title').text('Upload front & back side of Aadhaar card');
+        apz.app.updateFieldLabel('KmSourc__documentCapture__', 'ocr-idSection', 'Aadhaar number (Last 4 digits)');
+        apz.app.updateFieldLabel('KmSourc__documentCapture__', 'ocr-nameSection', 'Name as per Aadhaar');
+         apz.app.updateFieldLabel('KmSourc__Kmbase__', 'ocr-idSection', 'Aadhaar number (Last 4 digits)');
+        apz.app.updateFieldLabel('KmSourc__Kmbase__', 'ocr-nameSection', 'Name as per Aadhaar');
+    }
+};
+apz.app.updateFieldLabel = function(screenPrefix, fieldName, newText) {
+    if (!screenPrefix || !fieldName || !newText) return;
+    var inputId = screenPrefix + fieldName;
+    var label = document.querySelector('label[for="' + inputId + '"]');
+    if (label) {
+        label.textContent = newText;
+        label.title = newText;
+    }
+};
