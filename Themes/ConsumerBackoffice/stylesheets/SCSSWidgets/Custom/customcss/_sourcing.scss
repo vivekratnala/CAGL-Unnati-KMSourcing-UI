@@ -146,18 +146,214 @@ color:#231f20 !important;
 .fw-600{
       font-weight: 600;
 }
-.otp-input input {
+// .otp-input input {
+//     border: none !important;
+//     border-bottom: 2px solid #cfcfcf !important;
+//     background: transparent !important;
+//     outline: none !important;
+//     box-shadow: none !important;
+//     border-radius: 0 !important;
+//     height: 44px;
+//     text-align: center;
+//     font-size: 22px;
+// }
+// .otp-input input:focus {
+//     border-bottom-color: #004a8f !important;
+// }
+ 
+ .error-inline .etb-slct {
+    border: 1px solid #D92D20 !important;
+    border-radius: 12px !important;
+}
+ 
+/* ===============================
+   INPUT FIELD BORDER (FIXED)
+=============================== */
+.error-inline input.ett-inpt,
+.error-inline textarea.ett-inpt {
+    border: 1px solid #D92D20 !important;
+    border-radius: 12px !important;
+}
+ 
+/* Remove inner dropdown double border */
+.error-inline .etb-slct input {
+    border: none !important;
+}
+
+
+
+
+ 
+ .cb-error-border {
+    border: 1px solid #d32f2f !important;
+}
+
+.cb-error-msg {
+    color: #d32f2f;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+
+
+//   MODAL BODY CENTERING
+#KmSourc__Kmbase__gr_row_25 {
+    display: flex !important;
+    justify-content: center;
+}
+
+#KmSourc__Kmbase__gr_col_39 {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+/* ===============================
+  HEADER CENTER
+==================================*/
+#KmSourc__Kmbase__sc_row_58 {
+    display: flex !important;
+    justify-content: center !important;
+    margin-bottom: 24px;
+}
+
+#KmSourc__Kmbase__sc_row_58 .scb-col100 {
+    width: auto !important;
+    flex: unset !important;
+}
+
+#KmSourc__Kmbase__otpInfoText {
+    text-align: center !important;
+    font-size: 15px;
+}
+
+/* ===============================
+  OTP INPUT ROW
+==================================*/
+#KmSourc__Kmbase__sc_row_59 {
+    display: flex !important;
+    justify-content: center !important;
+    gap: 32px;
+    margin-bottom: 18px;
+}
+
+#KmSourc__Kmbase__sc_row_59 .scb-col15 {
+    width: auto !important;
+    flex: unset !important;
+}
+
+/* Hide labels above inputs */
+#KmSourc__Kmbase__sc_row_59 .flb {
+    display: none !important;
+}
+
+/* Input styling */
+#KmSourc__Kmbase__sc_row_59 input {
+    width: 42px;
     border: none !important;
     border-bottom: 2px solid #cfcfcf !important;
     background: transparent !important;
     outline: none !important;
     box-shadow: none !important;
     border-radius: 0 !important;
-    height: 44px;
+    height: 42px;
     text-align: center;
     font-size: 22px;
 }
-.otp-input input:focus {
-    border-bottom-color: #004a8f !important;
+
+/* Focus effect */
+#KmSourc__Kmbase__sc_row_59 input:focus {
+    border-bottom: 2px solid #004a8f !important;
 }
- 
+
+/* ===============================
+  TIMER + RESEND ROW
+==================================*/
+#KmSourc__Kmbase__sc_row_60 {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center;
+    margin-bottom: 28px;
+}
+
+/* Keep their grid widths but align content */
+#KmSourc__Kmbase__sc_col_101 {
+    text-align: left !important;
+}
+
+#KmSourc__Kmbase__sc_col_102 {
+    text-align: right !important;
+}
+
+/* Timer red */
+#KmSourc__Kmbase__otpTimer {
+    color: #e53935 !important;
+    font-weight: 500;
+}
+
+/* Resend link */
+#KmSourc__Kmbase__resendOtpBtn {
+    color: #004a8f !important;
+    font-weight: 500;
+    text-decoration: underline;
+}
+
+/* ===============================
+  BUTTON ROW
+==================================*/
+#KmSourc__Kmbase__sc_row_61 {
+    display: flex !important;
+    justify-content: space-between !important;
+    gap: 24px;
+}
+
+/* Remove 50% forced width */
+#KmSourc__Kmbase__sc_row_61 .scb-col50 {
+    width: auto !important;
+    flex: 1;
+}
+
+
+
+/* Remove label space above buttons */
+#KmSourc__Kmbase__sc_row_61 .flb {
+    display: none !important;
+}
+
+/* Cancel button */
+#KmSourc__Kmbase__el_btn_20 {
+    width: 100%;
+    padding: 12px 0;
+    border-radius: 28px !important;
+    border: 2px solid #004a8f !important;
+    background: transparent !important;
+    color: #004a8f !important;
+    font-weight: 500;
+}
+
+/* Verify button */
+#KmSourc__Kmbase__el_btn_21 {
+    width: 100%;
+    padding: 12px 0;
+    border-radius: 28px !important;
+    border: none !important;
+    background: #0d4d8b !important;
+    color: #ffffff !important;
+    font-weight: 500;
+}
+#KmSourc__Kmbase__el_btn_20,
+#KmSourc__Kmbase__el_btn_20 span {
+    color: #004a8f !important;
+    background: transparent !important;
+}
+#KmSourc__Kmbase__otpInfoText_ul li:first-child,
+#KmSourc__Kmbase__otpTimer_ul li:first-child {
+    display: none !important;
+}
+/* Remove entire modal header */
+#KmSourc__Kmbase__Otp_Modal_window .modal-header {
+    display: none !important;
+}
+#KmSourc__Kmbase__otpInfoText {
+    font-weight: 600 !important;
+}
+

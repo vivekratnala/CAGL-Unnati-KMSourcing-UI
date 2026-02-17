@@ -9347,8 +9347,13 @@ ApzCOB = {
                 } else {
                     window.CO_APPLICANT_OTP_VARIFIED = true;
                 }
+                if(apz.childScr === 'CBcheck'){
+                    apz.stopLoader();
+                    apz.app.CBcheck.otpVerifiedSuccess();
+                } else {
                 apz.startLoader();
-                ApzCOB.callCBService(); // Calling CB based on Type
+                ApzCOB.callCBService();
+                }// Calling CB based on Type 
             } else {
                 apz.stopLoader();
                 ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_LOAN_DETAILS_INVALID_OTP"), "E");
