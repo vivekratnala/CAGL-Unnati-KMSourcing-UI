@@ -18,6 +18,39 @@ window.CB_OTP_STATE = {
     }
 };
 window.CB_Validate = {
+    fnCheckMaxMinLengthOnBlur: function(pthis) {
+        let minlength = pthis.minLength;
+        let maxlength = pthis.maxLength;
+        let value = pthis.value.trim();
+        let $field = $("#" + pthis.id);
+        if (!apz.isNull(value) && (value.length < minlength || value.length > maxlength)) {
+            window.gIsMinMaxErr = true;
+            $field.addClass("err");
+            $("#" + pthis.id + "_ul").next().removeClass("sno");
+            let errTxtFieldId = $("#" + pthis.id + "_ul").next()?.find('.icon-Error')?.next() ?? $('#dummyid');
+            errTxtFieldId?.text(`Please enter minimum:${minlength} and maximum:${maxlength} characters!`);
+            let wrapper;
+            if ($field.closest(".etb-slct").length) {
+                wrapper = $field.closest(".etb-slct").parent().parent();
+            } else if ($field.closest(".ett-inpt").length) {
+                wrapper = $field.closest(".ett-inpt").parent().parent();
+            } else if ($field.closest("ul").length) {
+                wrapper = $field.closest("ul").parent().parent();
+            }
+            wrapper?.addClass("error-inline");
+        } else {
+            window.gIsMinMaxErr = false;
+            let wrapper;
+            if ($field.closest(".etb-slct").length) {
+                wrapper = $field.closest(".etb-slct").parent().parent();
+            } else if ($field.closest(".ett-inpt").length) {
+                wrapper = $field.closest(".ett-inpt").parent().parent();
+            } else if ($field.closest("ul").length) {
+                wrapper = $field.closest("ul").parent().parent();
+            }
+            wrapper?.removeClass("error-inline");
+        }
+    },
     required: function(fieldId, message) {
         let $el = $("#" + fieldId);
         if ($el.length === 0) return true;
@@ -62,6 +95,7 @@ window.CB_Validate = {
 //   ON LOAD
 apz.app.onLoad_CBcheck = function() {
     gApzCOB.currentApplicant = 1;
+    PerDetScrId = CBcheckScr;
     var applicantBtn = document.querySelector('.cbcheckSubMenu');
     if (applicantBtn) {
         apz.app.CBcheck.handletabSwitch(applicantBtn, 'Applicant');
@@ -78,6 +112,121 @@ apz.app.onLoad_CBcheck = function() {
     $(`#${CBcheckScr}subLoanPurpose`).attr('disabled', true);
     apz.populateDropdown(document.getElementById(`${CBcheckScr}frequencyOfRepayment`), ApzCOB.formatDropDownforArray(frequencyOfRepayment));
     apz.populateDropdown(document.getElementById(`${CBcheckScr}coGender`), ApzCOB.formatDropDownforArray(gender));
+        ApzCOB.setMinMaxLength([
+    //         {
+    //     'fieldName': 'Name',
+    //     'fieldId': CBcheckScr + 'firstname'
+    // }, {
+    //     'fieldName': 'Name',
+    //     'fieldId': CBcheckScr + 'midname'
+    // }, {
+    //     'fieldName': 'Name',
+    //     'fieldId': CBcheckScr + 'lastname'
+    // }, {
+    //     'fieldName': 'CustomerType',
+    //     'fieldId': CBcheckScr + 'custType'
+    // }, {
+    //     'fieldName': 'CustomerId',
+    //     'fieldId': CBcheckScr + 'custId'
+    // }, {
+    //     'fieldName': 'Name',
+    //     'fieldId': CBcheckScr + 'name'
+    // }, {
+    //     'fieldName': 'Title',
+    //     'fieldId': CBcheckScr + 'title'
+    // }, {
+    //     'fieldName': 'Gender',
+    //     'fieldId': CBcheckScr + 'gender'
+    // }, {
+    //     'fieldName': 'Dob',
+    //     'fieldId': CBcheckScr + 'dob'
+    // }, {
+    //     'fieldName': 'Age',
+    //     'fieldId': CBcheckScr + 'custAge'
+    // }, 
+    {
+        'fieldName': 'MobileNumber',
+        'fieldId': CBcheckScr + 'primaryMobile'
+    }, {
+        'fieldName': 'MobileNumber',
+        'fieldId': CBcheckScr + 'sec_mobile'
+    }, 
+    // {
+    //     'fieldName': 'MaritalStatus',
+    //     'fieldId': CBcheckScr + 'maritalSts'
+    // }, {
+    //     'fieldName': 'Name',
+    //     'fieldId': CBcheckScr + 'fatherName'
+    // }, {
+    //     'fieldName': 'Name',
+    //     'fieldId': CBcheckScr + 'spouseName'
+    // }, {
+    //     'fieldName': 'AadharNumber',
+    //     'fieldId': CBcheckScr + 'aadhaarNum'
+    // }, {
+    //     'fieldName': 'VoterID',
+    //     'fieldId': CBcheckScr + 'voterId'
+    // }, {
+    //     'fieldName': 'VoterID',
+    //     'fieldId': secondaryKycIdTag
+    // }, 
+    {
+        'fieldName': 'CKYC',
+        'fieldId': CBcheckScr + 'ckycNumber' // C_KYC
+    },
+    // {
+    //     'fieldName': 'VoterID', // Alternate VoterId
+    //     'fieldId': altVoterIdTag
+    // }, {
+    //     'fieldName': 'PanNumber',
+    //     'fieldId': CBcheckScr + 'panNumber'
+    // }, 
+    {
+        'fieldName': 'AddressLine1',
+        'fieldId': CBcheckScr + 'addressLine1'
+    }, {
+        'fieldName': 'AddressLine2',
+        'fieldId': CBcheckScr + 'addressLine2'
+    }, {
+        'fieldName': 'AddressLine3',
+        'fieldId': CBcheckScr + 'addressLine3'
+    }, {
+        'fieldName': 'Pincode',
+        'fieldId': CBcheckScr + 'pincode'
+    }, 
+    // {
+    //     'fieldName': 'Pincode',
+    //     'fieldId': CBcheckScr + 'permanentPincode'
+    // }, {
+    //     'fieldName': 'Pincode',
+    //     'fieldId': CBcheckScr + 'commPincode'
+    // },
+    {
+        'fieldName': 'City',
+        'fieldId': CBcheckScr + 'addPreCity'
+    }, {
+        'fieldName': 'District',
+        'fieldId': CBcheckScr + 'addPreDistrict'
+    }, {
+        'fieldName': 'State',
+        'fieldId': CBcheckScr + 'addPreState'
+    }, 
+    // {
+    //     'fieldName': 'Country',
+    //     'fieldId': CBcheckScr + 'country'
+    // }, 
+    // {
+    //     'fieldName': 'Name',
+    //     'fieldId': CBcheckScr + 'relationwithApp'
+    // }, {
+    //     'fieldName': 'Name',
+    //     'fieldId': CBcheckScr + 'nameasKYC'
+    // }, {
+    //     'fieldName': 'KYCType',
+    //     'fieldId': CBcheckScr + 'primaryKYC'
+    // }
+    ]);
+
     apz.app.CBcheck.paintLoanDetails();
     apz.app.CBcheck.togglePanView();
     apz.app.CBcheck.paintCustomerAndKycDetails();
@@ -112,6 +261,7 @@ apz.app.CBcheck.handletabSwitch = function(pthis, CustType) {
         $('.src-app').hide();
         $('.src-coapp').show();
     }
+
     apz.app.CBcheck.paintLoanDetails();
     apz.app.CBcheck.paintCustomerAndKycDetails();
     apz.app.CBcheck.refreshOtpUI();
@@ -121,7 +271,7 @@ apz.app.CBcheck.paintLoanDetails = function() {
     if (apz.isNull(inSessionStore.loanDetails)) return;
     let response = inSessionStore.loanDetails;
     let payload = response.payload;
-    $('#' + screenId + 'loanAmount').val(ApzCOB.fn_FormatAmount(response.loanAmount));
+    $('#' + screenId + 'loanAmount').val("\u20B9"+" "+ApzCOB.fn_FormatAmount(response.loanAmount));
     /* ---- Purpose ---- */
     let purpose = payload.loanPurpose || PleaseSelect;
     $(`#${screenId}loanPurpose`).val(purpose);
@@ -151,6 +301,20 @@ apz.app.CBcheck.onChangeLoanPurpose = function(pthis) {
     ApzCOB.dropDownOnChange(pthis);
 };
 //   SLIDER
+// apz.app.CBcheck.showSlider = function() {
+//     $("#" + screenId + "loanSlider").slider({
+//         range: "min",
+//         value: parseInt(fdAmountMin),
+//         min: parseInt(fdAmountMin),
+//         max: parseInt(fdAmountMax),
+//         slide: function(event, ui) {
+//             ui.value = Math.round(ui.value / 1000) * 1000;
+//             $("#" + screenId + "loanAmount").val("\u20B9"+" "+ApzCOB.fn_FormatAmount(ui.value)).trigger("onchange");
+//         }
+//     }).slider("pips", {
+//         rest: false
+//     }).slider("float");
+// };
 apz.app.CBcheck.showSlider = function() {
     $("#" + screenId + "loanSlider").slider({
         range: "min",
@@ -159,15 +323,26 @@ apz.app.CBcheck.showSlider = function() {
         max: parseInt(fdAmountMax),
         slide: function(event, ui) {
             ui.value = Math.round(ui.value / 1000) * 1000;
-            $("#" + screenId + "loanAmount").val(ApzCOB.fn_FormatAmount(ui.value)).trigger("onchange");
+            $("#" + screenId + "loanAmount").val("\u20B9"+" "+ApzCOB.fn_FormatAmount(ui.value)).trigger("onchange");
+        },
+        change: function(event, ui) {
+            ui.value = Math.round(ui.value / 1000) * 1000;
+            $("#" + screenId + "loanAmount").val("\u20B9"+" "+ApzCOB.fn_FormatAmount(ui.value));
+        },
+        stop: function(event, ui) {
+            // apz.app.LoanDetails.onChangeofdepoAmountSlider();
+            ui.value = Math.round(ui.value / 1000) * 1000;
+            $("#" + screenId + "loanAmount").val("\u20B9"+" "+ApzCOB.fn_FormatAmount(ui.value));
         }
     }).slider("pips", {
-        rest: false
+        rest: false,
+        //step: ((fdAmountMax - fdAmountMin) / 2) / 5
+        //step: fdAmountMin
     }).slider("float");
-};
+}
 apz.app.CBcheck.setDefaultSliderValue = function() {
     $("#" + screenId + "loanSlider").slider("option", "value", fdDefaultLoanAmount);
-    $("#" + screenId + "loanAmount").val(ApzCOB.fn_FormatAmount(fdDefaultLoanAmount));
+    $("#" + screenId + "loanAmount").val("\u20B9"+" "+ApzCOB.fn_FormatAmount(fdDefaultLoanAmount));
 };
 apz.app.CBcheck.amountSliderControl = function() {
     var data = ApzCOB.fn_unFormatAmount($("#" + screenId + "loanAmount").val());
@@ -222,7 +397,7 @@ apz.app.CBcheck.paintCustomerAndKycDetails = function() {
     $('#' + screenId + 'ckycNumber').val(payload.ckyc || "");
     //   MOBILE NUMBERS
     $('#' + screenId + 'primaryMobile').val(custWrapper.mobileNumber || "");
-    $('#' + screenId + 'secondaryMobile').val(payload.secMobileNo || "");
+    $('#' + screenId + 'sec_mobile').val(payload.secMobileNo || "");
     //   ADDRESS DETAILS
     if (!apz.isNull(gApzCOB.requestNodes.addressDetailsWrapperList) && gApzCOB.requestNodes.addressDetailsWrapperList.length > 0) {
         let addressDetailsList = gApzCOB.requestNodes.addressDetailsWrapperList[0].addressDetailsList;

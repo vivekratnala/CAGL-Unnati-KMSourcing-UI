@@ -135,16 +135,16 @@ color:#231f20 !important;
     display: flex !important;
     gap: 24px;
 }
-.km-bld{
+.km-bld .ett-para{
     line-height:24px;
-    size:16px;
+    font-size: 16px;
     font-family: 'Open Sans', sans-serif;
 }
-.fw-700{
-      font-weight: 700;
+.fw-700 .ett-para{
+    font-weight: 700;
 }
-.fw-600{
-      font-weight: 600;
+.fw-600 .ett-para{
+    font-weight: 600;
 }
 // .otp-input input {
 //     border: none !important;
@@ -357,3 +357,9 @@ color:#231f20 !important;
     font-weight: 600 !important;
 }
 
+.err-msg p,
+.err-msg span,
+.cb-error-msg {
+    white-space: nowrap !important;
+    text-align: left !important;
+}
