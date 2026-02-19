@@ -3,6 +3,24 @@ var TempImageObject = {},
     addrProfArr = [],
     relatArr = [];
 window.selectedCommunicationAddress = [];
+window.AADHAAR_ROW_FALLBACK = {
+    applicant: false,
+    coapplicant: false
+};
+window.AADHAAR_ADDRESS_MAP = {
+    applicant: {
+        present: {},
+        permanent: {}
+    },
+    coapplicant: {
+        present: {},
+        permanent: {}
+    }
+};
+window.AADHAAR_FORM_CACHE = {
+    applicant: {},
+    coapplicant: {}
+};
 var residentialAddressFields = [
     AadhaarScrId + "presentAddrLine1",
     AadhaarScrId + "presentAddrLine2",
@@ -189,6 +207,15 @@ apz.app.onLoad_AadhaarDetails = function() {
     }]);
     //onload paint data
     apz.app.AadhaarDetails.paintAddressTable();
+    // Check Aadhaar doc capture flag
+    if (window.AADHAAR_DOC_CAPTURE_SUCCESS) {
+        console.log("Aadhaar doc captured");
+        $("#" + AadhaarScrId + "aadharDetails").removeClass('sno');
+        $("#" + AadhaarScrId + "captureAadhaar").removeClass('btm-seperator');
+    } else {
+        console.log("No Aadhaar doc");
+        $('.aadharDetails').addClass('sno'); 
+    }
 }
 apz.app.handleColumnRadio = function(pthis) {
     if (!pthis) return;
@@ -251,17 +278,7 @@ apz.app.handleAddressType = function(pthis) {
         }
     } else {
         addressRow.classList.remove('disabled');
-        optionRadios.forEach(r => {
-            r.checked = false;
-        });
-        if (apz.app.otherAddressState) {
-            apz.app.otherAddressState.present = false;
-            apz.app.otherAddressState.permanent = false;
-        }
-        const presentSection = document.querySelector('.other-present-details');
-        const permanentSection = document.querySelector('.other-permanent-details');
-        if (presentSection) presentSection.style.display = 'none';
-        if (permanentSection) permanentSection.style.display = 'none';
+        optionRadios.forEach(r => r.checked = false);
     }
 };
 apz.app.handleOtherAddressSelection = function(pthis) {
@@ -286,6 +303,9 @@ apz.app.handleOtherAddressSelection = function(pthis) {
 };
 apz.app.AadhaarDetails.handletabSwitch = function(pthis, CustType) {
     if (!pthis) return;
+    apz.app.AadhaarDetails.saveCurrentForm();
+    document.querySelectorAll(".error-inline").forEach(el => el.classList.remove("error-inline"));
+    document.querySelectorAll(".cb-error-msg").forEach(el => el.remove());
     var $btn = $(pthis);
     $('.aadhaarSubMenu').removeClass('active');
     $btn.addClass('active');
@@ -298,12 +318,7 @@ apz.app.AadhaarDetails.handletabSwitch = function(pthis, CustType) {
         $('.src-app').addClass('sno');
         $('.src-coapp').removeClass('sno');
     }
-    if (apz.app.otherAddressState) {
-        apz.app.otherAddressState.present = false;
-        apz.app.otherAddressState.permanent = false;
-    }
-    $('.other-present-details').hide();
-    $('.other-permanent-details').hide();
+    apz.app.AadhaarDetails.restoreForm();
     window.scrollTo(0, 0);
 };
 apz.app.AadhaarDetails.commoncodeConfTypesLst = function() {
@@ -367,6 +382,7 @@ function showFieldError(fieldId, message) {
 apz.app.AadhaarDetails.formValidator = function() {
     let isValid = true;
     let p = AadhaarScrId;
+    let isApplicant = gApzCOB.currentApplicant === 1;
 
     function check(res) {
         if (!res) isValid = false;
@@ -381,28 +397,22 @@ apz.app.AadhaarDetails.formValidator = function() {
     } else if (marital && marital !== PleaseSelect) {
         check(Aadhaar_Validate.required(p + "fathersName", "Please Enter Father name"));
     }
+    if (!isApplicant) {
+        check(Aadhaar_Validate.required(p + "relationshipProof", "Please Select Relationship proof document"));
+    }
     check(Aadhaar_Validate.radio(p + "communicationAddress", "Please Select Communication address"));
     let residential = $("input[name='" + p + "residentialStatus']:checked").val();
-    // OWN
     if (residential === "Own") {
         check(Aadhaar_Validate.required(p + "presentAddrLine1", "Enter Address Line 1"));
         check(Aadhaar_Validate.required(p + "presentPincode", "Enter Present Pincode"));
         return isValid;
     }
-    //RENTED
-    let validatePresent = false;
-    let validatePermanent = false;
-    // Check Other toggles
-    if (apz.app.otherAddressState) {
-        validatePresent = apz.app.otherAddressState.present;
-        validatePermanent = apz.app.otherAddressState.permanent;
-    }
-    // Present Other selected
+    let validatePresent = apz.app.otherAddressState?.present;
+    let validatePermanent = apz.app.otherAddressState?.permanent;
     if (validatePresent) {
         check(Aadhaar_Validate.required(p + "presentAddrLine1", "Enter Present Address Line 1"));
         check(Aadhaar_Validate.required(p + "presentPincode", "Enter Present Pincode"));
     }
-    // Permanent Other selected
     if (validatePermanent) {
         check(Aadhaar_Validate.required(p + "permanentAddrLine1", "Enter Permanent Address Line 1"));
         check(Aadhaar_Validate.required(p + "permanentPincode", "Enter Permanent Pincode"));
@@ -423,6 +433,21 @@ apz.app.AadhaarDetails.validateForm = function() {
             });
         }
         return false;
+    }
+    //capture communication address
+    apz.app.AadhaarDetails.captureCommunicationAddress();
+    console.log("Final Address:", window.selectedCommunicationAddress);
+    //ADHAAR FALLBACK CHECK 
+    let isApplicant = gApzCOB.currentApplicant === 1;
+    if (window.AADHAAR_ROW_FALLBACK) {
+        if (isApplicant && window.AADHAAR_ROW_FALLBACK.applicant && window.AADHAAR_ROW_FALLBACK.coapplicant) {
+            ApzCOB.fnDisplayMsg("Aadhaar address is not available. Please update Aadhaar details before proceeding.", "E");
+            $("#" + AadhaarScrId + "appAadhaarAddr")[0]?.scrollIntoView({
+                behavior: "smooth",
+                block: "center"
+            });
+            return false;
+        }
     }
     return true;
 };
@@ -459,28 +484,147 @@ apz.app.AadhaarDetails.paintAddressTable = function() {
     let coApplicantVoterAddr = "No. 12, Bharathi Street,Thiruvanmiyur,Chennai - 600041,Tamil Nadu, India.";
     let applicantAadhaarAddr = "";
     let coApplicantAadhaarAddr = "";
+    let appAadhaarFinal = Aadhaar_Validate.getAddressOrFallback(applicantAadhaarAddr);
+    let coAppAadhaarFinal = Aadhaar_Validate.getAddressOrFallback(coApplicantAadhaarAddr);
+    // ===== FALLBACK FLAGS =====
+    window.AADHAAR_ROW_FALLBACK = {
+        applicant: !applicantAadhaarAddr,
+        coapplicant: !coApplicantAadhaarAddr
+    };
+    // ===== ADDRESS MAP =====
+    window.AADHAAR_ADDRESS_MAP = {
+        applicant: {
+            present: {
+                1: applicantVoterAddr,
+                2: applicantVoterAddr,
+                3: appAadhaarFinal,
+                4: appAadhaarFinal
+            },
+            permanent: {
+                1: applicantVoterAddr,
+                2: applicantVoterAddr,
+                3: appAadhaarFinal,
+                4: appAadhaarFinal
+            }
+        },
+        coapplicant: {
+            present: {
+                1: coApplicantVoterAddr,
+                2: coApplicantVoterAddr,
+                3: coAppAadhaarFinal,
+                4: coAppAadhaarFinal
+            },
+            permanent: {
+                1: coApplicantVoterAddr,
+                2: coApplicantVoterAddr,
+                3: coAppAadhaarFinal,
+                4: coAppAadhaarFinal
+            }
+        }
+    };
     $("#" + AadhaarScrId + "appVoterAddr").text(applicantVoterAddr);
     $("#" + AadhaarScrId + "coAppVoterAddr").text(coApplicantVoterAddr);
-    $("#" + AadhaarScrId + "appAadhaarAddr").text(Aadhaar_Validate.getAddressOrFallback(applicantAadhaarAddr));
-    $("#" + AadhaarScrId + "coAppAadhaarAddr").text(Aadhaar_Validate.getAddressOrFallback(coApplicantAadhaarAddr));
+    let $appAadhaar = $("#" + AadhaarScrId + "appAadhaarAddr");
+    $appAadhaar.text(appAadhaarFinal).toggleClass("aadhaar-fallback-text", window.AADHAAR_ROW_FALLBACK.applicant);
+    let $coAppAadhaar = $("#" + AadhaarScrId + "coAppAadhaarAddr");
+    $coAppAadhaar.text(coAppAadhaarFinal).toggleClass("aadhaar-fallback-text", window.AADHAAR_ROW_FALLBACK.coapplicant);
+    apz.app.AadhaarDetails.toggleAddressRadios();
+    // Present column
+    $(".addr-body-row").eq(0).find("input[value*='present']").prop("checked", true);
+    // Permanent column
+    $(".addr-body-row").eq(0).find("input[value*='permanent']").prop("checked", true);
 };
 apz.app.AadhaarDetails.captureCommunicationAddress = function() {
-    
-    let commAddRadio = $('input[name="' + AadhaarScrId + 'communicationAddress_"]:checked').val();
-    console.log("Selected Radio:", commAddRadio);
-    let sourceFields = [];
-    if (commAddRadio === "presentAddr") {
-        sourceFields = residentialAddressFields;
-    } else if (commAddRadio === "permanentAddr") {
-        sourceFields = permanentAddressFields;
+    let commRadio = $('input[name="' + AadhaarScrId + 'communicationAddress_"]:checked');
+    if (!commRadio.length) return;
+    let colType = commRadio.val(); // presentAddr / permanentAddr
+    let isApplicant = gApzCOB.currentApplicant === 1;
+    let applicantKey = isApplicant ? "applicant" : "coapplicant";
+    if (colType.includes("present") && apz.app.otherAddressState?.present) {
+        let values = [];
+        residentialAddressFields.forEach(id => {
+            let val = $("#" + id).val()?.trim();
+            if (val) values.push(val);
+        });
+        if (values.length) {
+            window.selectedCommunicationAddress = values.join(", ");
+            console.log("Captured OTHER Present:", window.selectedCommunicationAddress);
+        }
+        return;
     }
-    let addressArray = [];
-    sourceFields.forEach(function(fieldId) {
-        let val = $("#" + fieldId).val();
-        if (val && val.trim()) {
-            addressArray.push(val.trim());
+    if (colType.includes("permanent") && apz.app.otherAddressState?.permanent) {
+        let values = [];
+        permanentAddressFields.forEach(id => {
+            let val = $("#" + id).val()?.trim();
+            if (val) values.push(val);
+        });
+        if (values.length) {
+            window.selectedCommunicationAddress = values.join(", ");
+            console.log("Captured OTHER Permanent:", window.selectedCommunicationAddress);
+        }
+        return;
+    }
+    let selectedRowRadio = $(".addr-body-row input[type='radio']:checked").first();
+    if (!selectedRowRadio.length) return;
+    let rowIndex = selectedRowRadio.closest(".addr-body-row").index() + 1;
+    let column = colType.includes("present") ? "present" : "permanent";
+    let address = AADHAAR_ADDRESS_MAP?.[applicantKey]?.[column]?.[rowIndex] || "";
+    window.selectedCommunicationAddress = address;
+    console.log("Captured Table Address:", address);
+};
+apz.app.AadhaarDetails.toggleAddressRadios = function() {
+    const rows = document.querySelectorAll(".addr-body-row");
+    rows.forEach((row, index) => {
+        const rowNumber = index + 1;
+        const radios = row.querySelectorAll("input[type='radio']");
+        let disable = false;
+        if ((rowNumber === 3 || rowNumber === 4)) {
+            if (gApzCOB.currentApplicant === 1 && window.AADHAAR_ROW_FALLBACK?.applicant) {
+                disable = true;
+            }
+            if (gApzCOB.currentApplicant === 2 && window.AADHAAR_ROW_FALLBACK?.coapplicant) {
+                disable = true;
+            }
+        }
+        radios.forEach(r => {
+            r.disabled = disable;
+            r.parentElement.classList.toggle("aadhar-radio-disable", disable);
+        });
+    });
+}
+apz.app.AadhaarDetails.saveCurrentForm = function() {
+    let key = gApzCOB.currentApplicant === 1 ? "applicant" : "coapplicant";
+    let data = {};
+    $("#scr__" + AadhaarScrId + "main").find("input, select, textarea").each(function() {
+        let id = this.id;
+        if (!id) return;
+        if (this.type === "radio") {
+            if (this.checked) data[id] = true;
+        } else {
+            data[id] = $(this).val();
         }
     });
-    window.selectedCommunicationAddress = addressArray;
-    console.log("Stored Communication Address:", addressArray);
+    window.AADHAAR_FORM_CACHE[key] = data;
+};
+apz.app.AadhaarDetails.restoreForm = function() {
+    let key = gApzCOB.currentApplicant === 1 ? "applicant" : "coapplicant";
+    let data = window.AADHAAR_FORM_CACHE[key] || {};
+    // Clear form first
+    $("#scr__" + AadhaarScrId + "main").find("input, select, textarea").each(function() {
+        if (this.type === "radio" || this.type === "checkbox") {
+            this.checked = false;
+        } else {
+            $(this).val("");
+        }
+    });
+    // Restore saved values
+    Object.keys(data).forEach(id => {
+        let el = document.getElementById(id);
+        if (!el) return;
+        if (el.type === "radio") {
+            el.checked = true;
+        } else {
+            el.value = data[id];
+        }
+    });
 };
