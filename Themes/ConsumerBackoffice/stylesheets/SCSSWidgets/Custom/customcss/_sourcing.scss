@@ -1,7 +1,8 @@
-.kmleft{
-   left:0px; 
+.kmleft {
+    left: 0px;
 }
-.pst-simp.pa0 > div.vw-log-btn.kmid{
+
+.pst-simp.pa0>div.vw-log-btn.kmid {
     max-width: 174px;
     min-width: 240px;
     position: fixed;
@@ -10,6 +11,7 @@
     padding: 8px 32px 24px 32px;
     padding-top: 8px;
 }
+
 .btm-seperator-kmsourcing {
     width: 100% !important;
     flex: 0 0 100% !important;
@@ -17,135 +19,164 @@
 
     border-bottom: 1px solid #D4D4D4;
 
-    margin: 24px 0 !important;   
+    margin: 24px 0 !important;
     padding: 0 !important;
     height: 1px;
 }
-.kmsourcing-table  {
-  min-height: auto !important;
-  max-height: none !important;
-  height: auto !important;
-  overflow: visible !important;
+
+.kmsourcing-table {
+    min-height: auto !important;
+    max-height: none !important;
+    height: auto !important;
+    overflow: visible !important;
 }
-.kmsourcing-Table-Title{
+
+.kmsourcing-Table-Title {
     font-weight: 400 !important;
     font-size: 12px !important;
     line-height: 16px;
     letter-spacing: 0.2px;
     color: #737373 !important;
 }
-.kmsourcing-Table-des{
-font-family: Open Sans;
-font-weight: 600 !important;
-font-size: 14px !important;
-line-height: 20px;
-letter-spacing: 0.4px;
-color:#231f20 !important;
-} 
+
+.kmsourcing-Table-des {
+    font-family: Open Sans;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    line-height: 20px;
+    letter-spacing: 0.4px;
+    color: #231f20 !important;
+}
+
 .addr-header-list {
-  border: 1px solid #e0e0e0;
-  border-bottom: none; 
-  border-radius: 8px 8px 0 0;
-  background: #f7f7f7;
+    border: 1px solid #e0e0e0;
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+    background: #f7f7f7;
 }
+
 .addr-header-row {
-  display: grid;
-  grid-template-columns: 3fr 1fr 1fr;
+    display: grid;
+    grid-template-columns: 3fr 1fr 1fr;
 }
+
 .addr-header-row .addr-cell {
-  padding: 12px;
-  border-right: 1px solid #e0e0e0;
-  font-weight: 500;
-  text-align: center;
+    padding: 12px;
+    border-right: 1px solid #e0e0e0;
+    font-weight: 500;
+    text-align: center;
 }
+
 .addr-header-row .addr-cell:first-child {
-  text-align: left;
+    text-align: left;
 }
+
 .addr-header-row .addr-cell:last-child {
-  border-right: none;
+    border-right: none;
 }
+
 .addr-body-list {
-  border: 1px solid #e0e0e0;
-  border-top: none;
-  border-radius: 0 0 8px 8px;
+    border: 1px solid #e0e0e0;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
 }
+
 .addr-body-row {
-  display: grid;
-  grid-template-columns: 3fr 1fr 1fr;
-  border-bottom: 1px solid #e6e6e6;
+    display: grid;
+    grid-template-columns: 3fr 1fr 1fr;
+    border-bottom: 1px solid #e6e6e6;
 }
 
 .addr-body-row:last-child {
-  border-bottom: none;
+    border-bottom: none;
 }
 
 .addr-body-row .addr-cell {
-  padding: 12px;
-  border-right: 1px solid #e6e6e6;
+    padding: 12px;
+    border-right: 1px solid #e6e6e6;
 }
+
 .addr-body-row .addr-cell:nth-child(2),
 .addr-body-row .addr-cell:nth-child(3) {
-  padding: 45px !important;
+    padding: 45px !important;
 }
+
 .addr-body-row .addr-cell:last-child {
-  border-right: none;
+    border-right: none;
 }
+
 .addr-body-row .addr-cell input[type="radio"] {
-  display: block;
-  margin: 0 auto;
+    display: block;
+    margin: 0 auto;
 }
 
 .task-wrapper .crt-list.address-table {
-  padding: 0 !important;
+    padding: 0 !important;
 }
+
 #scr__KmSourc__Kmbase__main {
-    .modal-window, .modal-cnt{ 
+
+    .modal-window,
+    .modal-cnt {
         height: unset;
         overflow: scroll;
     }
 }
-.crt-form.btm-seperator, #adrsDetails {
+
+.crt-form.btm-seperator,
+#adrsDetails {
     border-bottom: 1px solid #D4D4D4;
     margin-bottom: 8px;
     padding-bottom: 8px;
     padding-top: 8px;
 }
+
 .address-selection.disabled {
-  pointer-events: none;  
-  opacity: 0.6;          
+    pointer-events: none;
+    opacity: 0.6;
 }
+
 .co-applicant-bg {
     background: #F5F5F5;
     padding: 12px;
     margin-bottom: 32px;
 }
+
 .tab-label-list-margin {
     margin: 24px 0;
 }
+
 .margin-bottom-32 {
-   margin-bottom: 32px;
+    margin-bottom: 32px;
 }
-.mb32{
+
+.mb32 {
     margin-bottom: 32px !important;
 }
-.mb4{
+
+.mb4 {
     margin-bottom: 4px !important;
 }
+
 .gap24 {
     display: flex !important;
     gap: 24px;
 }
-.km-bld .ett-para{
-    line-height:24px;
+
+.km-bld .ett-para {
+    line-height: 24px;
     font-size: 16px;
     font-family: 'Open Sans', sans-serif;
 }
-.fw-700 .ett-para{
+
+.fw-700 .ett-para {
     font-weight: 700;
 }
-.fw-600 .ett-para{
+
+.fw-600 .ett-para {
     font-weight: 600;
 }
+
 // .otp-input input {
 //     border: none !important;
 //     border-bottom: 2px solid #cfcfcf !important;
@@ -160,12 +191,12 @@ color:#231f20 !important;
 // .otp-input input:focus {
 //     border-bottom-color: #004a8f !important;
 // }
- 
- .error-inline .etb-slct {
+
+.error-inline .etb-slct {
     border: 1px solid #D92D20 !important;
     border-radius: 12px !important;
 }
- 
+
 /* ===============================
    INPUT FIELD BORDER (FIXED)
 =============================== */
@@ -174,7 +205,7 @@ color:#231f20 !important;
     border: 1px solid #D92D20 !important;
     border-radius: 12px !important;
 }
- 
+
 /* Remove inner dropdown double border */
 .error-inline .etb-slct input {
     border: none !important;
@@ -183,8 +214,8 @@ color:#231f20 !important;
 
 
 
- 
- .cb-error-border {
+
+.cb-error-border {
     border: 1px solid #d32f2f !important;
 }
 
@@ -340,19 +371,23 @@ color:#231f20 !important;
     color: #ffffff !important;
     font-weight: 500;
 }
+
 #KmSourc__Kmbase__el_btn_20,
 #KmSourc__Kmbase__el_btn_20 span {
     color: #004a8f !important;
     background: transparent !important;
 }
+
 #KmSourc__Kmbase__otpInfoText_ul li:first-child,
 #KmSourc__Kmbase__otpTimer_ul li:first-child {
     display: none !important;
 }
+
 /* Remove entire modal header */
 #KmSourc__Kmbase__Otp_Modal_window .modal-header {
     display: none !important;
 }
+
 #KmSourc__Kmbase__otpInfoText {
     font-weight: 600 !important;
 }
@@ -362,4 +397,15 @@ color:#231f20 !important;
 .cb-error-msg {
     white-space: nowrap !important;
     text-align: left !important;
+}
+
+.ocrfooter {
+    background: #fff;
+    display: flex;
+    justify-content: flex-end;
+    box-shadow: 0 -4px 10px -4px rgba(16, 24, 40, 0.1);
+}
+
+.ocrfooter .ocr-ftr {
+    justify-content: flex-end;
 }
