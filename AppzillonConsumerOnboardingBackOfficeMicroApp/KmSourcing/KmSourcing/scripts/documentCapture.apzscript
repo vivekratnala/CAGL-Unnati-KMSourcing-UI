@@ -2,22 +2,31 @@ var docScrId = 'KmSourc__documentCapture__';
 apz.app.onLoad_documentCapture = function() {
     if (apz.app.docType === 'Aadhaar') {
         $('.doc-upload-title').text('Upload front & back side of Aadhaar card');
-        apz.app.updateFieldLabel('KmSourc__documentCapture__', 'ocr-idSection', 'Aadhaar number (Last 4 digits)');
-        apz.app.updateFieldLabel('KmSourc__documentCapture__', 'ocr-nameSection', 'Name as per Aadhaar');
-         apz.app.updateFieldLabel('KmSourc__Kmbase__', 'ocr-idSection', 'Aadhaar number (Last 4 digits)');
+        // apz.app.updateFieldLabel('KmSourc__documentCapture__', 'ocr-idSection', 'Aadhaar number (Last 4 digits)');
+        // apz.app.updateFieldLabel('KmSourc__documentCapture__', 'ocr-nameSection', 'Name as per Aadhaar');
+        apz.app.updateFieldLabel('KmSourc__Kmbase__', 'ocr-idSection', 'Aadhaar number (Last 4 digits)');
         apz.app.updateFieldLabel('KmSourc__Kmbase__', 'ocr-nameSection', 'Name as per Aadhaar');
-    }else if (apz.app.docType === 'Voter ID') {
+        $('.ocr-verify-btn, .pan-row, .voter-row, .dummy-ocrrow').hide();
+        $('.dob-row').show();
+
+    } else if (apz.app.docType === 'Voter ID') {
         $('.doc-upload-title').text('Upload front & back side of Voter ID');
-        apz.app.updateFieldLabel('KmSourc__documentCapture__', 'ocr-idSection', 'Voter ID number');
-        apz.app.updateFieldLabel('KmSourc__documentCapture__', 'ocr-nameSection', 'Name');
-         apz.app.updateFieldLabel('KmSourc__Kmbase__', 'ocr-idSection', 'Voter ID number');
+        // apz.app.updateFieldLabel('KmSourc__documentCapture__', 'ocr-idSection', 'Voter ID number');
+        // apz.app.updateFieldLabel('KmSourc__documentCapture__', 'ocr-nameSection', 'Name');
+        apz.app.updateFieldLabel('KmSourc__Kmbase__', 'ocr-idSection', 'Voter ID number');
         apz.app.updateFieldLabel('KmSourc__Kmbase__', 'ocr-nameSection', 'Name');
-    }else if (apz.app.docType === 'PAN card') {
+        $('.ocr-dob, .aadhaar-row, .pan-row').hide();
+        $('.dob-row').hide();
+        $('.ocr-verify-btn').show();
+    } else if (apz.app.docType === 'PAN card') {
         $('.doc-upload-title').text('Upload front & back side of PAN card');
-        apz.app.updateFieldLabel('KmSourc__documentCapture__', 'ocr-idSection', 'PAN card number');
-        apz.app.updateFieldLabel('KmSourc__documentCapture__', 'ocr-nameSection', 'Name as per PAN');
-         apz.app.updateFieldLabel('KmSourc__Kmbase__', 'ocr-idSection', 'PAN card number');
+        // apz.app.updateFieldLabel('KmSourc__documentCapture__', 'ocr-idSection', 'PAN card number');
+        // apz.app.updateFieldLabel('KmSourc__documentCapture__', 'ocr-nameSection', 'Name as per PAN');
+        apz.app.updateFieldLabel('KmSourc__Kmbase__', 'ocr-idSection', 'PAN card number');
         apz.app.updateFieldLabel('KmSourc__Kmbase__', 'ocr-nameSection', 'Name as per PAN');
+        $('.ocr-note, .ocr-pincode, .ocr-addressLine3, .ocr-addressLine2, .ocr-addressLine1, .ocr-dob, .voter-row, .aadhaar-row').hide();
+        $('.ocr-pincodeSection, .ocr-addressLine1Section, .ocr-addressLine2Section, .ocr-addressLine3Section, .dob-row').hide();
+        $('.ocr-verify-btn').show();
     }
 };
 apz.app.updateFieldLabel = function(screenPrefix, fieldName, newText) {

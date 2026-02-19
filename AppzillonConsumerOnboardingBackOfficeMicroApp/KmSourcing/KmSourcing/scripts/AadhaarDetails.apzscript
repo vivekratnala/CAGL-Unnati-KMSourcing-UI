@@ -1,5 +1,104 @@
 var AadhaarScrId = 'KmSourc__AadhaarDetails__';
-var TempImageObject = {};
+var TempImageObject = {},
+    addrProfArr = [],
+    relatArr = [];
+window.selectedCommunicationAddress = [];
+var residentialAddressFields = [
+    AadhaarScrId + "presentAddrLine1",
+    AadhaarScrId + "presentAddrLine2",
+    AadhaarScrId + "presentAddrLine3",
+    AadhaarScrId + "presentPincode",
+    AadhaarScrId + "addPreCity",
+    AadhaarScrId + "addPreDistrict",
+    AadhaarScrId + "addPreState",
+    AadhaarScrId + "addressProof"
+];
+var permanentAddressFields = [
+    AadhaarScrId + "permanentAddrLine1",
+    AadhaarScrId + "permanentAddrLine2",
+    AadhaarScrId + "permanentAddrLine3",
+    AadhaarScrId + "permanentPincode",
+    AadhaarScrId + "permanentPincode",
+    AadhaarScrId + "addPermCity",
+    AadhaarScrId + "addPermDistrict",
+    AadhaarScrId + "addPermState",
+    AadhaarScrId + "permanentAddressProof"
+];
+window.Aadhaar_Validate = {
+    required: function(fieldId, message) {
+        let $el = $("#" + fieldId);
+        if ($el.length === 0) return true;
+        // Skip disabled or hidden fields
+        if ($el.prop("disabled") || !$el.is(":visible")) return true;
+        let value = ($el.val() || "").trim();
+        if (!value || value === PleaseSelect) {
+            showFieldError(fieldId, message);
+            return false;
+        }
+        return true;
+    },
+    radio: function(name, message) {
+        let radios = document.querySelectorAll(`input[name='${name}']`);
+        if (!radios.length) return true;
+        let isChecked = Array.from(radios).some(r => r.checked);
+        let firstId = radios[0].id;
+        clearFieldError(firstId);
+        if (!isChecked) {
+            showFieldError(firstId, message);
+            return false;
+        }
+        return true;
+    },
+    addFieldMandatory: function(elementIds) {
+        $("#" + elementIds).parents().parents().eq(3).find(".flb").eq(0).addClass("req");
+        $("#" + elementIds).addClass("mand");
+    },
+    removeFieldMandatory: function(elementIds) {
+        $("#" + elementIds).removeClass("mand");
+        $("#" + elementIds).parents().parents().eq(3).find(".flb").eq(0).removeClass("req");
+        $("#" + elementIds).parents().eq(3).find(".err-msg").addClass("sno");
+        $("#" + elementIds).removeClass("err");
+    },
+    fnCheckMaxMinLengthOnBlur: function(pthis) {
+        let minlength = pthis.minLength;
+        let maxlength = pthis.maxLength;
+        let value = pthis.value.trim();
+        let $field = $("#" + pthis.id);
+        if (!apz.isNull(value) && (value.length < minlength || value.length > maxlength)) {
+            window.gIsMinMaxErr = true;
+            $field.addClass("err");
+            $("#" + pthis.id + "_ul").next().removeClass("sno");
+            let errTxtFieldId = $("#" + pthis.id + "_ul").next()?.find('.icon-Error')?.next() ?? $('#dummyid');
+            errTxtFieldId?.text(`Please enter minimum:${minlength} and maximum:${maxlength} characters!`);
+            let wrapper;
+            if ($field.closest(".etb-slct").length) {
+                wrapper = $field.closest(".etb-slct").parent().parent();
+            } else if ($field.closest(".ett-inpt").length) {
+                wrapper = $field.closest(".ett-inpt").parent().parent();
+            } else if ($field.closest("ul").length) {
+                wrapper = $field.closest("ul").parent().parent();
+            }
+            wrapper?.addClass("error-inline");
+        } else {
+            window.gIsMinMaxErr = false;
+            let wrapper;
+            if ($field.closest(".etb-slct").length) {
+                wrapper = $field.closest(".etb-slct").parent().parent();
+            } else if ($field.closest(".ett-inpt").length) {
+                wrapper = $field.closest(".ett-inpt").parent().parent();
+            } else if ($field.closest("ul").length) {
+                wrapper = $field.closest("ul").parent().parent();
+            }
+            wrapper?.removeClass("error-inline");
+        }
+    },
+    getAddressOrFallback: function(address) {
+        if (!address || address.trim() === "") {
+            return "Data not available, please update the aadhaar details";
+        }
+        return address;
+    }
+};
 apz.app.otherAddressState = {
     present: false,
     permanent: false
@@ -17,18 +116,79 @@ apz.app.resetOtherAddressByColumn = function(colIndex) {
     }
 };
 apz.app.onLoad_AadhaarDetails = function() {
+    apz.app.AadhaarDetails.commoncodeConfTypesLst();
+    gApzCOB.currentApplicant = 1;
     apz.populateDropdown(document.getElementById(AadhaarScrId + 'mrtsts'), ApzCOB.formatDropDownforArray(maritalStatus));
     apz.populateDropdown(document.getElementById(AadhaarScrId + 'religion'), ApzCOB.formatDropDownforArray(religion));
     apz.populateDropdown(document.getElementById(AadhaarScrId + 'caste'), ApzCOB.formatDropDownforArray(caste));
     apz.populateDropdown(document.getElementById(AadhaarScrId + 'education'), ApzCOB.formatDropDownforArray(education));
     apz.populateDropdown(document.getElementById(`${AadhaarScrId}A_residence_stabilit_present_city`), ApzCOB.formatDropDownforArray(resYr));
     apz.populateDropdown(document.getElementById(`${AadhaarScrId}A_residence_stability`), ApzCOB.formatDropDownforArray(resYr));
+    apz.populateDropdown(document.getElementById(AadhaarScrId + 'relationshipProof'), relatArr);
+    apz.populateDropdown(document.getElementById(AadhaarScrId + 'addressProof'), addrProfArr);
+    apz.populateDropdown(document.getElementById(AadhaarScrId + 'permanentAddressProof'), addrProfArr);
     apz.app.otherAddressState.present = false;
     apz.app.otherAddressState.permanent = false;
     const presentSection = document.querySelector('.other-present-details');
     const permanentSection = document.querySelector('.other-permanent-details');
     if (presentSection) presentSection.style.display = 'none';
     if (permanentSection) permanentSection.style.display = 'none';
+    //Initialize Applicant tab
+    var applicantBtn = document.querySelector('.aadhaarSubMenu');
+    if (applicantBtn) {
+        apz.app.AadhaarDetails.handletabSwitch(applicantBtn, 'Applicant');
+    }
+    // Get radio group container
+    var resGroup = document.getElementById(AadhaarScrId + 'residentialStatus');
+    if (resGroup) {
+        var ownRadio = resGroup.querySelector('input[value="Own"]');
+        if (ownRadio) {
+            ownRadio.checked = true;
+            apz.app.handleAddressType(ownRadio);
+        }
+    }
+    $("#scr__" + AadhaarScrId + "main").on("mousedown", "input, select", function() {
+        clearFieldError(this.id);
+    });
+    $("#scr__" + AadhaarScrId + "main").on("change", "input[type=radio]", function() {
+        clearFieldError(this.id);
+    });
+    ApzCOB.setMinMaxLength([{
+        'fieldName': 'MaritalStatus',
+        'fieldId': AadhaarScrId + 'mrtsts'
+    }, {
+        'fieldName': 'Name',
+        'fieldId': AadhaarScrId + 'fathersName'
+    }, {
+        'fieldName': 'Name',
+        'fieldId': AadhaarScrId + 'spouseName'
+    }, {
+        'fieldName': 'AddressLine1',
+        'fieldId': AadhaarScrId + 'presentAddrLine1'
+    }, {
+        'fieldName': 'AddressLine2',
+        'fieldId': AadhaarScrId + 'presentAddrLine2'
+    }, {
+        'fieldName': 'AddressLine3',
+        'fieldId': AadhaarScrId + 'presentAddrLine3'
+    }, {
+        'fieldName': 'Pincode',
+        'fieldId': AadhaarScrId + 'presentPincode'
+    }, {
+        'fieldName': 'Pincode',
+        'fieldId': AadhaarScrId + 'permanentPincode'
+    }, {
+        'fieldName': 'AddressLine1',
+        'fieldId': AadhaarScrId + 'permanentAddrLine1'
+    }, {
+        'fieldName': 'AddressLine2',
+        'fieldId': AadhaarScrId + 'permanentAddrLine2'
+    }, {
+        'fieldName': 'AddressLine3',
+        'fieldId': AadhaarScrId + 'permanentAddrLine3'
+    }]);
+    //onload paint data
+    apz.app.AadhaarDetails.paintAddressTable();
 }
 apz.app.handleColumnRadio = function(pthis) {
     if (!pthis) return;
@@ -91,6 +251,17 @@ apz.app.handleAddressType = function(pthis) {
         }
     } else {
         addressRow.classList.remove('disabled');
+        optionRadios.forEach(r => {
+            r.checked = false;
+        });
+        if (apz.app.otherAddressState) {
+            apz.app.otherAddressState.present = false;
+            apz.app.otherAddressState.permanent = false;
+        }
+        const presentSection = document.querySelector('.other-present-details');
+        const permanentSection = document.querySelector('.other-permanent-details');
+        if (presentSection) presentSection.style.display = 'none';
+        if (permanentSection) permanentSection.style.display = 'none';
     }
 };
 apz.app.handleOtherAddressSelection = function(pthis) {
@@ -112,4 +283,204 @@ apz.app.handleOtherAddressSelection = function(pthis) {
     if (!presentSection || !permanentSection) return;
     presentSection.style.display = apz.app.otherAddressState.present ? '' : 'none';
     permanentSection.style.display = apz.app.otherAddressState.permanent ? '' : 'none';
+};
+apz.app.AadhaarDetails.handletabSwitch = function(pthis, CustType) {
+    if (!pthis) return;
+    var $btn = $(pthis);
+    $('.aadhaarSubMenu').removeClass('active');
+    $btn.addClass('active');
+    if (CustType === 'Applicant') {
+        gApzCOB.currentApplicant = 1;
+        $('.src-coapp').addClass('sno');
+        $('.src-app').removeClass('sno');
+    } else {
+        gApzCOB.currentApplicant = 2;
+        $('.src-app').addClass('sno');
+        $('.src-coapp').removeClass('sno');
+    }
+    if (apz.app.otherAddressState) {
+        apz.app.otherAddressState.present = false;
+        apz.app.otherAddressState.permanent = false;
+    }
+    $('.other-present-details').hide();
+    $('.other-permanent-details').hide();
+    window.scrollTo(0, 0);
+};
+apz.app.AadhaarDetails.commoncodeConfTypesLst = function() {
+    var doctypearr = upDocsData["DOCS"][0]['OtherDocs~Y~N'].documentstype;
+    for (let i = 0; i < doctypearr.length; i++) {
+        let temptype = doctypearr[i].split('~');
+        if (temptype[2] == 'Address Proof') {
+            var obj = {
+                "val": temptype[1],
+                "desc": temptype[1]
+            };
+            addrProfArr.push(obj);
+        } else if (temptype[2] == 'Relationship proof') {
+            var obj = {
+                "val": temptype[1],
+                "desc": temptype[1]
+            };
+            relatArr.push(obj);
+        }
+    }
+}
+//clear validations
+function clearFieldError(fieldId) {
+    let field = document.getElementById(fieldId);
+    if (!field) return;
+    let parent = field.parentElement;
+    while (parent) {
+        if (parent.classList.contains("error-inline")) {
+            parent.classList.remove("error-inline");
+            break;
+        }
+        parent = parent.parentElement;
+    }
+    let errorEl = document.getElementById(fieldId + "_error");
+    if (errorEl) {
+        errorEl.remove();
+    }
+}
+//show validations
+function showFieldError(fieldId, message) {
+    let field = document.getElementById(fieldId);
+    if (!field) return;
+    clearFieldError(fieldId);
+    let wrapper;
+    if (field.closest(".etb-slct")) {
+        wrapper = field.closest(".etb-slct").parentElement;
+    } else if (field.closest(".ett-inpt")) {
+        wrapper = field.closest(".ett-inpt").parentElement;
+    } else {
+        wrapper = field.parentElement;
+    }
+    if (wrapper) {
+        wrapper.classList.add("error-inline");
+    }
+    let error = document.createElement("div");
+    error.className = "cb-error-msg";
+    error.id = fieldId + "_error";
+    error.innerText = message;
+    wrapper.appendChild(error);
+}
+apz.app.AadhaarDetails.formValidator = function() {
+    let isValid = true;
+    let p = AadhaarScrId;
+
+    function check(res) {
+        if (!res) isValid = false;
+    }
+    check(Aadhaar_Validate.required(p + "mrtsts", "Please Select Marital status"));
+    check(Aadhaar_Validate.required(p + "education", "Please Select Education"));
+    check(Aadhaar_Validate.required(p + "religion", "Please Select Religion"));
+    check(Aadhaar_Validate.required(p + "caste", "Please Select Caste"));
+    let marital = $("#" + p + "mrtsts").val();
+    if (marital === "Married") {
+        check(Aadhaar_Validate.required(p + "spouseName", "Please Enter Spouse name"));
+    } else if (marital && marital !== PleaseSelect) {
+        check(Aadhaar_Validate.required(p + "fathersName", "Please Enter Father name"));
+    }
+    check(Aadhaar_Validate.radio(p + "communicationAddress", "Please Select Communication address"));
+    let residential = $("input[name='" + p + "residentialStatus']:checked").val();
+    // OWN
+    if (residential === "Own") {
+        check(Aadhaar_Validate.required(p + "presentAddrLine1", "Enter Address Line 1"));
+        check(Aadhaar_Validate.required(p + "presentPincode", "Enter Present Pincode"));
+        return isValid;
+    }
+    //RENTED
+    let validatePresent = false;
+    let validatePermanent = false;
+    // Check Other toggles
+    if (apz.app.otherAddressState) {
+        validatePresent = apz.app.otherAddressState.present;
+        validatePermanent = apz.app.otherAddressState.permanent;
+    }
+    // Present Other selected
+    if (validatePresent) {
+        check(Aadhaar_Validate.required(p + "presentAddrLine1", "Enter Present Address Line 1"));
+        check(Aadhaar_Validate.required(p + "presentPincode", "Enter Present Pincode"));
+    }
+    // Permanent Other selected
+    if (validatePermanent) {
+        check(Aadhaar_Validate.required(p + "permanentAddrLine1", "Enter Permanent Address Line 1"));
+        check(Aadhaar_Validate.required(p + "permanentPincode", "Enter Permanent Pincode"));
+    }
+    check(Aadhaar_Validate.required(p + "A_residence_stabilit_present_city", "Please Select present city(years)"));
+    check(Aadhaar_Validate.required(p + "A_residence_stability", "Please Select present address(years)"));
+    return isValid;
+};
+apz.app.AadhaarDetails.validateForm = function() {
+    console.log("AADHAAR VALIDATION STARTED");
+    let valid = apz.app.AadhaarDetails.formValidator();
+    if (!valid) {
+        let firstError = $(".error-inline:visible").first();
+        if (firstError.length) {
+            firstError[0].scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+        }
+        return false;
+    }
+    return true;
+};
+apz.app.AadhaarDetails.lengthvalidator = function(pthis, max) {
+    var maxlength = max;
+    var p = pthis.value;
+    pthis.value = p.substr(0, maxlength);
+};
+apz.app.AadhaarDetails.maritalStatusOnChange = function(maritalStatusValue) {
+    let spouseId = AadhaarScrId + 'spouseName';
+    let fatherId = AadhaarScrId + 'fathersName';
+    let $spouse = $('#' + spouseId);
+    let $father = $('#' + fatherId);
+    if (!maritalStatusValue || maritalStatusValue === "Please Select") return;
+    if (maritalStatusValue.toUpperCase() === "MARRIED") {
+        // Mandatory logic
+        Aadhaar_Validate.addFieldMandatory(spouseId);
+        Aadhaar_Validate.removeFieldMandatory(fatherId);
+        // Enable BOTH fields
+        $spouse.prop('disabled', false).removeAttr('placeholder').closest('.ett-inpt').removeClass('disabled');
+        $father.prop('disabled', false).removeAttr('placeholder').closest('.ett-inpt').removeClass('disabled');
+    } else {
+        Aadhaar_Validate.addFieldMandatory(fatherId);
+        Aadhaar_Validate.removeFieldMandatory(spouseId);
+        // Father enabled
+        $father.prop('disabled', false).removeAttr('placeholder').closest('.ett-inpt').removeClass('disabled');
+        // Spouse disabled
+        $spouse.prop('disabled', true).val('').removeAttr('placeholder');
+        $spouse.closest('.ett-inpt').addClass('disabled');
+    }
+};
+apz.app.AadhaarDetails.paintAddressTable = function() {
+    let applicantVoterAddr = "No. 12, Bharathi Street,Thiruvanmiyur,Chennai - 600041,Tamil Nadu, India.";
+    let coApplicantVoterAddr = "No. 12, Bharathi Street,Thiruvanmiyur,Chennai - 600041,Tamil Nadu, India.";
+    let applicantAadhaarAddr = "";
+    let coApplicantAadhaarAddr = "";
+    $("#" + AadhaarScrId + "appVoterAddr").text(applicantVoterAddr);
+    $("#" + AadhaarScrId + "coAppVoterAddr").text(coApplicantVoterAddr);
+    $("#" + AadhaarScrId + "appAadhaarAddr").text(Aadhaar_Validate.getAddressOrFallback(applicantAadhaarAddr));
+    $("#" + AadhaarScrId + "coAppAadhaarAddr").text(Aadhaar_Validate.getAddressOrFallback(coApplicantAadhaarAddr));
+};
+apz.app.AadhaarDetails.captureCommunicationAddress = function() {
+    
+    let commAddRadio = $('input[name="' + AadhaarScrId + 'communicationAddress_"]:checked').val();
+    console.log("Selected Radio:", commAddRadio);
+    let sourceFields = [];
+    if (commAddRadio === "presentAddr") {
+        sourceFields = residentialAddressFields;
+    } else if (commAddRadio === "permanentAddr") {
+        sourceFields = permanentAddressFields;
+    }
+    let addressArray = [];
+    sourceFields.forEach(function(fieldId) {
+        let val = $("#" + fieldId).val();
+        if (val && val.trim()) {
+            addressArray.push(val.trim());
+        }
+    });
+    window.selectedCommunicationAddress = addressArray;
+    console.log("Stored Communication Address:", addressArray);
 };

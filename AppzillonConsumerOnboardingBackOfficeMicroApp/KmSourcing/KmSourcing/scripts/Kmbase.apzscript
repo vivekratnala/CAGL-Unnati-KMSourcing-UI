@@ -2,7 +2,9 @@ window.kmbaseScr = 'KmSourc__Kmbase__';
 apz.app.onLoad_Kmbase = function() {
     $(`#${kmbaseScr}CB_CHECK_Hyp`).addClass("active");
     apz.app.Kmbase.storeWindowData();
-    ApzCOB.fetchExistingLoans({memberId:window.applicationMaster.memberId});
+    ApzCOB.fetchExistingLoans({
+        memberId: window.applicationMaster.memberId
+    });
 };
 apz.data.scrdata.KmSourc__IPaintLoanDetails_Res = [];
 apz.app.onShown_Kmbase = function() {
@@ -55,10 +57,41 @@ apz.app.Kmbase.toggleSidebar = function() {
     $("#KmSourc__Kmbase__sidebar_col").toggleClass("sideon");
 }
 apz.app.Kmbase.back = function() {
+    if (apz.childScr === "AadhaarDetails") {
+        if (gApzCOB.currentApplicant === 2) {
+            let tabs = $('.aadhaarSubMenu');
+            let applicantTab = tabs.eq(0);
+            apz.app.AadhaarDetails.handletabSwitch(applicantTab, 'Applicant');
+            return;
+        }
+    }
+    if (apz.childScr === 'documentCapture') {
+        if (apz.app.docType === 'Aadhaar') {
+            ApzCOB.launchSubScreen("AadhaarDetails", "KmSourc__Kmbase__KMLaunchCol", "");
+        } else if (apz.app.docType === 'CBCheck') {
+            ApzCOB.launchSubScreen("CBCheckDetails", "KmSourc__Kmbase__KMLaunchCol", "");
+        }
+        $('.btn-saveDraft, .btn-reject, .btn-back, .btn-next').show();
+    }
     if (apz.childScr === "CBcheck") {
         apz.app.Cabase.gotoHome();
     }
 }
+apz.app.Kmbase.next = function() {
+    if (apz.childScr === "AadhaarDetails") {
+        if (!apz.app.AadhaarDetails.validateForm()) {
+            return;
+        }
+        if (gApzCOB.currentApplicant === 1) {
+            let tabs = $('.aadhaarSubMenu');
+            if (tabs.length > 1) {
+                let coAppTab = tabs.eq(1);
+                apz.app.AadhaarDetails.handletabSwitch(coAppTab, 'CoApplicant');
+            }
+            return;
+        }
+    }
+};
 apz.app.Kmbase.gotoHome = function() {
     apz.app.Login.OnClickMakerChecker("");
 };
@@ -72,16 +105,15 @@ apz.app.Kmbase.paintLoanDetails = function() {
         if (!apz.isNull(inSessionStore.existingLoanDetailsWrapperList) && inSessionStore.existingLoanDetailsWrapperList.length > 0) {
             if (inSessionStore.existingLoanDetailsWrapperList[0].hasOwnProperty("existingLoanDetailsList")) {
                 existingLoansListSession = inSessionStore.existingLoanDetailsWrapperList[0].existingLoanDetailsList;
-                if(existingLoansListSession.length > 0){
+                if (existingLoansListSession.length > 0) {
                     existingLoansListSession.map(existLoan => {
                         let exObj = {};
                         exObj.loanType = JSON.parse(existLoan.payload).productType;
                         exObj.loanId = existLoan.existingLoanId;
                         exObj.loanAmt = "-"
                         exObj.outstandingAmt = JSON.parse(existLoan.payload).outstandingAmount;
-                        existingLoansList.push(exObj);   
+                        existingLoansList.push(exObj);
                     })
-                     
                 }
             }
         }
@@ -92,7 +124,8 @@ apz.app.Kmbase.paintLoanDetails = function() {
             elem.loanType = existingLoansList[i].loanType;
             elem.loanId = existingLoansList[i].loanId;
             elem.loanAmt = apz.isNull(existingLoansList[i].loanAmt) ? "" : ApzCOB.fn_FormatAmount(existingLoansList[i].loanAmt);
-            elem.outstandingAmt = apz.isNull(existingLoansList[0].outstandingAmt) ? "" : ApzCOB.fn_FormatAmount(existingLoansList[i].outstandingAmt);
+            elem.outstandingAmt = apz.isNull(existingLoansList[0].outstandingAmt) ? "" : ApzCOB.fn_FormatAmount(existingLoansList[i]
+                .outstandingAmt);
             existingLoanDtls.push(elem);
         }
     }
@@ -102,7 +135,6 @@ apz.app.Kmbase.paintLoanDetails = function() {
         apz.data.loadData('IPaintLoanDetails', 'KmSourc');
     }
 }
-
 apz.app.Kmbase.validateMaxDocs = function(parentSelector, childClass, pthis) {
     if (/business/i.test(parentSelector)) {
         const indexToInsert = pthis?.id.split("__")[2].split("_")[0]; // e.g., "1"
@@ -227,25 +259,40 @@ apz.app.Kmbase.paintDocumentName = function(docType) {
     let cloneDiv;
     let parentDiv;
     var AadhaarScrId = 'KmSourc__AadhaarDetails__';
+    var documentCaptureScrId = 'KmSourc__documentCapture__';
     if (apz.isObjectEmpty(inSessionStore) || !inSessionStore.hasOwnProperty('applicationDocumentsWrapperList')) return;
     let documentResp = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList
     if (documentResp.length > 0) {
         window.custimg = documentResp.filter(docs => docs.payload.documentType === docType && parseInt(docs.custDtlId) === parseInt(gApzCOB
             .userDetails.custDtlId));
-        if ( custimg.length >= 0) {
+        if (custimg.length >= 0) {
             if (docType === "customerimg Doc") {
                 cloneDiv = `${AadhaarScrId}custimg_1`;
                 parentDiv = $(`#${AadhaarScrId}custImg`);
                 parentDiv.html('');
-            }
-            else if (docType === "residenceimg Doc") {
+            } else if (docType === "residenceimg Doc") {
                 cloneDiv = `${AadhaarScrId}resImg_1`;
                 parentDiv = $(`#${AadhaarScrId}resImg`);
                 parentDiv.html('');
-            }
-            else if (docType === "relationproofimg Doc") {
+            } else if (docType === "permanentaddrimg Doc") {
+                cloneDiv = `${AadhaarScrId}permanentAddrImg_1`;
+                parentDiv = $(`#${AadhaarScrId}permanentAddrImg`);
+                parentDiv.html('');
+            } else if (docType === "presentaddrimg Doc") {
+                cloneDiv = `${AadhaarScrId}presentAddrImg_1`;
+                parentDiv = $(`#${AadhaarScrId}presentAddrImg`);
+                parentDiv.html('');
+            } else if (docType === "relationproofimg Doc") {
                 cloneDiv = `${AadhaarScrId}relImg_1`;
                 parentDiv = $(`#${AadhaarScrId}relImg`);
+                parentDiv.html('');
+            } else if (docType === "frontimg Doc") {
+                cloneDiv = `${documentCaptureScrId}frontImg_1`;
+                parentDiv = $(`#${documentCaptureScrId}frontImg`);
+                parentDiv.html('');
+            } else if (docType === "backimg Doc") {
+                cloneDiv = `${documentCaptureScrId}backImg_1`;
+                parentDiv = $(`#${documentCaptureScrId}backImg`);
                 parentDiv.html('');
             }
             custimg.forEach((doc, index) => {
@@ -262,7 +309,6 @@ apz.app.Kmbase.paintDocumentName = function(docType) {
         }
     }
 };
-
 apz.app.Kmbase.viewDocument = function(pthis) {
     let documentId = $(pthis).parents('.uploadimg').attr('data-id');
     let docDetails = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList.find(doc => parseInt(doc.appDocId) === parseInt(
@@ -354,7 +400,6 @@ apz.app.Kmbase.closeDeleteSuccModal = function() {
 apz.app.Kmbase.closeDeleteErrModal = function() {
     ApzCOB.toggleModal(`${kmbaseScr}AA_Error_modal`);
 }
-
 apz.app.Kmbase.onchangepincode = function(pthis, addressType) {
     let pincode_temp = $(pthis).val();
     if (pincode_temp.length > 5) {
@@ -368,18 +413,23 @@ apz.app.Kmbase.paint_pincode = function(params, addressType) {
     $(`#${scrId}${addressType}District`).val(params.district).blur();
     $(`#${scrId}${addressType}State`).val(params.state).blur();
 };
-apz.app.otpMoveForward = function (current, nextId) {
+apz.app.otpMoveForward = function(current, nextId) {
     if (current.value && current.value.length === 1) {
         if (nextId) {
             document.getElementById(`${kmbaseScr+nextId}`)?.focus();
         }
     }
 };
-apz.app.otpMoveBackward = function (event, current, prevId) {
+apz.app.otpMoveBackward = function(event, current, prevId) {
     if (event.key === 'Backspace' && current.value === '') {
         if (prevId) {
             document.getElementById(`${kmbaseScr+prevId}`)?.focus();
         }
     }
 };
-
+apz.app.Kmbase.captureAadhaarClick = function(docType) {
+    $('.btn-saveDraft, .btn-reject').hide();
+    $('.btn-back, .btn-next').show();
+    apz.app.docType = docType;
+    ApzCOB.launchSubScreen("documentCapture", "KmSourc__Kmbase__KMLaunchCol", "");
+}

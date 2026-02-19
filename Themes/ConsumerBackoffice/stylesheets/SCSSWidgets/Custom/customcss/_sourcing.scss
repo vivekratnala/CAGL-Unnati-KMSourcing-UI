@@ -121,6 +121,10 @@
         height: unset;
         overflow: scroll;
     }
+    .modal-cnt{
+        padding: 0px 0px !important;
+    }
+    
 }
 
 .crt-form.btm-seperator,
@@ -408,4 +412,20 @@
 
 .ocrfooter .ocr-ftr {
     justify-content: flex-end;
+}
+.error-inline .err-msg li {
+    text-align: left;
+    white-space: nowrap !important;
+}
+
+.address-selection .etb-rdio span {
+    white-space: nowrap !important;
+}
+.km-uploadDoc-title{
+    font-family: Open Sans;
+    font-weight: 700 !important;
+    font-size: 16px !important;
+    line-height: 24px;
+    color:#231f20 !important;
+    padding-bottom: 24px;
 }
