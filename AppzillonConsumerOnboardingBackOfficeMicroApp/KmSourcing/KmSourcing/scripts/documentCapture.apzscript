@@ -1,31 +1,101 @@
 var docScrId = 'KmSourc__documentCapture__';
+// window.docScrId = 'KmSourc__documentCapture__';
+
+var KmbaseScrId = 'KmSourc__Kmbase__';
 apz.app.onLoad_documentCapture = function() {
+    ApzCOB.setMinMaxLength([{
+        'fieldName': 'Name',
+        'fieldId': docScrId + 'ocrName'
+    }, 
+    // {
+    //     'fieldName': 'Name',
+    //     'fieldId': KmbaseScrId + 'ocr-nameSection'
+    // },
+    {
+        'fieldName': 'Dob',
+        'fieldId': docScrId + 'ocr-dob'
+    },
+    // {
+    //     'fieldName': 'Dob',
+    //     'fieldId': KmbaseScrId + 'ocrDob'
+    // },
+    {
+        'fieldName': 'AadharNumber',
+        'fieldId': docScrId + 'ocrAadhaarNumber'
+    },
+    // {
+    //     'fieldName': 'AadharNumber',
+    //     'fieldId': KmbaseScrId + 'ocrAadhaar'
+    // },
+    {
+        'fieldName': 'VoterID',
+        'fieldId': docScrId + 'ocrVoterNumber'
+    }, 
+    // {
+    //     'fieldName': 'VoterID',
+    //     'fieldId': KmbaseScrId + 'ocrVoter'
+    // },
+    {
+        'fieldName': 'PanNumber',
+        'fieldId': docScrId + 'ocrPanNumber'
+    },
+    // {
+    //     'fieldName': 'PanNumber',
+    //     'fieldId': KmbaseScrId + 'ocrPan'
+    // },
+    {
+        'fieldName': 'AddressLine1',
+        'fieldId': docScrId + 'ocrAddr1'
+    }, {
+        'fieldName': 'AddressLine2',
+        'fieldId': docScrId + 'ocrAddr2'
+    }, {
+        'fieldName': 'AddressLine3',
+        'fieldId': docScrId + 'ocrAddr3'
+    }, {
+        'fieldName': 'Pincode',
+        'fieldId': docScrId + 'ocr-pincode'
+    },
+    // {
+    //     'fieldName': 'AddressLine1',
+    //     'fieldId': KmbaseScrId + 'ocrAddressLine1'
+    // }, {
+    //     'fieldName': 'AddressLine2',
+    //     'fieldId': KmbaseScrId + 'ocrAddressLine2'
+    // }, {
+    //     'fieldName': 'AddressLine3',
+    //     'fieldId': KmbaseScrId + 'ocrAddressLine3'
+    // }, {
+    //     'fieldName': 'Pincode',
+    //     'fieldId': KmbaseScrId + 'ocrPincode'
+    // }
+    ]);
     if (apz.app.docType === 'Aadhaar') {
         $('.doc-upload-title').text('Upload front & back side of Aadhaar card');
         // apz.app.updateFieldLabel('KmSourc__documentCapture__', 'ocr-idSection', 'Aadhaar number (Last 4 digits)');
         // apz.app.updateFieldLabel('KmSourc__documentCapture__', 'ocr-nameSection', 'Name as per Aadhaar');
-        apz.app.updateFieldLabel('KmSourc__Kmbase__', 'ocr-idSection', 'Aadhaar number (Last 4 digits)');
+        // apz.app.updateFieldLabel('KmSourc__Kmbase__', 'ocr-idSection', 'Aadhaar number (Last 4 digits)');
         apz.app.updateFieldLabel('KmSourc__Kmbase__', 'ocr-nameSection', 'Name as per Aadhaar');
-        $('.ocr-verify-btn, .pan-row, .voter-row, .dummy-ocrrow').hide();
+        $('.ocr-verify-btn, .pan-row, .voter-row, .dummy-ocrrow .ocrVoterSection, .ocrPanSection,').hide();
         $('.dob-row').show();
-
     } else if (apz.app.docType === 'Voter ID') {
         $('.doc-upload-title').text('Upload front & back side of Voter ID');
         // apz.app.updateFieldLabel('KmSourc__documentCapture__', 'ocr-idSection', 'Voter ID number');
         // apz.app.updateFieldLabel('KmSourc__documentCapture__', 'ocr-nameSection', 'Name');
-        apz.app.updateFieldLabel('KmSourc__Kmbase__', 'ocr-idSection', 'Voter ID number');
+        // apz.app.updateFieldLabel('KmSourc__Kmbase__', 'ocr-idSection', 'Voter ID number');
         apz.app.updateFieldLabel('KmSourc__Kmbase__', 'ocr-nameSection', 'Name');
         $('.ocr-dob, .aadhaar-row, .pan-row').hide();
-        $('.dob-row').hide();
+        $('.ocrPanSection, .ocrAadhaarSection, .ocr-dobSection').hide();
         $('.ocr-verify-btn').show();
     } else if (apz.app.docType === 'PAN card') {
         $('.doc-upload-title').text('Upload front & back side of PAN card');
         // apz.app.updateFieldLabel('KmSourc__documentCapture__', 'ocr-idSection', 'PAN card number');
         // apz.app.updateFieldLabel('KmSourc__documentCapture__', 'ocr-nameSection', 'Name as per PAN');
-        apz.app.updateFieldLabel('KmSourc__Kmbase__', 'ocr-idSection', 'PAN card number');
+        // apz.app.updateFieldLabel('KmSourc__Kmbase__', 'ocr-idSection', 'PAN card number');
         apz.app.updateFieldLabel('KmSourc__Kmbase__', 'ocr-nameSection', 'Name as per PAN');
         $('.ocr-note, .ocr-pincode, .ocr-addressLine3, .ocr-addressLine2, .ocr-addressLine1, .ocr-dob, .voter-row, .aadhaar-row').hide();
-        $('.ocr-pincodeSection, .ocr-addressLine1Section, .ocr-addressLine2Section, .ocr-addressLine3Section, .dob-row').hide();
+        $('.ocr-pincodeSection, .ocr-addressLine1Section, .ocr-addressLine2Section, .ocr-addressLine3Section, .dob-row, .ocrVoterSection, .ocrAadhaarSection, .ocr-dobSection')
+            .hide();
         $('.ocr-verify-btn').show();
     }
 };
@@ -38,3 +108,128 @@ apz.app.updateFieldLabel = function(screenPrefix, fieldName, newText) {
         label.title = newText;
     }
 };
+apz.app.documentCapture.formValidator = function() {
+    let isValid = true;
+    let isApplicant = Number(gApzCOB.currentApplicant) === 1;
+
+    function check(result) {
+        if (!result) isValid = false;
+    }
+    // let dobId = isApplicant ? screenId + "ocrDob" : screenId + "ocrDob";
+    
+    
+    let dobId = KmbaseScrId + "ocrDob";
+    let voterId = KmbaseScrId + "ocrVoter";
+    let panId = KmbaseScrId + "ocrPan";
+    let aadhaarId = KmbaseScrId + "ocrAadhaar";
+    check(CB_Validate.required(dobId, "Date of birth is required"));
+    check(CB_Validate.required(voterId, "Voter ID number is required"));
+    check(CB_Validate.required(panId, "Pancard number is required"));
+    check(CB_Validate.required(aadhaarId, "Aadhar number is required"));
+    let address1Id = KmbaseScrId + "ocrAddressLine1";
+    let pincodeId = KmbaseScrId + "ocrPincode";
+    clearFieldError(address1Id);
+    check(CB_Validate.required(address1Id, "Address line 1 is required"));
+    if ($("#" + address1Id).val()) {
+        check(CB_Validate.lengthRange(address1Id, 8, 30, "Address must be 8-30 characters"));
+    }
+    clearFieldError(pincodeId);
+    check(CB_Validate.required(pincodeId, "Pincode is required"));
+    if ($("#" + pincodeId).val()) {
+        check(CB_Validate.regex(pincodeId, /^[0-9]{6}$/, "Pincode must be 6 digits"));
+    }
+    return isValid;
+};
+apz.app.documentCapture.validateForm = function() {
+    let valid = apz.app.documentCapture.formValidator();
+    if (!valid) {
+        // ApzCOB.fnDisplayMsg("Please ensure all fields are properly filled before initiating the check.", "E");
+        return false;
+    }
+    return true;
+};
+
+function clearFieldError(fieldId) {
+    let field = document.getElementById(fieldId);
+    if (!field) return;
+    // Remove error-inline from any parent
+    let parent = field.parentElement;
+    while (parent) {
+        if (parent.classList.contains("error-inline")) {
+            parent.classList.remove("error-inline");
+            break;
+        }
+        parent = parent.parentElement;
+    }
+    // Remove error message
+    let errorEl = document.getElementById(fieldId + "_error");
+    if (errorEl) {
+        errorEl.remove();
+    }
+}
+
+function showFieldError(fieldId, message) {
+    let field = document.getElementById(fieldId);
+    if (!field) return;
+    clearFieldError(fieldId);
+    let wrapper;
+    // If dropdown (Appzillon select)
+    if (field.closest(".etb-slct")) {
+        wrapper = field.closest(".etb-slct").parentElement;
+    }
+    // If normal input
+    else if (field.closest(".ett-inpt")) {
+        wrapper = field.closest(".ett-inpt").parentElement;
+    }
+    // Fallback
+    else {
+        wrapper = field.parentElement;
+    }
+    if (wrapper) {
+        wrapper.classList.add("error-inline");
+    }
+    let error = document.createElement("div");
+    error.className = "cb-error-msg";
+    error.id = fieldId + "_error";
+    error.innerText = message;
+    wrapper.appendChild(error);
+}
+// var docScrId = 'KmSourc__documentCapture__';
+// apz.app.onLoad_documentCapture = function() {
+//     if (apz.app.docType === 'Aadhaar') {
+//         $('.doc-upload-title').text('Upload front & back side of Aadhaar card');
+//         // apz.app.updateFieldLabel('KmSourc__documentCapture__', 'ocr-idSection', 'Aadhaar number (Last 4 digits)');
+//         // apz.app.updateFieldLabel('KmSourc__documentCapture__', 'ocr-nameSection', 'Name as per Aadhaar');
+//         apz.app.updateFieldLabel('KmSourc__Kmbase__', 'ocr-idSection', 'Aadhaar number (Last 4 digits)');
+//         apz.app.updateFieldLabel('KmSourc__Kmbase__', 'ocr-nameSection', 'Name as per Aadhaar');
+//         $('.ocr-verify-btn, .pan-row, .voter-row, .dummy-ocrrow').hide();
+//         $('.dob-row').show();
+//     } else if (apz.app.docType === 'Voter ID') {
+//         $('.doc-upload-title').text('Upload front & back side of Voter ID');
+//         // apz.app.updateFieldLabel('KmSourc__documentCapture__', 'ocr-idSection', 'Voter ID number');
+//         // apz.app.updateFieldLabel('KmSourc__documentCapture__', 'ocr-nameSection', 'Name');
+//         apz.app.updateFieldLabel('KmSourc__Kmbase__', 'ocr-idSection', 'Voter ID number');
+//         apz.app.updateFieldLabel('KmSourc__Kmbase__', 'ocr-nameSection', 'Name');
+//         $('.ocr-dob, .aadhaar-row, .pan-row').hide();
+//         $('.dob-row').hide();
+//         $('.ocr-verify-btn').show();
+//     } else if (apz.app.docType === 'PAN card') {
+//         $('.doc-upload-title').text('Upload front & back side of PAN card');
+//         // apz.app.updateFieldLabel('KmSourc__documentCapture__', 'ocr-idSection', 'PAN card number');
+//         // apz.app.updateFieldLabel('KmSourc__documentCapture__', 'ocr-nameSection', 'Name as per PAN');
+//         apz.app.updateFieldLabel('KmSourc__Kmbase__', 'ocr-idSection', 'PAN card number');
+//         apz.app.updateFieldLabel('KmSourc__Kmbase__', 'ocr-nameSection', 'Name as per PAN');
+//         $('.ocr-note, .ocr-pincode, .ocr-addressLine3, .ocr-addressLine2, .ocr-addressLine1, .ocr-dob, .voter-row, .aadhaar-row').hide();
+//         $('.ocr-pincodeSection, .ocr-addressLine1Section, .ocr-addressLine2Section, .ocr-addressLine3Section, .dob-row').hide();
+//         $('.ocr-verify-btn').show();
+//     }
+// };
+// apz.app.updateFieldLabel = function(screenPrefix, fieldName, newText) {
+//     if (!screenPrefix || !fieldName || !newText) return;
+//     var inputId = screenPrefix + fieldName;
+//     var label = document.querySelector('label[for="' + inputId + '"]');
+//     if (label) {
+//         label.textContent = newText;
+//         label.title = newText;
+//     }
+// };

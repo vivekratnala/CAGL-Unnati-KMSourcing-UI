@@ -5,6 +5,47 @@ apz.app.onLoad_Kmbase = function() {
     ApzCOB.fetchExistingLoans({
         memberId: window.applicationMaster.memberId
     });
+        ApzCOB.setMinMaxLength([
+    {
+        'fieldName': 'Name',
+        'fieldId': kmbaseScr + 'ocr-nameSection'
+    },
+    
+   
+    {
+        'fieldName': 'Dob',
+        'fieldId': kmbaseScr + 'ocrDob'
+    },
+   
+    {
+        'fieldName': 'AadharNumber',
+        'fieldId': kmbaseScr + 'ocrAadhaar'
+    },
+ 
+    {
+        'fieldName': 'VoterID',
+        'fieldId': kmbaseScr + 'ocrVoter'
+    },
+
+    {
+        'fieldName': 'PanNumber',
+        'fieldId': kmbaseScr + 'ocrPan'
+    },
+    {
+        'fieldName': 'AddressLine1',
+        'fieldId': kmbaseScr + 'ocrAddressLine1'
+    }, {
+        'fieldName': 'AddressLine2',
+        'fieldId': kmbaseScr + 'ocrAddressLine2'
+    }, {
+        'fieldName': 'AddressLine3',
+        'fieldId': kmbaseScr + 'ocrAddressLine3'
+    }, {
+        'fieldName': 'Pincode',
+        'fieldId': kmbaseScr + 'ocrPincode'
+    }
+    ]);
+
 };
 apz.data.scrdata.KmSourc__IPaintLoanDetails_Res = [];
 apz.app.onShown_Kmbase = function() {
@@ -433,3 +474,45 @@ apz.app.Kmbase.captureAadhaarClick = function(docType) {
     apz.app.docType = docType;
     ApzCOB.launchSubScreen("documentCapture", "KmSourc__Kmbase__KMLaunchCol", "");
 }
+
+
+apz.app.Kmbase.formValidator = function() {
+    let isValid = true;
+    let isApplicant = Number(gApzCOB.currentApplicant) === 1;
+
+    function check(result) {
+        if (!result) isValid = false;
+    }
+    // let dobId = isApplicant ? screenId + "ocrDob" : screenId + "ocrDob";
+    
+    
+    let dobId = KmbaseScrId + "ocrDob";
+    let voterId = KmbaseScrId + "ocrVoter";
+    let panId = KmbaseScrId + "ocrPan";
+    let aadhaarId = KmbaseScrId + "ocrAadhaar";
+    check(CB_Validate.required(dobId, "Date of birth is required"));
+    check(CB_Validate.required(voterId, "Voter ID number is required"));
+    check(CB_Validate.required(panId, "Pancard number is required"));
+    check(CB_Validate.required(aadhaarId, "Aadhar number is required"));
+    let address1Id = KmbaseScrId + "ocrAddressLine1";
+    let pincodeId = KmbaseScrId + "ocrPincode";
+    clearFieldError(address1Id);
+    check(CB_Validate.required(address1Id, "Address line 1 is required"));
+    if ($("#" + address1Id).val()) {
+        check(CB_Validate.lengthRange(address1Id, 8, 30, "Address must be 8-30 characters"));
+    }
+    clearFieldError(pincodeId);
+    check(CB_Validate.required(pincodeId, "Pincode is required"));
+    if ($("#" + pincodeId).val()) {
+        check(CB_Validate.regex(pincodeId, /^[0-9]{6}$/, "Pincode must be 6 digits"));
+    }
+    return isValid;
+};
+apz.app.Kmbase.validateForm = function() {
+    let valid = apz.app.Kmbase.formValidator();
+    if (!valid) {
+        // ApzCOB.fnDisplayMsg("Please ensure all fields are properly filled before initiating the check.", "E");
+        return false;
+    }
+    return true;
+};
