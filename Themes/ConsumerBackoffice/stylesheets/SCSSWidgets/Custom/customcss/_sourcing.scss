@@ -1,7 +1,8 @@
-.kmleft{
-   left:0px; 
+.kmleft {
+    left: 0px;
 }
-.pst-simp.pa0 > div.vw-log-btn.kmid{
+
+.pst-simp.pa0>div.vw-log-btn.kmid {
     max-width: 174px;
     min-width: 240px;
     position: fixed;
@@ -10,6 +11,7 @@
     padding: 8px 32px 24px 32px;
     padding-top: 8px;
 }
+
 .btm-seperator-kmsourcing {
     width: 100% !important;
     flex: 0 0 100% !important;
@@ -21,85 +23,101 @@
     padding: 0 !important;
     height: 1px;
 }
-.kmsourcing-table  {
-  min-height: auto !important;
-  max-height: none !important;
-  height: auto !important;
-  overflow: visible !important;
+
+.kmsourcing-table {
+    min-height: auto !important;
+    max-height: none !important;
+    height: auto !important;
+    overflow: visible !important;
 }
-.kmsourcing-Table-Title{
+
+.kmsourcing-Table-Title {
     font-weight: 400 !important;
     font-size: 12px !important;
     line-height: 16px;
     letter-spacing: 0.2px;
     color: #737373 !important;
 }
-.kmsourcing-Table-des{
-font-family: Open Sans;
-font-weight: 600 !important;
-font-size: 14px !important;
-line-height: 20px;
-letter-spacing: 0.4px;
-color:#231f20 !important;
-} 
+
+.kmsourcing-Table-des {
+    font-family: Open Sans;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    line-height: 20px;
+    letter-spacing: 0.4px;
+    color: #231f20 !important;
+}
+
 .addr-header-list {
-  border: 1px solid #e0e0e0;
-  border-bottom: none; 
-  border-radius: 8px 8px 0 0;
-  background: #f7f7f7;
+    border: 1px solid #e0e0e0;
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+    background: #f7f7f7;
 }
+
 .addr-header-row {
-  display: grid;
-  grid-template-columns: 3fr 1fr 1fr;
+    display: grid;
+    grid-template-columns: 3fr 1fr 1fr;
 }
+
 .addr-header-row .addr-cell {
-  padding: 12px;
-  border-right: 1px solid #e0e0e0;
-  font-weight: 500;
-  text-align: center;
+    padding: 12px;
+    border-right: 1px solid #e0e0e0;
+    font-weight: 500;
+    text-align: center;
 }
+
 .addr-header-row .addr-cell:first-child {
-  text-align: left;
+    text-align: left;
 }
+
 .addr-header-row .addr-cell:last-child {
-  border-right: none;
+    border-right: none;
 }
+
 .addr-body-list {
-  border: 1px solid #e0e0e0;
-  border-top: none;
-  border-radius: 0 0 8px 8px;
+    border: 1px solid #e0e0e0;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
 }
+
 .addr-body-row {
-  display: grid;
-  grid-template-columns: 3fr 1fr 1fr;
-  border-bottom: 1px solid #e6e6e6;
+    display: grid;
+    grid-template-columns: 3fr 1fr 1fr;
+    border-bottom: 1px solid #e6e6e6;
 }
 
 .addr-body-row:last-child {
-  border-bottom: none;
+    border-bottom: none;
 }
 
 .addr-body-row .addr-cell {
-  padding: 12px;
-  border-right: 1px solid #e6e6e6;
+    padding: 12px;
+    border-right: 1px solid #e6e6e6;
 }
+
 .addr-body-row .addr-cell:nth-child(2),
 .addr-body-row .addr-cell:nth-child(3) {
-  padding: 45px !important;
+    padding: 45px !important;
 }
+
 .addr-body-row .addr-cell:last-child {
-  border-right: none;
+    border-right: none;
 }
+
 .addr-body-row .addr-cell input[type="radio"] {
-  display: block;
-  margin: 0 auto;
+    display: block;
+    margin: 0 auto;
 }
 
 .task-wrapper .crt-list.address-table {
-  padding: 0 !important;
+    padding: 0 !important;
 }
+
 #scr__KmSourc__Kmbase__main {
-    .modal-window, .modal-cnt{ 
+
+    .modal-window,
+    .modal-cnt {
         height: unset;
         overflow: scroll;
     }
@@ -108,48 +126,61 @@ color:#231f20 !important;
     }
     
 }
-.crt-form.btm-seperator, #adrsDetails {
+
+.crt-form.btm-seperator,
+#adrsDetails {
     border-bottom: 1px solid #D4D4D4;
     margin-bottom: 8px;
     padding-bottom: 8px;
     padding-top: 8px;
 }
+
 .address-selection.disabled {
-  pointer-events: none;  
-  opacity: 0.6;          
+    pointer-events: none;
+    opacity: 0.6;
 }
+
 .co-applicant-bg {
     background: #F5F5F5;
     padding: 12px;
     margin-bottom: 32px;
 }
+
 .tab-label-list-margin {
     margin: 24px 0;
 }
+
 .margin-bottom-32 {
-   margin-bottom: 32px;
+    margin-bottom: 32px;
 }
-.mb32{
+
+.mb32 {
     margin-bottom: 32px !important;
 }
-.mb4{
+
+.mb4 {
     margin-bottom: 4px !important;
 }
+
 .gap24 {
     display: flex !important;
     gap: 24px;
 }
-.km-bld{
-    line-height:24px;
-    size:16px;
+
+.km-bld .ett-para {
+    line-height: 24px;
+    font-size: 16px;
     font-family: 'Open Sans', sans-serif;
 }
-.fw-700{
-      font-weight: 700;
+
+.fw-700 .ett-para {
+    font-weight: 700;
 }
-.fw-600{
-      font-weight: 600;
+
+.fw-600 .ett-para {
+    font-weight: 600;
 }
+
 // .otp-input input {
 //     border: none !important;
 //     border-bottom: 2px solid #cfcfcf !important;
@@ -164,40 +195,34 @@ color:#231f20 !important;
 // .otp-input input:focus {
 //     border-bottom-color: #004a8f !important;
 // }
-.km-uploadDoc-title{
-    font-family: Open Sans;
-    font-weight: 700 !important;
-    font-size: 16px !important;
-    line-height: 24px;
-    color:#231f20 !important;
-    padding-bottom: 24px;
-}
+
 .error-inline .etb-slct {
     border: 1px solid #D92D20 !important;
     border-radius: 12px !important;
 }
 
+/* ===============================
+   INPUT FIELD BORDER (FIXED)
+=============================== */
 .error-inline input.ett-inpt,
 .error-inline textarea.ett-inpt {
     border: 1px solid #D92D20 !important;
     border-radius: 12px !important;
 }
 
+/* Remove inner dropdown double border */
 .error-inline .etb-slct input {
     border: none !important;
 }
-.error-inline .err-msg li {
-    text-align: left;
-    white-space: nowrap !important;
-}
 
-.address-selection .etb-rdio span {
-    white-space: nowrap !important;
-}
+
+
+
+
 .cb-error-border {
     border: 1px solid #d32f2f !important;
 }
- 
+
 .cb-error-msg {
     color: #d32f2f;
     font-size: 12px;
@@ -237,4 +262,168 @@ color:#231f20 !important;
     line-height: 20px;
     letter-spacing: 0.4px;
     color: #D92D20 !important; 
+}
+//   MODAL BODY CENTERING
+#KmSourc__Kmbase__gr_row_25 {
+    display: flex !important;
+    justify-content: center;
+}
+
+#KmSourc__Kmbase__gr_col_39 {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+/* ===============================
+  HEADER CENTER
+==================================*/
+#KmSourc__Kmbase__sc_row_58 {
+    display: flex !important;
+    justify-content: center !important;
+    margin-bottom: 24px;
+}
+
+#KmSourc__Kmbase__sc_row_58 .scb-col100 {
+    width: auto !important;
+    flex: unset !important;
+}
+
+#KmSourc__Kmbase__otpInfoText {
+    text-align: center !important;
+    font-size: 15px;
+}
+
+/* ===============================
+  OTP INPUT ROW
+==================================*/
+#KmSourc__Kmbase__sc_row_59 {
+    display: flex !important;
+    justify-content: center !important;
+    gap: 32px;
+    margin-bottom: 18px;
+}
+
+#KmSourc__Kmbase__sc_row_59 .scb-col15 {
+    width: auto !important;
+    flex: unset !important;
+}
+
+/* Hide labels above inputs */
+#KmSourc__Kmbase__sc_row_59 .flb {
+    display: none !important;
+}
+
+/* Input styling */
+#KmSourc__Kmbase__sc_row_59 input {
+    width: 42px;
+    border: none !important;
+    border-bottom: 2px solid #cfcfcf !important;
+    background: transparent !important;
+    outline: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    height: 42px;
+    text-align: center;
+    font-size: 22px;
+}
+
+/* Focus effect */
+#KmSourc__Kmbase__sc_row_59 input:focus {
+    border-bottom: 2px solid #004a8f !important;
+}
+
+/* ===============================
+  TIMER + RESEND ROW
+==================================*/
+#KmSourc__Kmbase__sc_row_60 {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center;
+    margin-bottom: 28px;
+}
+
+/* Keep their grid widths but align content */
+#KmSourc__Kmbase__sc_col_101 {
+    text-align: left !important;
+}
+
+#KmSourc__Kmbase__sc_col_102 {
+    text-align: right !important;
+}
+
+/* Timer red */
+#KmSourc__Kmbase__otpTimer {
+    color: #e53935 !important;
+    font-weight: 500;
+}
+
+/* Resend link */
+#KmSourc__Kmbase__resendOtpBtn {
+    color: #004a8f !important;
+    font-weight: 500;
+    text-decoration: underline;
+}
+
+/* ===============================
+  BUTTON ROW
+==================================*/
+#KmSourc__Kmbase__sc_row_61 {
+    display: flex !important;
+    justify-content: space-between !important;
+    gap: 24px;
+}
+
+/* Remove 50% forced width */
+#KmSourc__Kmbase__sc_row_61 .scb-col50 {
+    width: auto !important;
+    flex: 1;
+}
+
+
+
+/* Remove label space above buttons */
+#KmSourc__Kmbase__sc_row_61 .flb {
+    display: none !important;
+}
+
+/* Cancel button */
+#KmSourc__Kmbase__el_btn_20 {
+    width: 100%;
+    padding: 12px 0;
+    border-radius: 28px !important;
+    border: 2px solid #004a8f !important;
+    background: transparent !important;
+    color: #004a8f !important;
+    font-weight: 500;
+}
+
+/* Verify button */
+#KmSourc__Kmbase__el_btn_21 {
+    width: 100%;
+    padding: 12px 0;
+    border-radius: 28px !important;
+    border: none !important;
+    background: #0d4d8b !important;
+    color: #ffffff !important;
+    font-weight: 500;
+}
+
+#KmSourc__Kmbase__el_btn_20,
+#KmSourc__Kmbase__el_btn_20 span {
+    color: #004a8f !important;
+    background: transparent !important;
+}
+
+#KmSourc__Kmbase__otpInfoText_ul li:first-child,
+#KmSourc__Kmbase__otpTimer_ul li:first-child {
+    display: none !important;
+}
+
+/* Remove entire modal header */
+#KmSourc__Kmbase__Otp_Modal_window .modal-header {
+    display: none !important;
+}
+
+#KmSourc__Kmbase__otpInfoText {
+    font-weight: 600 !important;
 }
