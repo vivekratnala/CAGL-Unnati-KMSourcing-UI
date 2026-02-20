@@ -7,6 +7,7 @@ window.CB_OTP_TIMER = null;
 window.CB_OTP_TIME_LEFT = 150;
 window.CB_OTP_RESEND_COUNT = 0;
 window.CB_OTP_MAX_RESEND = 3;
+
 window.CB_OTP_STATE = {
     applicant: {
         verified: false,
@@ -21,6 +22,11 @@ window.CB_OTP_UI_UNLOCK = {
     applicant: false,
     coapplicant: false
 };
+window.CB_VERIFIED_MOBILES = {
+    applicant: new Set(),
+    coapplicant: new Set()
+};
+
 
 window.CB_Validate = {
     fnCheckMaxMinLengthOnBlur: function(pthis) {
@@ -119,10 +125,11 @@ apz.app.onLoad_CBcheck = function() {
     apz.populateDropdown(document.getElementById(`${CBcheckScr}frequencyOfRepayment`), ApzCOB.formatDropDownforArray(frequencyOfRepayment));
     apz.populateDropdown(document.getElementById(`${CBcheckScr}coGender`), ApzCOB.formatDropDownforArray(gender));
     ApzCOB.setMinMaxLength([
-        //         {
-        //     'fieldName': 'Name',
-        //     'fieldId': CBcheckScr + 'firstname'
-        // }, {
+                {
+            'fieldName': 'Name',
+            'fieldId': CBcheckScr + 'coCustomerName'
+        },
+        // {
         //     'fieldName': 'Name',
         //     'fieldId': CBcheckScr + 'midname'
         // }, {
@@ -238,20 +245,77 @@ apz.app.onLoad_CBcheck = function() {
     $("#scr__" + screenId + "main").on("mousedown", "input, select", function() {
         clearFieldError(this.id);
     });
-    $(`#${screenId}primaryMobile`).on('input', function() {
-        this.value = this.value.replace(/[^0-9]/g, '');
-        let newMobile = $(this).val();
-        let isApplicant = gApzCOB.currentApplicant <= 1;
-        let state = isApplicant ? CB_OTP_STATE.applicant : CB_OTP_STATE.coapplicant;
-        if (state.verified && state.mobile !== newMobile) {
-            state.verified = false;
-            state.mobile = null;
-            $('#' + screenId + 'otpSuccessRow').addClass('sno');
-            $('#' + screenId + 'sendOtpBtn').removeClass('sno');
-            apz.app.CBcheck.toggleOtpProtectedSections();
-            ApzCOB.fnDisplayMsg("Mobile changed. Please verify OTP again.", "W");
-        }
-    });
+    // $(`#${screenId}primaryMobile`).on('input', function() {
+    //     this.value = this.value.replace(/[^0-9]/g, '');
+    //     let newMobile = $(this).val();
+    //     let isApplicant = gApzCOB.currentApplicant <= 1;
+    //     let state = isApplicant ? CB_OTP_STATE.applicant : CB_OTP_STATE.coapplicant;
+    //     if (state.verified && state.mobile !== newMobile) {
+    //         state.verified = false;
+    //         state.mobile = null;
+    //         $('#' + screenId + 'otpSuccessRow').addClass('sno');
+    //         $('#' + screenId + 'sendOtpBtn').removeClass('sno');
+    //         apz.app.CBcheck.toggleOtpProtectedSections();
+    //         ApzCOB.fnDisplayMsg("Mobile changed. Please verify OTP again.", "W");
+    //     }
+    // });
+$(`#${screenId}primaryMobile`).on('input', function() {
+
+    this.value = this.value.replace(/[^0-9]/g, '');
+    let newMobile = $(this).val();
+
+    let isApplicant = gApzCOB.currentApplicant <= 1;
+    let state = isApplicant ? CB_OTP_STATE.applicant : CB_OTP_STATE.coapplicant;
+    let verifiedCache = isApplicant ? CB_VERIFIED_MOBILES.applicant : CB_VERIFIED_MOBILES.coapplicant;
+
+    //  SPECIAL RULE: CO-APPLICANT SAME AS LAST VERIFIED APPLICANT MOBILE
+    if (!isApplicant && CB_OTP_STATE.applicant.mobile && newMobile === CB_OTP_STATE.applicant.mobile) {
+
+        CB_OTP_STATE.coapplicant.verified = true;
+        CB_OTP_STATE.coapplicant.mobile = newMobile;
+        CB_OTP_UI_UNLOCK.coapplicant = true;
+
+        // Hide OTP UI
+        $('#' + screenId + 'sendOtpBtn').addClass('sno');
+        $('#' + screenId + 'otpSuccessRow').addClass('sno');
+
+        // Show SAME MOBILE NOTE DIV
+        $('#' + screenId + 'sameMobileInfoDiv').removeClass('sno');
+
+        apz.app.CBcheck.toggleOtpProtectedSections();
+        return;
+    } else {
+        // Hide note div if not same mobile
+        $('#' + screenId + 'sameMobileInfoDiv').addClass('sno');
+    }
+
+    //  IF NUMBER WAS ALREADY VERIFIED BEFORE (CACHE)
+    if (verifiedCache.has(newMobile)) {
+
+        state.verified = true;
+        state.mobile = newMobile;
+
+        $('#' + screenId + 'otpSuccessRow').removeClass('sno');
+        $('#' + screenId + 'sendOtpBtn').addClass('sno');
+        $('#' + screenId + 'sameMobileInfoDiv').addClass('sno');
+
+        apz.app.CBcheck.toggleOtpProtectedSections();
+        return;
+    }
+
+    // NEW NUMBER (NOT VERIFIED)
+    if (state.mobile !== newMobile) {
+        state.verified = false;
+        state.mobile = null;
+
+        $('#' + screenId + 'otpSuccessRow').addClass('sno');
+        $('#' + screenId + 'sendOtpBtn').removeClass('sno');
+        $('#' + screenId + 'sameMobileInfoDiv').addClass('sno');
+
+        apz.app.CBcheck.toggleOtpProtectedSections();
+    }
+});
+
 };
 //   TAB SWITCH
 apz.app.CBcheck.handletabSwitch = function(pthis, CustType) {
@@ -513,11 +577,15 @@ apz.app.CBcheck.otpVerifiedSuccess = function() {
         CB_OTP_STATE.applicant.verified = true;
         CB_OTP_STATE.applicant.mobile = currentMobile;
                 CB_OTP_UI_UNLOCK.applicant = true;
+                        CB_VERIFIED_MOBILES.applicant.add(currentMobile);
+
 
     } else {
         CB_OTP_STATE.coapplicant.verified = true;
         CB_OTP_STATE.coapplicant.mobile = currentMobile;
                 CB_OTP_UI_UNLOCK.coapplicant = true;
+                        CB_VERIFIED_MOBILES.coapplicant.add(currentMobile);
+
 
     }
     if (window.CB_OTP_TIMER) {
@@ -558,7 +626,7 @@ apz.app.CBcheck.formValidator = function() {
     }
     let primaryMobileId = screenId + "primaryMobile";
     check(CB_Validate.required(primaryMobileId, "Primary mobile number is required"));
-    check(CB_Validate.regex(primaryMobileId, /^[0-9]{10}$/, "Mobile number must be 10 digits"));
+    // check(CB_Validate.regex(primaryMobileId, /^[0-9]{10}$/, "Mobile number must be 10 digits"));
     let otpState = isApplicant ? CB_OTP_STATE.applicant : CB_OTP_STATE.coapplicant;
     if (!otpState.verified) {
         showFieldError(primaryMobileId, "OTP verification is required");
@@ -590,21 +658,21 @@ apz.app.CBcheck.formValidator = function() {
     let pincodeId = screenId + "pincode";
     clearFieldError(address1Id);
     check(CB_Validate.required(address1Id, "Address line 1 is required"));
-    if ($("#" + address1Id).val()) {
-        check(CB_Validate.lengthRange(address1Id, 8, 30, "Address must be 8-30 characters"));
-    }
+    // if ($("#" + address1Id).val()) {
+    //     check(CB_Validate.lengthRange(address1Id, 8, 30, "Address must be 8-30 characters"));
+    // }
     clearFieldError(pincodeId);
     check(CB_Validate.required(pincodeId, "Pincode is required"));
-    if ($("#" + pincodeId).val()) {
-        check(CB_Validate.regex(pincodeId, /^[0-9]{6}$/, "Pincode must be 6 digits"));
-    }
+    // if ($("#" + pincodeId).val()) {
+    //     check(CB_Validate.regex(pincodeId, /^[0-9]{6}$/, "Pincode must be 6 digits"));
+    // }
     if (!isApplicant) {
         let coNameId = screenId + "coCustomerName";
         clearFieldError(coNameId);
         check(CB_Validate.required(coNameId, "Co-applicant name is required"));
-        if ($("#" + coNameId).val()) {
-            check(CB_Validate.regex(coNameId, /^[A-Za-z ]+$/, "Only alphabets allowed"));
-        }
+        // if ($("#" + coNameId).val()) {
+        //     check(CB_Validate.regex(coNameId, /^[A-Za-z ]+$/, "Only alphabets allowed"));
+        // }
         check(CB_Validate.required(screenId + "relationShipWithApplicant", "Select relationship"));
         check(CB_Validate.required(screenId + "coGender", "Gender is required"));
         check(CB_Validate.required(screenId + "coDob", "Date of birth is required"));
@@ -623,19 +691,60 @@ apz.app.CBcheck.validateForm = function() {
     }
     return true;
 };
+// apz.app.CBcheck.refreshOtpUI = function() {
+//     let isApplicant = gApzCOB.currentApplicant <= 1;
+//     let state = isApplicant ? CB_OTP_STATE.applicant : CB_OTP_STATE.coapplicant;
+//     let currentMobile = $(`#${screenId}primaryMobile`).val();
+//     if (state.verified && state.mobile === currentMobile) {
+//         $('#' + screenId + 'otpSuccessRow').removeClass('sno');
+//         $('#' + screenId + 'sendOtpBtn').addClass('sno');
+//     } else {
+//         $('#' + screenId + 'otpSuccessRow').addClass('sno');
+//         $('#' + screenId + 'sendOtpBtn').removeClass('sno');
+//     }
+//     apz.app.CBcheck.toggleOtpProtectedSections();
+// };
 apz.app.CBcheck.refreshOtpUI = function() {
+
     let isApplicant = gApzCOB.currentApplicant <= 1;
     let state = isApplicant ? CB_OTP_STATE.applicant : CB_OTP_STATE.coapplicant;
+    let verifiedCache = isApplicant ? CB_VERIFIED_MOBILES.applicant : CB_VERIFIED_MOBILES.coapplicant;
+
     let currentMobile = $(`#${screenId}primaryMobile`).val();
-    if (state.verified && state.mobile === currentMobile) {
+
+    //  CASE 1: CO-APPLICANT SAME AS APPLICANT VERIFIED MOBILE
+    if (!isApplicant && CB_OTP_STATE.applicant.mobile && currentMobile === CB_OTP_STATE.applicant.mobile) {
+
+        CB_OTP_STATE.coapplicant.verified = true;
+        CB_OTP_STATE.coapplicant.mobile = currentMobile;
+        CB_OTP_UI_UNLOCK.coapplicant = true;
+
+        $('#' + screenId + 'sendOtpBtn').addClass('sno');
+        $('#' + screenId + 'otpSuccessRow').addClass('sno');
+        $('#' + screenId + 'sameMobileInfoDiv').removeClass('sno');
+
+        apz.app.CBcheck.toggleOtpProtectedSections();
+        return;
+    }
+
+    //  CASE 2: MOBILE EXISTS IN VERIFIED CACHE
+    if (currentMobile && verifiedCache.has(currentMobile)) {
+        state.verified = true;
+        state.mobile = currentMobile;
+
         $('#' + screenId + 'otpSuccessRow').removeClass('sno');
         $('#' + screenId + 'sendOtpBtn').addClass('sno');
+        $('#' + screenId + 'sameMobileInfoDiv').addClass('sno');
     } else {
+        //  CASE 3: NOT VERIFIED
         $('#' + screenId + 'otpSuccessRow').addClass('sno');
         $('#' + screenId + 'sendOtpBtn').removeClass('sno');
+        $('#' + screenId + 'sameMobileInfoDiv').addClass('sno');
     }
+
     apz.app.CBcheck.toggleOtpProtectedSections();
 };
+
 
 function clearFieldError(fieldId) {
     let field = document.getElementById(fieldId);
@@ -682,6 +791,36 @@ function showFieldError(fieldId, message) {
     error.innerText = message;
     wrapper.appendChild(error);
 }
+// apz.app.CBcheck.validateMobileForOtp = function() {
+//     let isApplicant = Number(gApzCOB.currentApplicant) === 1;
+//     let mobileId = screenId + "primaryMobile";
+//     let mobile = $("#" + mobileId).val();
+//     clearFieldError(mobileId);
+//     if (!mobile) {
+//         showFieldError(mobileId, "Mobile number is required");
+//         return false;
+//     }
+//     if (!/^[0-9]{10}$/.test(mobile)) {
+//         showFieldError(mobileId, "Mobile number must be 10 digits");
+//         return false;
+//     }
+//     // Co-applicant primary number matches Applicant mob number 
+//     if (!isApplicant) {
+//         let applicantMobile = CB_OTP_STATE.applicant.mobile;
+//         if (applicantMobile && mobile === applicantMobile) {
+//             // Mark co-applicant as auto verified
+//             CB_OTP_STATE.coapplicant.verified = true;
+//             CB_OTP_STATE.coapplicant.mobile = mobile;
+//             // Hide existing OTP text div
+//             $('#' + screenId + 'sendOtpBtn').addClass('sno');
+//             $('#' + screenId + 'otpSuccessRow').addClass('sno');
+//             // Show your custom div
+//             $('#' + screenId + 'sameMobileInfoDiv').removeClass('sno');
+//             return false; // prevent OTP modal opening
+//         }
+//     }
+//     return true;
+// };
 apz.app.CBcheck.validateMobileForOtp = function() {
     let isApplicant = Number(gApzCOB.currentApplicant) === 1;
     let mobileId = screenId + "primaryMobile";
@@ -695,21 +834,29 @@ apz.app.CBcheck.validateMobileForOtp = function() {
         showFieldError(mobileId, "Mobile number must be 10 digits");
         return false;
     }
-    // Co-applicant primary number matches Applicant mob number 
-    if (!isApplicant) {
-        let applicantMobile = CB_OTP_STATE.applicant.mobile;
-        if (applicantMobile && mobile === applicantMobile) {
-            // Mark co-applicant as auto verified
-            CB_OTP_STATE.coapplicant.verified = true;
-            CB_OTP_STATE.coapplicant.mobile = mobile;
-            // Hide existing OTP text div
-            $('#' + screenId + 'sendOtpBtn').addClass('sno');
-            $('#' + screenId + 'otpSuccessRow').addClass('sno');
-            // Show your custom div
-            $('#' + screenId + 'sameMobileInfoDiv').removeClass('sno');
-            return false; // prevent OTP modal opening
-        }
+// Co-applicant primary number matches LAST VERIFIED Applicant mobile
+if (!isApplicant) {
+    let applicantVerifiedMobile = CB_OTP_STATE.applicant.mobile;
+
+    if (applicantVerifiedMobile && mobile === applicantVerifiedMobile) {
+
+        // Auto mark verified (NO OTP REQUIRED)
+        CB_OTP_STATE.coapplicant.verified = true;
+        CB_OTP_STATE.coapplicant.mobile = mobile;
+        CB_OTP_UI_UNLOCK.coapplicant = true;
+        CB_VERIFIED_MOBILES.coapplicant.add(mobile);
+
+        // Hide OTP UI
+        $('#' + screenId + 'sendOtpBtn').addClass('sno');
+        $('#' + screenId + 'otpSuccessRow').addClass('sno');
+
+        // Show SAME MOBILE NOTE DIV
+        $('#' + screenId + 'sameMobileInfoDiv').removeClass('sno');
+
+        apz.app.CBcheck.toggleOtpProtectedSections();
+        return false; // Prevent OTP modal
     }
+}
     return true;
 };
 apz.app.CBcheck.ageCalculator = function(pthis) {
@@ -753,7 +900,7 @@ apz.app.CBcheck.toggleOtpProtectedSections = function () {
 
     let isApplicant = gApzCOB.currentApplicant <= 1;
 
-    // ? USE UI UNLOCK FLAG (NOT MOBILE MATCH)
+    // USE UI UNLOCK FLAG (NOT MOBILE MATCH)
     let isUnlocked = isApplicant 
         ? CB_OTP_UI_UNLOCK.applicant 
         : CB_OTP_UI_UNLOCK.coapplicant;
@@ -773,4 +920,5 @@ apz.app.CBcheck.toggleOtpProtectedSections = function () {
     } else {
         $('.src-coapp.cb-otp-protected').removeClass('sno');
     }
+
 };
