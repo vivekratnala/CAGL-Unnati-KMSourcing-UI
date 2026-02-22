@@ -1341,7 +1341,7 @@ ApzCOB = {
     fnValidatename: function(pthis) {
         if (apz.childScr === "EmploymentDetails") {
             pthis.value = pthis.value.replace(gALLOWFORNAMEEMP, "");
-        } else if (["PerDet","PerDRE", "RPC", "Sanct", "DBkitG", "RPCDBV"].includes(apz.currAppId)) {
+        } else if (["PerDet","PerDRE", "RPC", "Sanct", "DBkitG", "RPCDBV","KmSourc"].includes(apz.currAppId)) {
             pthis.value = pthis.value.replace(gALLOWFORNAME, "");
         } else {
             pthis.value = pthis.value.replace(gALLOWFORSEARCH, "");
@@ -6893,7 +6893,7 @@ ApzCOB = {
         } else if (apz.childScr === "LoanDetails") {
             window.tempFileArr = apz.app.LoanDetails.selectedFileData("");
         } else if (apz.childScr === 'Saloandetails' || apz.currAppId === 'DBkitG' || apz.childScr === 'CaotherDetails' || apz.childScr ===
-            'CaIncomeDetails' || apz.childScr === 'LUCDetails') {
+            'CaIncomeDetails' || apz.childScr === 'LUCDetails' || apz.childScr === 'AadhaarDetails' || apz.childScr === 'Kmbase') {
             window.tempFileArr = ApzCOB.getDocDetailsById(docId);
         }
         let callBackFunc = callBackFn || ApzCOB.deleteDocumentCB;
