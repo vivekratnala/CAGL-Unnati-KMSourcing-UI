@@ -7,6 +7,14 @@ window.CB_OTP_TIMER = null;
 window.CB_OTP_TIME_LEFT = 150;
 window.CB_OTP_RESEND_COUNT = 0;
 window.CB_OTP_MAX_RESEND = 3;
+window.CB_FORM_STATE = {
+    applicant: {
+        validated: false
+    },
+    coapplicant: {
+        validated: false
+    }
+};
 
 window.CB_OTP_STATE = {
     applicant: {
@@ -334,6 +342,8 @@ apz.app.CBcheck.handletabSwitch = function(pthis, CustType) {
     apz.app.CBcheck.paintLoanDetails();
     apz.app.CBcheck.paintCustomerAndKycDetails();
     apz.app.CBcheck.refreshOtpUI();
+        apz.app.CBcheck.togglePostValidationSections();
+
 };
 //   LOAN PAINT (With SubPurpose Rebuild)
 apz.app.CBcheck.paintLoanDetails = function() {
@@ -683,14 +693,41 @@ apz.app.CBcheck.formValidator = function() {
     }
     return isValid;
 };
+// apz.app.CBcheck.validateForm = function() {
+//     let valid = apz.app.CBcheck.formValidator();
+//     if (!valid) {
+//         ApzCOB.fnDisplayMsg("Please ensure all fields are properly filled before initiating the check.", "E");
+//         return false;
+//     }
+//     return true;
+// };
 apz.app.CBcheck.validateForm = function() {
+
     let valid = apz.app.CBcheck.formValidator();
+
     if (!valid) {
-        ApzCOB.fnDisplayMsg("Please ensure all fields are properly filled before initiating the check.", "E");
+        ApzCOB.fnDisplayMsg(
+            "Please ensure all fields are properly filled before initiating the check.", 
+            "E"
+        );
         return false;
     }
+
+    //  SET FORM VALIDATION STATE (PER TAB)
+    let isApplicant = gApzCOB.currentApplicant <= 1;
+
+    if (isApplicant) {
+        CB_FORM_STATE.applicant.validated = true;
+    } else {
+        CB_FORM_STATE.coapplicant.validated = true;
+    }
+
+    //  SHOW POST VALIDATION SECTIONS ONLY FOR THAT TAB
+    apz.app.CBcheck.togglePostValidationSections();
+
     return true;
 };
+
 // apz.app.CBcheck.refreshOtpUI = function() {
 //     let isApplicant = gApzCOB.currentApplicant <= 1;
 //     let state = isApplicant ? CB_OTP_STATE.applicant : CB_OTP_STATE.coapplicant;
@@ -921,4 +958,29 @@ apz.app.CBcheck.toggleOtpProtectedSections = function () {
         $('.src-coapp.cb-otp-protected').removeClass('sno');
     }
 
+};
+
+apz.app.CBcheck.togglePostValidationSections = function () {
+
+    let isApplicant = gApzCOB.currentApplicant <= 1;
+
+    let isFormValidated = isApplicant
+        ? CB_FORM_STATE.applicant.validated
+        : CB_FORM_STATE.coapplicant.validated;
+
+    // Hide all post-validation sections first
+    $('.cb-post-validated').addClass('sno');
+
+    // If current tab form not validated, do nothing
+    if (!isFormValidated) return;
+
+    // Show common validated sections (for that tab only)
+    $('.cb-common-validated').removeClass('sno');
+
+    // Show tab specific validated sections
+    if (isApplicant) {
+        $('.src-app.cb-post-validated').removeClass('sno');
+    } else {
+        $('.src-coapp.cb-post-validated').removeClass('sno');
+    }
 };
