@@ -427,3 +427,21 @@
 #KmSourc__Kmbase__otpInfoText {
     font-weight: 600 !important;
 }
+
+.pan-verified-btn {
+    background-color: #d4edda !important;
+    color: #2e7d32 !important;
+    border: 1px solid #2e7d32 !important;
+    border-radius: 30px !important;
+    padding: 6px 16px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    font-weight: 600 !important;
+}
+
+.pan-verified-btn:hover {
+    background-color: #d4edda !important;
+    color: #2e7d32 !important;
+    border: 1px solid #2e7d32 !important;
+}
