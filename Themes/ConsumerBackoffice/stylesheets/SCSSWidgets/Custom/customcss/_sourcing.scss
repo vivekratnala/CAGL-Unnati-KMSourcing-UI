@@ -19,7 +19,7 @@
 
     border-bottom: 1px solid #D4D4D4;
 
-    margin: 24px 0 !important;
+    // margin: 24px 0 !important;   
     padding: 0 !important;
     height: 1px;
 }
@@ -228,9 +228,41 @@
     font-size: 12px;
     margin-top: 4px;
 }
+.err-msg p,
+.err-msg span,
+.cb-error-msg {
+    white-space: nowrap !important;
+}
+.ocrfooter{ background: #fff; display: flex; justify-content: flex-end; box-shadow: 0 -4px 10px -4px rgba(16, 24, 40, 0.1); } 
+.ocrfooter .ocr-ftr{ justify-content: flex-end; }
+.aadhar-radio-disable {
+    opacity: 0.5;
+    cursor: not-allowed;
+     pointer-events: none;
+}
 
-
-
+.aadhar-radio-disable input[type="radio"] {
+    accent-color: #F6F6F6; 
+}
+.aadhar-radio-disable .srb,
+.aadhar-radio-disable .radio,
+.aadhar-radio-disable .icon-radio {
+    opacity: 0.4;
+}
+.coApp-AddressNote{
+    font-weight: 600;
+    font-size: 16px !important;
+    line-height: 24px;
+    letter-spacing: 0px !important;
+    color: #737373 !important; 
+}
+.aadhaar-fallback-text{
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    line-height: 20px;
+    letter-spacing: 0.4px;
+    color: #D92D20 !important; 
+}
 //   MODAL BODY CENTERING
 #KmSourc__Kmbase__gr_row_25 {
     display: flex !important;
@@ -394,38 +426,4 @@
 
 #KmSourc__Kmbase__otpInfoText {
     font-weight: 600 !important;
-}
-
-.err-msg p,
-.err-msg span,
-.cb-error-msg {
-    white-space: nowrap !important;
-    text-align: left !important;
-}
-
-.ocrfooter {
-    background: #fff;
-    display: flex;
-    justify-content: flex-end;
-    box-shadow: 0 -4px 10px -4px rgba(16, 24, 40, 0.1);
-}
-
-.ocrfooter .ocr-ftr {
-    justify-content: flex-end;
-}
-.error-inline .err-msg li {
-    text-align: left;
-    white-space: nowrap !important;
-}
-
-.address-selection .etb-rdio span {
-    white-space: nowrap !important;
-}
-.km-uploadDoc-title{
-    font-family: Open Sans;
-    font-weight: 700 !important;
-    font-size: 16px !important;
-    line-height: 24px;
-    color:#231f20 !important;
-    padding-bottom: 24px;
 }

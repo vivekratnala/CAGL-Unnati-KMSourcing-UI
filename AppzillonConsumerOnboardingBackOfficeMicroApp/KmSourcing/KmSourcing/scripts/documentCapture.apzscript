@@ -1,102 +1,76 @@
-var docScrId = 'KmSourc__documentCapture__';
-// window.docScrId = 'KmSourc__documentCapture__';
-
-var KmbaseScrId = 'KmSourc__Kmbase__';
+window.docScrId = 'KmSourc__documentCapture__';
+window.AADHAAR_DOC_CAPTURE_SUCCESS = false;
+window.documentCapture_Validate = {
+    required: function(fieldId, message) {
+        let $el = $("#" + fieldId);
+        if ($el.length === 0) return true;
+        // Skip disabled or hidden fields
+        if ($el.prop("disabled") || !$el.is(":visible")) return true;
+        let value = ($el.val() || "").trim();
+        if (!value || value === PleaseSelect) {
+            showFieldError(fieldId, message);
+            return false;
+        }
+        return true;
+    },
+    fnCheckMaxMinLengthOnBlur: function(pthis) {
+        let minlength = pthis.minLength;
+        let maxlength = pthis.maxLength;
+        let value = pthis.value.trim();
+        let $field = $("#" + pthis.id);
+        if (!apz.isNull(value) && (value.length < minlength || value.length > maxlength)) {
+            window.gIsMinMaxErr = true;
+            $field.addClass("err");
+            $("#" + pthis.id + "_ul").next().removeClass("sno");
+            let errTxtFieldId = $("#" + pthis.id + "_ul").next()?.find('.icon-Error')?.next() ?? $('#dummyid');
+            errTxtFieldId?.text(`Please enter minimum:${minlength} and maximum:${maxlength} characters!`);
+            let wrapper;
+            if ($field.closest(".etb-slct").length) {
+                wrapper = $field.closest(".etb-slct").parent().parent();
+            } else if ($field.closest(".ett-inpt").length) {
+                wrapper = $field.closest(".ett-inpt").parent().parent();
+            } else if ($field.closest("ul").length) {
+                wrapper = $field.closest("ul").parent().parent();
+            }
+            wrapper?.addClass("error-inline");
+        } else {
+            window.gIsMinMaxErr = false;
+            let wrapper;
+            if ($field.closest(".etb-slct").length) {
+                wrapper = $field.closest(".etb-slct").parent().parent();
+            } else if ($field.closest(".ett-inpt").length) {
+                wrapper = $field.closest(".ett-inpt").parent().parent();
+            } else if ($field.closest("ul").length) {
+                wrapper = $field.closest("ul").parent().parent();
+            }
+            wrapper?.removeClass("error-inline");
+        }
+    },
+};
 apz.app.onLoad_documentCapture = function() {
-    ApzCOB.setMinMaxLength([{
-        'fieldName': 'Name',
-        'fieldId': docScrId + 'ocrName'
-    }, 
-    // {
-    //     'fieldName': 'Name',
-    //     'fieldId': KmbaseScrId + 'ocr-nameSection'
-    // },
-    {
-        'fieldName': 'Dob',
-        'fieldId': docScrId + 'ocr-dob'
-    },
-    // {
-    //     'fieldName': 'Dob',
-    //     'fieldId': KmbaseScrId + 'ocrDob'
-    // },
-    {
-        'fieldName': 'AadharNumber',
-        'fieldId': docScrId + 'ocrAadhaarNumber'
-    },
-    // {
-    //     'fieldName': 'AadharNumber',
-    //     'fieldId': KmbaseScrId + 'ocrAadhaar'
-    // },
-    {
-        'fieldName': 'VoterID',
-        'fieldId': docScrId + 'ocrVoterNumber'
-    }, 
-    // {
-    //     'fieldName': 'VoterID',
-    //     'fieldId': KmbaseScrId + 'ocrVoter'
-    // },
-    {
-        'fieldName': 'PanNumber',
-        'fieldId': docScrId + 'ocrPanNumber'
-    },
-    // {
-    //     'fieldName': 'PanNumber',
-    //     'fieldId': KmbaseScrId + 'ocrPan'
-    // },
-    {
-        'fieldName': 'AddressLine1',
-        'fieldId': docScrId + 'ocrAddr1'
-    }, {
-        'fieldName': 'AddressLine2',
-        'fieldId': docScrId + 'ocrAddr2'
-    }, {
-        'fieldName': 'AddressLine3',
-        'fieldId': docScrId + 'ocrAddr3'
-    }, {
-        'fieldName': 'Pincode',
-        'fieldId': docScrId + 'ocr-pincode'
-    },
-    // {
-    //     'fieldName': 'AddressLine1',
-    //     'fieldId': KmbaseScrId + 'ocrAddressLine1'
-    // }, {
-    //     'fieldName': 'AddressLine2',
-    //     'fieldId': KmbaseScrId + 'ocrAddressLine2'
-    // }, {
-    //     'fieldName': 'AddressLine3',
-    //     'fieldId': KmbaseScrId + 'ocrAddressLine3'
-    // }, {
-    //     'fieldName': 'Pincode',
-    //     'fieldId': KmbaseScrId + 'ocrPincode'
-    // }
-    ]);
     if (apz.app.docType === 'Aadhaar') {
         $('.doc-upload-title').text('Upload front & back side of Aadhaar card');
-        // apz.app.updateFieldLabel('KmSourc__documentCapture__', 'ocr-idSection', 'Aadhaar number (Last 4 digits)');
-        // apz.app.updateFieldLabel('KmSourc__documentCapture__', 'ocr-nameSection', 'Name as per Aadhaar');
-        // apz.app.updateFieldLabel('KmSourc__Kmbase__', 'ocr-idSection', 'Aadhaar number (Last 4 digits)');
-        apz.app.updateFieldLabel('KmSourc__Kmbase__', 'ocr-nameSection', 'Name as per Aadhaar');
-        $('.ocr-verify-btn, .pan-row, .voter-row, .dummy-ocrrow .ocrVoterSection, .ocrPanSection,').hide();
-        $('.dob-row').show();
+        apz.app.updateFieldLabel(docScrId, 'ocrNameSection', 'Name as per Aadhaar');
+        apz.app.updateFieldLabel(kmbaseScr, 'ocrNameSection', 'Name as per Aadhaar');
+        $('.ocr-verify-btn, .pan-row, .voter-row, .dummy-ocrrow ,.ocrVoterSection, .ocrPanSection').hide();
+        $('.dob-row, .ocrAadhaar, .ocrAddressLine1, .ocrAddressLine2, .ocrAddressLine3, .ocrDob, .ocrPincode').show();
+        apz.app.documentCapture.onAadhaarSuccess();
     } else if (apz.app.docType === 'Voter ID') {
         $('.doc-upload-title').text('Upload front & back side of Voter ID');
-        // apz.app.updateFieldLabel('KmSourc__documentCapture__', 'ocr-idSection', 'Voter ID number');
-        // apz.app.updateFieldLabel('KmSourc__documentCapture__', 'ocr-nameSection', 'Name');
-        // apz.app.updateFieldLabel('KmSourc__Kmbase__', 'ocr-idSection', 'Voter ID number');
-        apz.app.updateFieldLabel('KmSourc__Kmbase__', 'ocr-nameSection', 'Name');
+        apz.app.updateFieldLabel(docScrId, 'ocrNameSection', 'Name');
+        apz.app.updateFieldLabel(kmbaseScr, 'ocrNameSection', 'Name');
         $('.ocr-dob, .aadhaar-row, .pan-row').hide();
         $('.ocrPanSection, .ocrAadhaarSection, .ocr-dobSection').hide();
-        $('.ocr-verify-btn').show();
+        $('.ocr-verify-btn, .ocr-pincodeSection, .ocr-addressLine1Section, .ocr-addressLine2Section, .ocr-addressLine3Section, .ocrVoterSection, .dummy-ocrrow, .ocrAddressLine1, .ocrAddressLine2, .ocrAddressLine3, .ocrPincode')
+            .show();
     } else if (apz.app.docType === 'PAN card') {
         $('.doc-upload-title').text('Upload front & back side of PAN card');
-        // apz.app.updateFieldLabel('KmSourc__documentCapture__', 'ocr-idSection', 'PAN card number');
-        // apz.app.updateFieldLabel('KmSourc__documentCapture__', 'ocr-nameSection', 'Name as per PAN');
-        // apz.app.updateFieldLabel('KmSourc__Kmbase__', 'ocr-idSection', 'PAN card number');
-        apz.app.updateFieldLabel('KmSourc__Kmbase__', 'ocr-nameSection', 'Name as per PAN');
+        apz.app.updateFieldLabel(docScrId, 'ocrNameSection', 'Name as per PAN');
+        apz.app.updateFieldLabel(kmbaseScr, 'ocrNameSection', 'Name as per PAN');
         $('.ocr-note, .ocr-pincode, .ocr-addressLine3, .ocr-addressLine2, .ocr-addressLine1, .ocr-dob, .voter-row, .aadhaar-row').hide();
         $('.ocr-pincodeSection, .ocr-addressLine1Section, .ocr-addressLine2Section, .ocr-addressLine3Section, .dob-row, .ocrVoterSection, .ocrAadhaarSection, .ocr-dobSection')
             .hide();
-        $('.ocr-verify-btn').show();
+        $('.ocr-verify-btn, .ocrPanSection, .dummy-ocrrow').show();
     }
 };
 apz.app.updateFieldLabel = function(screenPrefix, fieldName, newText) {
@@ -110,42 +84,53 @@ apz.app.updateFieldLabel = function(screenPrefix, fieldName, newText) {
 };
 apz.app.documentCapture.formValidator = function() {
     let isValid = true;
-    let isApplicant = Number(gApzCOB.currentApplicant) === 1;
 
     function check(result) {
         if (!result) isValid = false;
     }
-    // let dobId = isApplicant ? screenId + "ocrDob" : screenId + "ocrDob";
-    
-    
-    let dobId = KmbaseScrId + "ocrDob";
-    let voterId = KmbaseScrId + "ocrVoter";
-    let panId = KmbaseScrId + "ocrPan";
-    let aadhaarId = KmbaseScrId + "ocrAadhaar";
-    check(CB_Validate.required(dobId, "Date of birth is required"));
-    check(CB_Validate.required(voterId, "Voter ID number is required"));
-    check(CB_Validate.required(panId, "Pancard number is required"));
-    check(CB_Validate.required(aadhaarId, "Aadhar number is required"));
-    let address1Id = KmbaseScrId + "ocrAddressLine1";
-    let pincodeId = KmbaseScrId + "ocrPincode";
-    clearFieldError(address1Id);
-    check(CB_Validate.required(address1Id, "Address line 1 is required"));
-    if ($("#" + address1Id).val()) {
-        check(CB_Validate.lengthRange(address1Id, 8, 30, "Address must be 8-30 characters"));
+    const p = kmbaseScr;
+    let dobId = p + "ocrDob";
+    let voterId = p + "ocrVoter";
+    let panId = p + "ocrPan";
+    let aadhaarId = p + "ocrAadhaar";
+    let name = p + "ocrNameSection";
+    let address1Id = p + "ocrAddressLine1";
+    let pincodeId = p + "ocrPincode";
+    check(window.documentCapture_Validate.required(name, "Please enter Name"));
+    if (apz.app.docType === "Aadhaar") {
+        check(window.documentCapture_Validate.required(dobId, "Please select DOB"));
+        check(window.documentCapture_Validate.required(aadhaarId, "Please enter Aadhaar number"));
+        check(window.documentCapture_Validate.required(address1Id, "Please enter Address line 1"));
+        check(window.documentCapture_Validate.required(pincodeId, "Please enter Pincode"));
     }
-    clearFieldError(pincodeId);
-    check(CB_Validate.required(pincodeId, "Pincode is required"));
-    if ($("#" + pincodeId).val()) {
-        check(CB_Validate.regex(pincodeId, /^[0-9]{6}$/, "Pincode must be 6 digits"));
+    if (apz.app.docType === "Voter ID") {
+        check(window.documentCapture_Validate.required(voterId, "Please enter Voter ID"));
+        check(window.documentCapture_Validate.required(address1Id, "Please enter Address line 1"));
+        check(window.documentCapture_Validate.required(pincodeId, "Please enter Pincode"));
+    }
+    if (apz.app.docType === "PAN card") {
+        check(window.documentCapture_Validate.required(panId, "Please enter PAN number"));
     }
     return isValid;
 };
 apz.app.documentCapture.validateForm = function() {
     let valid = apz.app.documentCapture.formValidator();
     if (!valid) {
-        // ApzCOB.fnDisplayMsg("Please ensure all fields are properly filled before initiating the check.", "E");
+        let firstError = $(".error-inline:visible").first();
+        if (firstError.length) {
+            firstError[0].scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+        }
         return false;
     }
+    // copy edited values to document screen
+    apz.app.documentCapture.copyOcrValuesFromModal();
+    // Clear modal for reuse
+    apz.app.documentCapture.clearModalFields();
+    //close modal
+    ApzCOB.toggleModal('KmSourc__Kmbase__Edit_OCR_Modal');
     return true;
 };
 
@@ -194,42 +179,77 @@ function showFieldError(fieldId, message) {
     error.innerText = message;
     wrapper.appendChild(error);
 }
-// var docScrId = 'KmSourc__documentCapture__';
-// apz.app.onLoad_documentCapture = function() {
-//     if (apz.app.docType === 'Aadhaar') {
-//         $('.doc-upload-title').text('Upload front & back side of Aadhaar card');
-//         // apz.app.updateFieldLabel('KmSourc__documentCapture__', 'ocr-idSection', 'Aadhaar number (Last 4 digits)');
-//         // apz.app.updateFieldLabel('KmSourc__documentCapture__', 'ocr-nameSection', 'Name as per Aadhaar');
-//         apz.app.updateFieldLabel('KmSourc__Kmbase__', 'ocr-idSection', 'Aadhaar number (Last 4 digits)');
-//         apz.app.updateFieldLabel('KmSourc__Kmbase__', 'ocr-nameSection', 'Name as per Aadhaar');
-//         $('.ocr-verify-btn, .pan-row, .voter-row, .dummy-ocrrow').hide();
-//         $('.dob-row').show();
-//     } else if (apz.app.docType === 'Voter ID') {
-//         $('.doc-upload-title').text('Upload front & back side of Voter ID');
-//         // apz.app.updateFieldLabel('KmSourc__documentCapture__', 'ocr-idSection', 'Voter ID number');
-//         // apz.app.updateFieldLabel('KmSourc__documentCapture__', 'ocr-nameSection', 'Name');
-//         apz.app.updateFieldLabel('KmSourc__Kmbase__', 'ocr-idSection', 'Voter ID number');
-//         apz.app.updateFieldLabel('KmSourc__Kmbase__', 'ocr-nameSection', 'Name');
-//         $('.ocr-dob, .aadhaar-row, .pan-row').hide();
-//         $('.dob-row').hide();
-//         $('.ocr-verify-btn').show();
-//     } else if (apz.app.docType === 'PAN card') {
-//         $('.doc-upload-title').text('Upload front & back side of PAN card');
-//         // apz.app.updateFieldLabel('KmSourc__documentCapture__', 'ocr-idSection', 'PAN card number');
-//         // apz.app.updateFieldLabel('KmSourc__documentCapture__', 'ocr-nameSection', 'Name as per PAN');
-//         apz.app.updateFieldLabel('KmSourc__Kmbase__', 'ocr-idSection', 'PAN card number');
-//         apz.app.updateFieldLabel('KmSourc__Kmbase__', 'ocr-nameSection', 'Name as per PAN');
-//         $('.ocr-note, .ocr-pincode, .ocr-addressLine3, .ocr-addressLine2, .ocr-addressLine1, .ocr-dob, .voter-row, .aadhaar-row').hide();
-//         $('.ocr-pincodeSection, .ocr-addressLine1Section, .ocr-addressLine2Section, .ocr-addressLine3Section, .dob-row').hide();
-//         $('.ocr-verify-btn').show();
-//     }
-// };
-// apz.app.updateFieldLabel = function(screenPrefix, fieldName, newText) {
-//     if (!screenPrefix || !fieldName || !newText) return;
-//     var inputId = screenPrefix + fieldName;
-//     var label = document.querySelector('label[for="' + inputId + '"]');
-//     if (label) {
-//         label.textContent = newText;
-//         label.title = newText;
-//     }
-// };
+apz.app.documentCapture.onAadhaarSuccess = function() {
+    window.AADHAAR_DOC_CAPTURE_SUCCESS = true;
+    console.log("AADHAAR FLAG SET:", window.AADHAAR_DOC_CAPTURE_SUCCESS);
+};
+apz.app.documentCapture.copyOcrValuesToModal = function() {
+    const src = docScrId; // OCR screen
+    const tgt = kmbaseScr; // Modal fields
+    const mapping = {
+        "ocrName": "ocrNameSection",
+        "ocr-dob": "ocrDob",
+        "ocrAadhaarNumber": "ocrAadhaar",
+        "ocrVoterNumber": "ocrVoter",
+        "ocrPanNumber": "ocrPan",
+        "ocrAddr1": "ocrAddressLine1",
+        "ocrAddr2": "ocrAddressLine2",
+        "ocrAddr3": "ocrAddressLine3",
+        "ocr-pincode": "ocrPincode"
+    };
+    Object.keys(mapping).forEach(srcKey => {
+        const srcId = src + srcKey;
+        const tgtId = tgt + mapping[srcKey];
+        const value = $("#" + srcId).val();
+        $("#" + tgtId).val(value);
+    });
+};
+apz.app.documentCapture.copyOcrValuesFromModal = function() {
+    const src = kmbaseScr; // Modal fields
+    const tgt = docScrId; // Document capture fields
+    const mapping = {
+        "ocrNameSection": "ocrName",
+        "ocrDob": "ocr-dob",
+        "ocrAadhaar": "ocrAadhaarNumber",
+        "ocrVoter": "ocrVoterNumber",
+        "ocrPan": "ocrPanNumber",
+        "ocrAddressLine1": "ocrAddr1",
+        "ocrAddressLine2": "ocrAddr2",
+        "ocrAddressLine3": "ocrAddr3",
+        "ocrPincode": "ocr-pincode"
+    };
+    Object.keys(mapping).forEach(srcKey => {
+        const srcId = src + srcKey;
+        const tgtId = tgt + mapping[srcKey];
+        const value = $("#" + srcId).val();
+        $("#" + tgtId).val(value);
+    });
+};
+apz.app.documentCapture.openEditModal = function() {
+    apz.app.documentCapture.copyOcrValuesToModal();
+    ApzCOB.toggleModal('KmSourc__Kmbase__Edit_OCR_Modal');
+};
+apz.app.documentCapture.clearModalFields = function() {
+    const p = kmbaseScr;
+    const fields = ["ocrNameSection", "ocrDob", "ocrAadhaar", "ocrVoter", "ocrPan", "ocrAddressLine1", "ocrAddressLine2", "ocrAddressLine3",
+        "ocrPincode"
+    ];
+    fields.forEach(f => {
+        $("#" + p + f).val('');
+    });
+    console.log("Modal fields cleared");
+};
+apz.app.documentCapture.ageCalculator = function(pthis) {
+    var $dob = pthis ? $(pthis) : $("#" + kmbaseScr + "ocrDob");
+    var dobVal = $dob.val();
+    if (dobVal.includes("-")) {
+        let parts = dobVal.split("-");
+        dobVal = `${parts[2]}/${parts[1]}/${parts[0]}`; // dd/mm/yyyy
+    }
+    var age = ApzCOB.getAge(dobVal);
+    if (!age || age < 0) {
+        ApzCOB.fnDisplayMsg("Please select a valid date of birth", "E");
+        $dob.val('');
+        return;
+    }
+}
