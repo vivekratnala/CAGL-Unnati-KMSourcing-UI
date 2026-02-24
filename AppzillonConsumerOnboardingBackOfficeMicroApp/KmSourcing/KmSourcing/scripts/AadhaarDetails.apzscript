@@ -24,6 +24,7 @@ if (!inSessionStore.AADHAAR_FORM_CACHE) {
         coapplicant: {}
     };
 }
+window.AADHAAR_INIT_DONE = false;
 var residentialAddressFields = [
     AadhaarScrId + "presentAddrLine1",
     AadhaarScrId + "presentAddrLine2",
@@ -38,7 +39,6 @@ var permanentAddressFields = [
     AadhaarScrId + "permanentAddrLine1",
     AadhaarScrId + "permanentAddrLine2",
     AadhaarScrId + "permanentAddrLine3",
-    AadhaarScrId + "permanentPincode",
     AadhaarScrId + "permanentPincode",
     AadhaarScrId + "addPermCity",
     AadhaarScrId + "addPermDistrict",
@@ -148,6 +148,7 @@ apz.app.onLoad_AadhaarDetails = function() {
     apz.populateDropdown(document.getElementById(AadhaarScrId + 'relationshipProof'), relatArr);
     apz.populateDropdown(document.getElementById(AadhaarScrId + 'addressProof'), addrProfArr);
     apz.populateDropdown(document.getElementById(AadhaarScrId + 'permanentAddressProof'), addrProfArr);
+    window.AADHAAR_INIT_DONE = true;
     apz.app.otherAddressState.present = false;
     apz.app.otherAddressState.permanent = false;
     const presentSection = document.querySelector('.other-present-details');
@@ -158,15 +159,6 @@ apz.app.onLoad_AadhaarDetails = function() {
     var applicantBtn = document.querySelector('.aadhaarSubMenu');
     if (applicantBtn) {
         apz.app.AadhaarDetails.handletabSwitch(applicantBtn, 'Applicant');
-    }
-    // Get radio group container
-    var resGroup = document.getElementById(AadhaarScrId + 'residentialStatus');
-    if (resGroup) {
-        var ownRadio = resGroup.querySelector('input[value="Own"]');
-        if (ownRadio) {
-            ownRadio.checked = true;
-            apz.app.handleAddressType(ownRadio);
-        }
     }
     $("#scr__" + AadhaarScrId + "main").on("mousedown", "input, select", function() {
         clearFieldError(this.id);
@@ -211,13 +203,25 @@ apz.app.onLoad_AadhaarDetails = function() {
     //onload paint data
     apz.app.AadhaarDetails.paintAddressTable();
     apz.app.AadhaarDetails.restoreForm();
+    // Get radio group container
+    var resGroup = document.getElementById(AadhaarScrId + 'residentialStatus');
+    if (resGroup) {
+        var ownRadio = resGroup.querySelector('input[value="Own"]');
+        if (ownRadio) {
+            ownRadio.checked = true;
+            apz.app.handleAddressType(ownRadio);
+        }
+    }
+    // Present column
+    $(".addr-body-row").eq(0).find("input[value*='present']").prop("checked", true);
+    // Permanent column
+    $(".addr-body-row").eq(0).find("input[value*='permanent']").prop("checked", true);
+    apz.app.AadhaarDetails.prePopulateAll();
     // Check Aadhaar doc capture flag
     if (window.AADHAAR_DOC_CAPTURE_SUCCESS) {
-        console.log("Aadhaar doc captured");
         $("#" + AadhaarScrId + "aadharDetails").removeClass('sno');
         $("#" + AadhaarScrId + "captureAadhaar").removeClass('btm-seperator');
     } else {
-        console.log("No Aadhaar doc");
         $('.aadharDetails').addClass('sno');
     }
 }
@@ -253,8 +257,8 @@ apz.app.handleAddressType = function(pthis) {
         if (value === 'Own') {
             presentCell.style.display = '';
             permanentCell.style.display = 'none';
-            // clear permanent radios in table
-            permanentCell.querySelectorAll('input[type="radio"]').forEach(r => (r.checked = false));
+            // clear permanent radios
+            permanentCell.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
         } else {
             presentCell.style.display = '';
             permanentCell.style.display = '';
@@ -266,20 +270,21 @@ apz.app.handleAddressType = function(pthis) {
     if (value === 'Own') {
         addressRow.classList.add('disabled');
         optionRadios.forEach(r => {
-            r.checked = r.value === 'presentAddr';
-            if (r.checked) {
+            if (r.value === 'presentAddr') {
+                r.checked = true;
                 r.dispatchEvent(new Event('change', {
                     bubbles: true
                 }));
+            } else {
+                r.checked = false;
             }
         });
-        if (apz.app.otherAddressState) {
-            apz.app.otherAddressState.permanent = false;
-        }
+        // reset other states
+        apz.app.otherAddressState.permanent = false;
         const otherPermanentSection = document.querySelector('.other-permanent-details');
-        if (otherPermanentSection) {
-            otherPermanentSection.style.display = 'none';
-        }
+        if (otherPermanentSection) otherPermanentSection.style.display = 'none';
+        // capture default communication
+        apz.app.AadhaarDetails.captureCommunicationAddress();
     } else {
         addressRow.classList.remove('disabled');
         optionRadios.forEach(r => r.checked = false);
@@ -308,8 +313,7 @@ apz.app.handleOtherAddressSelection = function(pthis) {
 apz.app.AadhaarDetails.handletabSwitch = function(pthis, CustType) {
     if (!pthis) return;
     apz.app.AadhaarDetails.saveCurrentForm();
-    document.querySelectorAll(".error-inline").forEach(el => el.classList.remove("error-inline"));
-    document.querySelectorAll(".cb-error-msg").forEach(el => el.remove());
+    resetAllMinMaxErrors();
     var $btn = $(pthis);
     $('.aadhaarSubMenu').removeClass('active');
     $btn.addClass('active');
@@ -323,6 +327,7 @@ apz.app.AadhaarDetails.handletabSwitch = function(pthis, CustType) {
         $('.src-coapp').removeClass('sno');
     }
     apz.app.AadhaarDetails.restoreForm();
+    apz.app.AadhaarDetails.prePopulateAll();
     window.scrollTo(0, 0);
 };
 apz.app.AadhaarDetails.commoncodeConfTypesLst = function() {
@@ -383,6 +388,19 @@ function showFieldError(fieldId, message) {
     error.innerText = message;
     wrapper.appendChild(error);
 }
+
+function resetAllMinMaxErrors() {
+    document.querySelectorAll("ul").forEach(u => {
+        const errBox = u.nextElementSibling;
+        if (errBox && errBox.classList.contains("err-msg")) {
+            errBox.classList.add("sno");
+        }
+    });
+    document.querySelectorAll(".error-inline").forEach(e => e.classList.remove("error-inline"));
+    document.querySelectorAll(".err").forEach(e => e.classList.remove("err"));
+    document.querySelectorAll(".cb-error-msg").forEach(e => e.remove());
+    window.gIsMinMaxErr = false;
+}
 apz.app.AadhaarDetails.formValidator = function() {
     let isValid = true;
     let p = AadhaarScrId;
@@ -426,7 +444,6 @@ apz.app.AadhaarDetails.formValidator = function() {
     return isValid;
 };
 apz.app.AadhaarDetails.validateForm = function() {
-    console.log("AADHAAR VALIDATION STARTED");
     let valid = apz.app.AadhaarDetails.formValidator();
     if (!valid) {
         let firstError = $(".error-inline:visible").first();
@@ -533,15 +550,11 @@ apz.app.AadhaarDetails.paintAddressTable = function() {
     let $coAppAadhaar = $("#" + AadhaarScrId + "coAppAadhaarAddr");
     $coAppAadhaar.text(coAppAadhaarFinal).toggleClass("aadhaar-fallback-text", window.AADHAAR_ROW_FALLBACK.coapplicant);
     apz.app.AadhaarDetails.toggleAddressRadios();
-    // Present column
-    $(".addr-body-row").eq(0).find("input[value*='present']").prop("checked", true);
-    // Permanent column
-    $(".addr-body-row").eq(0).find("input[value*='permanent']").prop("checked", true);
 };
 apz.app.AadhaarDetails.captureCommunicationAddress = function() {
     let commRadio = $('input[name="' + AadhaarScrId + 'communicationAddress_"]:checked');
     if (!commRadio.length) return;
-    let colType = commRadio.val(); // presentAddr / permanentAddr
+    let colType = commRadio.val(); 
     let isApplicant = gApzCOB.currentApplicant === 1;
     let applicantKey = isApplicant ? "applicant" : "coapplicant";
     if (colType.includes("present") && apz.app.otherAddressState?.present) {
@@ -552,7 +565,6 @@ apz.app.AadhaarDetails.captureCommunicationAddress = function() {
         });
         if (values.length) {
             window.selectedCommunicationAddress = values.join(", ");
-            console.log("Captured OTHER Present:", window.selectedCommunicationAddress);
         }
         return;
     }
@@ -564,7 +576,6 @@ apz.app.AadhaarDetails.captureCommunicationAddress = function() {
         });
         if (values.length) {
             window.selectedCommunicationAddress = values.join(", ");
-            console.log("Captured OTHER Permanent:", window.selectedCommunicationAddress);
         }
         return;
     }
@@ -574,7 +585,6 @@ apz.app.AadhaarDetails.captureCommunicationAddress = function() {
     let column = colType.includes("present") ? "present" : "permanent";
     let address = AADHAAR_ADDRESS_MAP?.[applicantKey]?.[column]?.[rowIndex] || "";
     window.selectedCommunicationAddress = address;
-    console.log("Captured Table Address:", address);
 };
 apz.app.AadhaarDetails.toggleAddressRadios = function() {
     const rows = document.querySelectorAll(".addr-body-row");
@@ -604,30 +614,154 @@ apz.app.AadhaarDetails.saveCurrentForm = function() {
         if (!id) return;
         if (this.type === "radio") {
             if (this.checked) data[id] = true;
-        } else {
-            data[id] = $(this).val();
+            return;
         }
+        if (this.tagName === "SELECT") {
+            let val = $(this).val();
+            if (val) data[id] = val;
+            return;
+        }
+        if (this.type === "text" && this.hasAttribute("readonly")) {
+            if (this.value && this.value !== PleaseSelect) {
+                data[id] = this.value;
+            }
+            return;
+        }
+        let val = $(this).val();
+        if (val) data[id] = val;
     });
     inSessionStore.AADHAAR_FORM_CACHE[key] = data;
 };
 apz.app.AadhaarDetails.restoreForm = function() {
     let key = gApzCOB.currentApplicant === 1 ? "applicant" : "coapplicant";
-    let data = inSessionStore.AADHAAR_FORM_CACHE?.[key];
-    $("#scr__" + AadhaarScrId + "main").find("input, select, textarea").each(function() {
+    let data = inSessionStore.AADHAAR_FORM_CACHE?.[key] || {};
+    let $screen = $("#scr__" + AadhaarScrId + "main");
+    if (!$screen.length) return;
+    $screen.find("input, select, textarea").each(function() {
         if (this.type === "radio" || this.type === "checkbox") {
             this.checked = false;
-        } else {
-            $(this).val("");
+            return;
         }
+        if (this.tagName === "SELECT") {
+            this.selectedIndex = 0;
+            $(this).trigger("change");
+            return;
+        }
+        if (this.type === "text" && this.hasAttribute("readonly")) {
+            this.value = PleaseSelect;
+            return;
+        }
+        this.value = "";
     });
-    // Restore saved values
     Object.keys(data).forEach(id => {
         let el = document.getElementById(id);
         if (!el) return;
         if (el.type === "radio") {
             el.checked = true;
+        } else if (el.tagName === "SELECT") {
+            el.value = data[id];
+            $(el).trigger("change");
         } else {
             el.value = data[id];
         }
     });
+};
+apz.app.AadhaarDetails.prePopulateAll = function() {
+    let p = AadhaarScrId;
+    let idx = gApzCOB.currentApplicant === 2 ? 1 : 0;
+    let customerList = inSessionStore?.customerDetailsList || gApzCOB?.requestNodes?.customerDetailsList || gApzCOB?.requestNodes
+        ?.customerDetailsWrapperList;
+    let addressWrapperRoot = inSessionStore?.addressDetailsWrapperList || gApzCOB?.requestNodes?.addressDetailsWrapperList;
+    if (!customerList?.length) {
+        return;
+    }
+    let custWrapper = customerList[idx];
+    if (!custWrapper) return;
+    let cust = custWrapper.payload || custWrapper;
+    if (!cust) return;
+    $("#" + p + "mrtsts").val(cust.maritalStatus || PleaseSelect).trigger("change");
+    $("#" + p + "religion").val(cust.religion || PleaseSelect).trigger("change");
+    $("#" + p + "caste").val(cust.caste || PleaseSelect).trigger("change");
+    $("#" + p + "education").val(cust.education || PleaseSelect).trigger("change");
+    $("#" + p + "fathersName").val(cust.fathersName === "NULL" ? "" : cust.fathersName).blur();
+    $("#" + p + "spouseName").val(cust.spouseName === "NULL" ? "" : cust.spouseName).blur();
+    if (cust.secondaryKycId) {
+        $("#" + p + "aadharnum").val(cust.secondaryKycId).blur();
+    }
+    if (cust.dob) {
+        $("#" + p + "aadhardob").val(cust.dob).blur();
+    }
+    if (cust.relationShipWithApplicant) {
+        $("#" + p + "relationApplicant").val(cust.relationShipWithApplicant).trigger("change");
+    }
+    let wrappers = addressWrapperRoot?.[0]?.addressDetailsList || addressWrapperRoot;
+    if (!wrappers?.length) {
+        return;
+    }
+    let personalWrapper = wrappers.find(w => w.addressType === "Personal" && w.custDtlId == custWrapper.custDtlId);
+    if (!personalWrapper) {
+        return;
+    }
+    let addrList = personalWrapper.payload?.addressList;
+    if (!addrList?.length) return;
+    let present = addrList[0];
+    if (present) {
+        if (present.residenceCitySince) {
+            $("#" + p + "A_residence_stabilit_present_city").val(present.residenceCitySince).trigger("change");
+        }
+        if (present.residenceAddressSince) {
+            $("#" + p + "A_residence_stability").val(present.residenceAddressSince).trigger("change");
+        }
+        if (present.residenceOwnership) {
+            const map = {
+                "Owned": "Own",
+                "Own": "Own",
+                "Leased": "Rented",
+                "Rented": "Rented"
+            };
+            let uiValue = map[present.residenceOwnership] || present.residenceOwnership;
+            let resRadios = document.querySelectorAll('[name="' + p + 'residentialStatus_"]');
+            resRadios.forEach(r => {
+                r.checked = (r.value === uiValue);
+                if (r.checked) {
+                    apz.setValue(p + "residentialStatus_", uiValue);
+                    apz.app.handleAddressType(r);
+                }
+            });
+        }
+        if (present.houseType) {
+            const houseTypeMap = {
+                "Kuccha": "HouType1",
+                "Pucca": "HouType2",
+                "Semi Pucca": "HouType3"
+            };
+            let uiHouseValue = houseTypeMap[present.houseType] || present.houseType;
+            let houseRadios = document.querySelectorAll('[name="' + p + 'typeHouse_"]');
+            houseRadios.forEach(r => {
+                r.checked = (r.value === uiHouseValue);
+                if (r.checked) {
+                    apz.setValue(p + "typeHouse_", uiHouseValue);
+                }
+            });
+        }
+    }
+    let secondaryKyc = addrList.find(a => a.addressType === "SecondaryKyc");
+    if (secondaryKyc) {
+        $("#" + p + "addline1").val(secondaryKyc.addressLine1 || "").blur();
+        $("#" + p + "addline2").val(secondaryKyc.addressLine2 || "").blur();
+        $("#" + p + "addline3").val(secondaryKyc.addressLine3 || "").blur();
+        $("#" + p + "addpin").val(secondaryKyc.pinCode || "").blur();
+        $("#" + p + "aadcity").val(secondaryKyc.city || "").trigger("change");
+        $("#" + p + "aaddistrict").val(secondaryKyc.district || "").trigger("change");
+        $("#" + p + "aadState").val(secondaryKyc.state || "").trigger("change");
+    }
+    let docWrappers = inSessionStore?.applicationDocumentsWrapperList?.[0]?.applicationDocumentsList || gApzCOB?.requestNodes
+        ?.applicationDocumentsWrapperList?.[0]?.applicationDocumentsList;
+    if (docWrappers?.length) {
+        let relDoc = docWrappers.find(d => d.documentType === "RELATIONSHIP_PROOF");
+        let docName = relDoc?.payload?.documentName;
+        if (docName) {
+            $("#" + p + "relationshipProof").val(docName).trigger("change");
+        }
+    }
 };
