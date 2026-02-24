@@ -554,7 +554,7 @@ apz.app.AadhaarDetails.paintAddressTable = function() {
 apz.app.AadhaarDetails.captureCommunicationAddress = function() {
     let commRadio = $('input[name="' + AadhaarScrId + 'communicationAddress_"]:checked');
     if (!commRadio.length) return;
-    let colType = commRadio.val(); 
+    let colType = commRadio.val();
     let isApplicant = gApzCOB.currentApplicant === 1;
     let applicantKey = isApplicant ? "applicant" : "coapplicant";
     if (colType.includes("present") && apz.app.otherAddressState?.present) {
@@ -724,11 +724,15 @@ apz.app.AadhaarDetails.prePopulateAll = function() {
             resRadios.forEach(r => {
                 r.checked = (r.value === uiValue);
                 if (r.checked) {
-                    apz.setValue(p + "residentialStatus_", uiValue);
-                    apz.app.handleAddressType(r);
+                    try {
+                        apz.setValue(p + "residentialStatus_", uiValue);
+                    } catch (e) {}
+                    try {
+                        apz.app.handleAddressType(r);
+                    } catch (e) {}
                 }
             });
-        }
+        } 
         if (present.houseType) {
             const houseTypeMap = {
                 "Kuccha": "HouType1",
@@ -740,28 +744,30 @@ apz.app.AadhaarDetails.prePopulateAll = function() {
             houseRadios.forEach(r => {
                 r.checked = (r.value === uiHouseValue);
                 if (r.checked) {
-                    apz.setValue(p + "typeHouse_", uiHouseValue);
+                    try {
+                        apz.setValue(p + "typeHouse_", uiHouseValue);
+                    } catch (e) {}
                 }
             });
         }
-    }
-    let secondaryKyc = addrList.find(a => a.addressType === "SecondaryKyc");
-    if (secondaryKyc) {
-        $("#" + p + "addline1").val(secondaryKyc.addressLine1 || "").blur();
-        $("#" + p + "addline2").val(secondaryKyc.addressLine2 || "").blur();
-        $("#" + p + "addline3").val(secondaryKyc.addressLine3 || "").blur();
-        $("#" + p + "addpin").val(secondaryKyc.pinCode || "").blur();
-        $("#" + p + "aadcity").val(secondaryKyc.city || "").trigger("change");
-        $("#" + p + "aaddistrict").val(secondaryKyc.district || "").trigger("change");
-        $("#" + p + "aadState").val(secondaryKyc.state || "").trigger("change");
-    }
-    let docWrappers = inSessionStore?.applicationDocumentsWrapperList?.[0]?.applicationDocumentsList || gApzCOB?.requestNodes
-        ?.applicationDocumentsWrapperList?.[0]?.applicationDocumentsList;
-    if (docWrappers?.length) {
-        let relDoc = docWrappers.find(d => d.documentType === "RELATIONSHIP_PROOF");
-        let docName = relDoc?.payload?.documentName;
-        if (docName) {
-            $("#" + p + "relationshipProof").val(docName).trigger("change");
+        let secondaryKyc = addrList.find(a => a.addressType === "SecondaryKyc");
+        if (secondaryKyc) {
+            $("#" + p + "addline1").val(secondaryKyc.addressLine1 || "").blur();
+            $("#" + p + "addline2").val(secondaryKyc.addressLine2 || "").blur();
+            $("#" + p + "addline3").val(secondaryKyc.addressLine3 || "").blur();
+            $("#" + p + "addpin").val(secondaryKyc.pinCode || "").blur();
+            $("#" + p + "aadcity").val(secondaryKyc.city || "").trigger("change");
+            $("#" + p + "aaddistrict").val(secondaryKyc.district || "").trigger("change");
+            $("#" + p + "aadState").val(secondaryKyc.state || "").trigger("change");
         }
-    }
-};
+        let docWrappers = inSessionStore?.applicationDocumentsWrapperList?.[0]?.applicationDocumentsList || gApzCOB?.requestNodes
+            ?.applicationDocumentsWrapperList?.[0]?.applicationDocumentsList;
+        if (docWrappers?.length) {
+            let relDoc = docWrappers.find(d => d.documentType === "RELATIONSHIP_PROOF");
+            let docName = relDoc?.payload?.documentName;
+            if (docName) {
+                $("#" + p + "relationshipProof").val(docName).trigger("change");
+            }
+        }
+    };
+}
