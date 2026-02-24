@@ -1,58 +1,343 @@
+//   CB CHECK SCREEN
 window.CBcheckScr = 'KmSourc__CBcheck__';
 var screenId = 'KmSourc__CBcheck__';
+var otpScreenId = 'KmSourc__Kmbase__';
+//  OTP GLOBAL STATE
+window.CB_OTP_TIMER = null;
+window.CB_OTP_TIME_LEFT = 150;
+window.CB_OTP_RESEND_COUNT = 0;
+window.CB_OTP_MAX_RESEND = 3;
+window.CB_OTP_STATE = {
+    applicant: {
+        verified: false,
+        mobile: null
+    },
+    coapplicant: {
+        verified: false,
+        mobile: null
+    }
+};
+window.CB_OTP_UI_UNLOCK = {
+    applicant: false,
+    coapplicant: false
+};
 
+window.CB_Validate = {
+    fnCheckMaxMinLengthOnBlur: function(pthis) {
+        let minlength = pthis.minLength;
+        let maxlength = pthis.maxLength;
+        let value = pthis.value.trim();
+        let $field = $("#" + pthis.id);
+        if (!apz.isNull(value) && (value.length < minlength || value.length > maxlength)) {
+            window.gIsMinMaxErr = true;
+            $field.addClass("err");
+            $("#" + pthis.id + "_ul").next().removeClass("sno");
+            let errTxtFieldId = $("#" + pthis.id + "_ul").next()?.find('.icon-Error')?.next() ?? $('#dummyid');
+            errTxtFieldId?.text(`Please enter minimum:${minlength} and maximum:${maxlength} characters!`);
+            let wrapper;
+            if ($field.closest(".etb-slct").length) {
+                wrapper = $field.closest(".etb-slct").parent().parent();
+            } else if ($field.closest(".ett-inpt").length) {
+                wrapper = $field.closest(".ett-inpt").parent().parent();
+            } else if ($field.closest("ul").length) {
+                wrapper = $field.closest("ul").parent().parent();
+            }
+            wrapper?.addClass("error-inline");
+        } else {
+            window.gIsMinMaxErr = false;
+            let wrapper;
+            if ($field.closest(".etb-slct").length) {
+                wrapper = $field.closest(".etb-slct").parent().parent();
+            } else if ($field.closest(".ett-inpt").length) {
+                wrapper = $field.closest(".ett-inpt").parent().parent();
+            } else if ($field.closest("ul").length) {
+                wrapper = $field.closest("ul").parent().parent();
+            }
+            wrapper?.removeClass("error-inline");
+        }
+    },
+    required: function(fieldId, message) {
+        let $el = $("#" + fieldId);
+        if ($el.length === 0) return true;
+        let value = ($el.val() || "").trim();
+        if (!value || value === PleaseSelect) {
+            showFieldError(fieldId, message);
+            return false;
+        }
+        return true;
+    },
+    regex: function(fieldId, regex, message) {
+        let $el = $("#" + fieldId);
+        if ($el.length === 0) return true;
+        let value = ($el.val() || "").trim();
+        if (value && !regex.test(value)) {
+            showFieldError(fieldId, message);
+            return false;
+        }
+        return true;
+    },
+    lengthRange: function(fieldId, min, max, message) {
+        let $el = $("#" + fieldId);
+        if ($el.length === 0) return true;
+        let value = ($el.val() || "").trim();
+        if (value && (value.length < min || value.length > max)) {
+            showFieldError(fieldId, message);
+            return false;
+        }
+        return true;
+    },
+    maxLength: function(fieldId, max, message) {
+        let $el = $("#" + fieldId);
+        if ($el.length === 0) return true;
+        let value = ($el.val() || "").trim();
+        if (value && value.length > max) {
+            showFieldError(fieldId, message);
+            return false;
+        }
+        return true;
+    }
+};
+//   ON LOAD
 apz.app.onLoad_CBcheck = function() {
+    gApzCOB.currentApplicant = 1;
+    PerDetScrId = CBcheckScr;
+    $('.cb-otp-protected').addClass('sno');
+    var applicantBtn = document.querySelector('.cbcheckSubMenu');
+    if (applicantBtn) {
+        apz.app.CBcheck.handletabSwitch(applicantBtn, 'Applicant');
+    }
     apz.app.CBcheck.showSlider();
-    $('#KmSourc__CBcheck__loanSlider').removeClass("wrapped");
     apz.app.CBcheck.setDefaultSliderValue();
+    $('#KmSourc__CBcheck__loanSlider').removeClass("wrapped");
     apz.populateDropdown(document.getElementById(`${CBcheckScr}relationShipWithApplicant`), ApzCOB.formatDropDownforArray(ApzCOB.filterRelns(
         relations)));
     apz.populateDropdown(document.getElementById(`${CBcheckScr}loanPurpose`), ApzCOB.formatDropDownforArray(loanPurpose));
-    apz.populateDropdown(document.getElementById(`${CBcheckScr}subLoanPurpose`), ApzCOB.formatDropDownforArray(
-        [ApzCOB.getDescfromLitCode("LIT_COMM_MSG_PLEASE_SELECT")]));
+    apz.populateDropdown(document.getElementById(`${CBcheckScr}subLoanPurpose`), ApzCOB.formatDropDownforArray([
+        ApzCOB.getDescfromLitCode("LIT_COMM_MSG_PLEASE_SELECT")
+    ]));
     $(`#${CBcheckScr}subLoanPurpose`).attr('disabled', true);
-    apz.populateDropdown(document.getElementById(`${CBcheckScr}gender`), ApzCOB.formatDropDownforArray(gender));
     apz.populateDropdown(document.getElementById(`${CBcheckScr}frequencyOfRepayment`), ApzCOB.formatDropDownforArray(frequencyOfRepayment));
+    apz.populateDropdown(document.getElementById(`${CBcheckScr}coGender`), ApzCOB.formatDropDownforArray(gender));
+    ApzCOB.setMinMaxLength([
+        //         {
+        //     'fieldName': 'Name',
+        //     'fieldId': CBcheckScr + 'firstname'
+        // }, {
+        //     'fieldName': 'Name',
+        //     'fieldId': CBcheckScr + 'midname'
+        // }, {
+        //     'fieldName': 'Name',
+        //     'fieldId': CBcheckScr + 'lastname'
+        // }, {
+        //     'fieldName': 'CustomerType',
+        //     'fieldId': CBcheckScr + 'custType'
+        // }, {
+        //     'fieldName': 'CustomerId',
+        //     'fieldId': CBcheckScr + 'custId'
+        // }, {
+        //     'fieldName': 'Name',
+        //     'fieldId': CBcheckScr + 'name'
+        // }, {
+        //     'fieldName': 'Title',
+        //     'fieldId': CBcheckScr + 'title'
+        // }, {
+        //     'fieldName': 'Gender',
+        //     'fieldId': CBcheckScr + 'gender'
+        // }, {
+        //     'fieldName': 'Dob',
+        //     'fieldId': CBcheckScr + 'dob'
+        // }, {
+        //     'fieldName': 'Age',
+        //     'fieldId': CBcheckScr + 'custAge'
+        // }, 
+        {
+            'fieldName': 'MobileNumber',
+            'fieldId': CBcheckScr + 'primaryMobile'
+        }, {
+            'fieldName': 'MobileNumber',
+            'fieldId': CBcheckScr + 'sec_mobile'
+        },
+        // {
+        //     'fieldName': 'MaritalStatus',
+        //     'fieldId': CBcheckScr + 'maritalSts'
+        // }, {
+        //     'fieldName': 'Name',
+        //     'fieldId': CBcheckScr + 'fatherName'
+        // }, {
+        //     'fieldName': 'Name',
+        //     'fieldId': CBcheckScr + 'spouseName'
+        // }, {
+        //     'fieldName': 'AadharNumber',
+        //     'fieldId': CBcheckScr + 'aadhaarNum'
+        // }, {
+        //     'fieldName': 'VoterID',
+        //     'fieldId': CBcheckScr + 'voterId'
+        // }, {
+        //     'fieldName': 'VoterID',
+        //     'fieldId': secondaryKycIdTag
+        // }, 
+        {
+            'fieldName': 'CKYC',
+            'fieldId': CBcheckScr + 'ckycNumber' // C_KYC
+        },
+        // {
+        //     'fieldName': 'VoterID', // Alternate VoterId
+        //     'fieldId': altVoterIdTag
+        // }, {
+        //     'fieldName': 'PanNumber',
+        //     'fieldId': CBcheckScr + 'panNumber'
+        // }, 
+        {
+            'fieldName': 'AddressLine1',
+            'fieldId': CBcheckScr + 'addressLine1'
+        }, {
+            'fieldName': 'AddressLine2',
+            'fieldId': CBcheckScr + 'addressLine2'
+        }, {
+            'fieldName': 'AddressLine3',
+            'fieldId': CBcheckScr + 'addressLine3'
+        }, {
+            'fieldName': 'Pincode',
+            'fieldId': CBcheckScr + 'pincode'
+        },
+        // {
+        //     'fieldName': 'Pincode',
+        //     'fieldId': CBcheckScr + 'permanentPincode'
+        // }, {
+        //     'fieldName': 'Pincode',
+        //     'fieldId': CBcheckScr + 'commPincode'
+        // },
+        {
+            'fieldName': 'City',
+            'fieldId': CBcheckScr + 'addPreCity'
+        }, {
+            'fieldName': 'District',
+            'fieldId': CBcheckScr + 'addPreDistrict'
+        }, {
+            'fieldName': 'State',
+            'fieldId': CBcheckScr + 'addPreState'
+        },
+        // {
+        //     'fieldName': 'Country',
+        //     'fieldId': CBcheckScr + 'country'
+        // }, 
+        // {
+        //     'fieldName': 'Name',
+        //     'fieldId': CBcheckScr + 'relationwithApp'
+        // }, {
+        //     'fieldName': 'Name',
+        //     'fieldId': CBcheckScr + 'nameasKYC'
+        // }, {
+        //     'fieldName': 'KYCType',
+        //     'fieldId': CBcheckScr + 'primaryKYC'
+        // }
+    ]);
+    apz.app.CBcheck.paintLoanDetails();
+    apz.app.CBcheck.togglePanView();
+    apz.app.CBcheck.paintCustomerAndKycDetails();
+    $("#scr__" + screenId + "main").on("mousedown", "input, select", function() {
+        clearFieldError(this.id);
+    });
+    $(`#${screenId}primaryMobile`).on('input', function() {
+        this.value = this.value.replace(/[^0-9]/g, '');
+        let newMobile = $(this).val();
+        let isApplicant = gApzCOB.currentApplicant <= 1;
+        let state = isApplicant ? CB_OTP_STATE.applicant : CB_OTP_STATE.coapplicant;
+        if (state.verified && state.mobile !== newMobile) {
+            state.verified = false;
+            state.mobile = null;
+            $('#' + screenId + 'otpSuccessRow').addClass('sno');
+            $('#' + screenId + 'sendOtpBtn').removeClass('sno');
+            apz.app.CBcheck.toggleOtpProtectedSections();
+            ApzCOB.fnDisplayMsg("Mobile changed. Please verify OTP again.", "W");
+        }
+    });
 };
-apz.app.CBcheck.onChangeLoanPurpose = function(pthis) {
-    let selectedPurpose = $(`#${CBcheckScr}loanPurpose`).val();
+//   TAB SWITCH
+apz.app.CBcheck.handletabSwitch = function(pthis, CustType) {
+    clearAllTabErrors();
+    $('.cbcheckSubMenu').removeClass('active');
+    $(pthis).addClass('active');
+    if (CustType === 'Applicant') {
+        gApzCOB.currentApplicant = 1;
+        $('.src-coapp').hide();
+        $('.src-app').show();
+    } else {
+        gApzCOB.currentApplicant = 2;
+        $('.src-app').hide();
+        $('.src-coapp').show();
+    }
+    apz.app.CBcheck.paintLoanDetails();
+    apz.app.CBcheck.paintCustomerAndKycDetails();
+    apz.app.CBcheck.refreshOtpUI();
+};
+//   LOAN PAINT (With SubPurpose Rebuild)
+apz.app.CBcheck.paintLoanDetails = function() {
+    if (apz.isNull(inSessionStore.loanDetails)) return;
+    let response = inSessionStore.loanDetails;
+    let payload = response.payload;
+    $('#' + screenId + 'loanAmount').val("\u20B9" + " " + ApzCOB.fn_FormatAmount(response.loanAmount));
+    /* ---- Purpose ---- */
+    let purpose = payload.loanPurpose || PleaseSelect;
+    $(`#${screenId}loanPurpose`).val(purpose);
+    /* ---- Rebuild Sub Purpose ---- */
+    apz.app.CBcheck.buildSubPurposeDropdown(purpose);
+    $(`#${screenId}subLoanPurpose`).val(payload.subCategory || PleaseSelect);
+    $(`#${screenId}frequencyOfRepayment`).val(payload.frequencyOfRepayment || PleaseSelect);
+};
+//   BUILD SUB PURPOSE DROPDOWN
+apz.app.CBcheck.buildSubPurposeDropdown = function(selectedPurpose) {
     if (selectedPurpose === PleaseSelect) {
         $(`#${CBcheckScr}subLoanPurpose`).val(PleaseSelect).attr('disabled', true);
-    } else {
-        // Extract sub purposes from structured object
-        let subPurposeList = loanSubPurpose?.[0]?.[selectedPurpose] || [];
-        let formattedList = [...subPurposeList];
-        // Ensure Please Select is first option
-        if (!formattedList.includes(PleaseSelect)) {
-            formattedList.unshift(ApzCOB.getDescfromLitCode("LIT_COMM_MSG_PLEASE_SELECT"));
-        }
-        apz.populateDropdown(document.getElementById(`${CBcheckScr}subLoanPurpose`), ApzCOB.formatDropDownforArray(formattedList));
-        $(`#${CBcheckScr}subLoanPurpose`).attr('disabled', false);
+        return;
     }
-    // Important: Maintain APZ framework behavior
+    let subPurposeList = loanSubPurpose?.[0]?.[selectedPurpose] || [];
+    let formattedList = [...subPurposeList];
+    if (!formattedList.includes(PleaseSelect)) {
+        formattedList.unshift(ApzCOB.getDescfromLitCode("LIT_COMM_MSG_PLEASE_SELECT"));
+    }
+    apz.populateDropdown(document.getElementById(`${CBcheckScr}subLoanPurpose`), ApzCOB.formatDropDownforArray(formattedList));
+    $(`#${CBcheckScr}subLoanPurpose`).attr('disabled', false);
+};
+//   ON CHANGE LOAN PURPOSE
+apz.app.CBcheck.onChangeLoanPurpose = function(pthis) {
+    let selectedPurpose = $(`#${CBcheckScr}loanPurpose`).val();
+    apz.app.CBcheck.buildSubPurposeDropdown(selectedPurpose);
     ApzCOB.dropDownOnChange(pthis);
 };
+//   SLIDER
+// apz.app.CBcheck.showSlider = function() {
+//     $("#" + screenId + "loanSlider").slider({
+//         range: "min",
+//         value: parseInt(fdAmountMin),
+//         min: parseInt(fdAmountMin),
+//         max: parseInt(fdAmountMax),
+//         slide: function(event, ui) {
+//             ui.value = Math.round(ui.value / 1000) * 1000;
+//             $("#" + screenId + "loanAmount").val("\u20B9"+" "+ApzCOB.fn_FormatAmount(ui.value)).trigger("onchange");
+//         }
+//     }).slider("pips", {
+//         rest: false
+//     }).slider("float");
+// };
 apz.app.CBcheck.showSlider = function() {
-// $('#KmSourc__CBcheck__loanSlider').removeClass("wrapped");
-$("#" + screenId + "loanSlider").slider({
+    $("#" + screenId + "loanSlider").slider({
         range: "min",
         value: parseInt(fdAmountMin),
         min: parseInt(fdAmountMin),
         max: parseInt(fdAmountMax),
         slide: function(event, ui) {
-            // apz.app.LoanDetails.onChangeofdepoAmountSlider();
             ui.value = Math.round(ui.value / 1000) * 1000;
-            $("#" + screenId + "loanAmount").val(ApzCOB.fn_FormatAmount(ui.value)).trigger("onchange");
+            $("#" + screenId + "loanAmount").val("\u20B9" + " " + ApzCOB.fn_FormatAmount(ui.value)).trigger("onchange");
         },
         change: function(event, ui) {
-            // apz.app.LoanDetails.onChangeofdepoAmountSlider();
             ui.value = Math.round(ui.value / 1000) * 1000;
-            $("#" + screenId + "loanAmount").val(ApzCOB.fn_FormatAmount(ui.value));
+            $("#" + screenId + "loanAmount").val("\u20B9" + " " + ApzCOB.fn_FormatAmount(ui.value));
         },
         stop: function(event, ui) {
             // apz.app.LoanDetails.onChangeofdepoAmountSlider();
             ui.value = Math.round(ui.value / 1000) * 1000;
-            $("#" + screenId + "loanAmount").val(ApzCOB.fn_FormatAmount(ui.value));
+            $("#" + screenId + "loanAmount").val("\u20B9" + " " + ApzCOB.fn_FormatAmount(ui.value));
         }
     }).slider("pips", {
         rest: false,
@@ -60,17 +345,432 @@ $("#" + screenId + "loanSlider").slider({
         //step: fdAmountMin
     }).slider("float");
 }
-
 apz.app.CBcheck.setDefaultSliderValue = function() {
     $("#" + screenId + "loanSlider").slider("option", "value", fdDefaultLoanAmount);
-    $("#" + screenId + "loanAmount").val(ApzCOB.fn_FormatAmount(fdDefaultLoanAmount));
-}
+    $("#" + screenId + "loanAmount").val("\u20B9" + " " + ApzCOB.fn_FormatAmount(fdDefaultLoanAmount));
+};
 apz.app.CBcheck.amountSliderControl = function() {
     var data = ApzCOB.fn_unFormatAmount($("#" + screenId + "loanAmount").val());
     if (!isNaN(data) && parseInt(data) >= fdAmountMin && parseInt(data) <= fdAmountMax) {
         $("#" + screenId + "loanSlider").slider("option", "value", data);
     }
 };
+apz.app.CBcheck.paintCustomerAndKycDetails = function() {
+    //   SAFETY CHECK
+    if (apz.isNull(gApzCOB.requestNodes) || apz.isNull(gApzCOB.requestNodes.customerDetailsList) || gApzCOB.requestNodes.customerDetailsList
+        .length === 0) {
+        return;
+    }
+    //   IDENTIFY CURRENT APPLICANT
+    let isApplicant = gApzCOB.currentApplicant <= 1;
+    let custId = isApplicant ? gApzCOB.userDetails.custDtlId : gApzCOB.userDetails.CoApplicantCustomerId;
+    //   FIND CORRECT CUSTOMER WRAPPER
+    let custWrapper = gApzCOB.requestNodes.customerDetailsList.find(c => parseInt(c.custDtlId) === parseInt(custId));
+    if (apz.isNull(custWrapper) || apz.isNull(custWrapper.payload)) {
+        return;
+    }
+    let payload = custWrapper.payload;
+    //   BASIC DETAILS
+    // Name
+    if (isApplicant) {
+        $('#' + screenId + 'customerName').val(custWrapper.customerName || "");
+    } else {
+        $('#' + screenId + 'coCustomerName').val(custWrapper.customerName || "");
+    }
+    // Member ID
+    $('#' + screenId + 'memberId').val(payload.custId || "");
+    // Age
+    $('#' + screenId + (isApplicant ? 'age' : 'coAge')).val(payload.age || "");
+    // DOB
+    $('#' + screenId + (isApplicant ? 'dob' : 'coDob')).val(payload.dob || "");
+    // Gender
+    $('#' + screenId + (isApplicant ? 'gender' : 'coGender')).val(payload.gender || "");
+    // Father's Name
+    $('#' + screenId + 'fathersName').val(payload.fathersName || "");
+    // Spouse Name
+    $('#' + screenId + 'spouseName').val(payload.spouseName || "");
+    /* -----------------------------------------------------
+      RELATIONSHIP (CO-APPLICANT ONLY)
+    ----------------------------------------------------- */
+    if (!isApplicant) {
+        $('#' + screenId + 'relationShipWithApplicant').val(payload.relationShipWithApplicant || PleaseSelect);
+    }
+    //   KYC DETAILS
+    $('#' + screenId + 'nameAsPerVoter').val(payload.namePerKyc || "");
+    $('#' + screenId + 'voterId').val(payload.primaryKycId || "");
+    $('#' + screenId + 'alternateVoterId').val(payload.alternateVoterId || "");
+    $('#' + screenId + 'ckycNumber').val(payload.ckyc || "");
+    //   MOBILE NUMBERS
+    $('#' + screenId + 'primaryMobile').val(custWrapper.mobileNumber || "");
+    $('#' + screenId + 'sec_mobile').val(payload.secMobileNo || "");
+    //   ADDRESS DETAILS
+    if (!apz.isNull(gApzCOB.requestNodes.addressDetailsWrapperList) && gApzCOB.requestNodes.addressDetailsWrapperList.length > 0) {
+        let addressDetailsList = gApzCOB.requestNodes.addressDetailsWrapperList[0].addressDetailsList;
+        if (!apz.isNull(addressDetailsList) && addressDetailsList.length > 0) {
+            let addressObj = addressDetailsList.find(a => parseInt(a.custDtlId) === parseInt(custId));
+            if (!apz.isNull(addressObj) && !apz.isNull(addressObj.payload) && !apz.isNull(addressObj.payload.addressList) && addressObj.payload
+                .addressList.length > 0) {
+                let addr = addressObj.payload.addressList[0];
+                $('#' + screenId + 'addressLine1').val(addr.addressLine1 || "");
+                $('#' + screenId + 'addressLine2').val(addr.addressLine2 || "");
+                $('#' + screenId + 'addressLine3').val(addr.addressLine3 || "");
+                $('#' + screenId + 'addPreCity').val(addr.city || "");
+                $('#' + screenId + 'addPreDistrict').val(addr.district || "");
+                $('#' + screenId + 'addPreState').val(addr.state || "");
+                $('#' + screenId + 'country').val(addr.country || "");
+                $('#' + screenId + 'pincode').val(addr.pinCode || "");
+                $('#' + screenId + 'landmark').val(addr.landMark || "");
+                $('#' + screenId + 'area').val(addr.area || "");
+            }
+        }
+    }
+    //   OTP UI RESET BASED ON CURRENT STATE
+    apz.app.CBcheck.refreshOtpUI();
+};
+///OTP
+apz.app.CBcheck.openOtpModal = function() {
+    let valid = apz.app.CBcheck.validateMobileForOtp();
+    if (!valid) return;
+    let mobile = $(`#${screenId}primaryMobile`).val();
+    if (!mobile || mobile.length !== 10) {
+        ApzCOB.fnDisplayMsg("Mobile number not available", "E");
+        return;
+    }
+    let maskedMobile = "*******" + mobile.slice(-3);
+    $(`#${otpScreenId}otpInfoText`).text(`OTP is sent to your Mobile No. ${maskedMobile}`);
+    if (!mobile) {
+        ApzCOB.fnDisplayMsg("Mobile number not available", "E");
+        return;
+    }
+    ApzCOB.OtpSmsService(mobile);
+    for (let i = 1; i <= 4; i++) {
+        $('#' + otpScreenId + 'otp' + i).val('');
+    }
+    $('#' + screenId + 'otpSuccessRow').addClass('sno');
+    ApzCOB.toggleModal(otpScreenId + "Otp_Modal");
+    apz.app.CBcheck.initOtpInputs();
+    window.CB_OTP_RESEND_COUNT = 0;
+    $('#' + otpScreenId + 'resendOtpBtn').prop('disabled', true);
+    apz.app.CBcheck.startOtpTimer();
+    $('#' + otpScreenId + 'otp1').focus();
+};
+apz.app.CBcheck.initOtpInputs = function() {
+    for (let i = 1; i <= 4; i++) {
+        let fieldId = otpScreenId + 'otp' + i;
+        $('#' + fieldId).off('input keydown');
+        $('#' + fieldId).on('input', function() {
+            this.value = this.value.replace(/[^0-9]/g, '');
+            if (this.value.length === 1 && i < 4) $('#' + otpScreenId + 'otp' + (i + 1)).focus();
+        });
+        $('#' + fieldId).on('keydown', function(e) {
+            if (e.key === "Backspace" && this.value === "" && i > 1) $('#' + otpScreenId + 'otp' + (i - 1)).focus();
+        });
+    }
+};
+apz.app.CBcheck.startOtpTimer = function() {
+    if (window.CB_OTP_TIMER) clearInterval(window.CB_OTP_TIMER);
+    window.CB_OTP_TIME_LEFT = 150; // 2 minutes timer
+    // $('#' + otpScreenId + 'resendOtpBtn').addClass('sno'); // Disable resend button
+    $('#' + otpScreenId + 'resendOtpBtn').prop('disabled', true);
+    $('#' + otpScreenId + 'otpTimer').removeClass('sno'); // Show timer UI
+    window.CB_OTP_TIMER = setInterval(function() {
+        let min = Math.floor(window.CB_OTP_TIME_LEFT / 60);
+        let sec = window.CB_OTP_TIME_LEFT % 60;
+        let formatted = `${min < 10 ? '0' + min : min}:${sec < 10 ? '0' + sec : sec}`;
+        $('#' + otpScreenId + 'otpTimer').text("Time remaining " + formatted);
+        window.CB_OTP_TIME_LEFT--;
+        if (window.CB_OTP_TIME_LEFT <= 0) {
+            clearInterval(window.CB_OTP_TIMER);
+            window.CB_OTP_TIMER = null;
+            $('#' + otpScreenId + 'otpTimer').addClass('sno'); // Hide timer UI
+            if (window.CB_OTP_RESEND_COUNT < window.CB_OTP_MAX_RESEND) {
+                // $('#' + otpScreenId + 'resendOtpBtn').removeClass('sno'); // Enable resend button
+                $('#' + otpScreenId + 'resendOtpBtn').prop('disabled', false);
+            }
+        }
+    }, 1000);
+};
+apz.app.CBcheck.resendOtp = function() {
+    if (window.CB_OTP_RESEND_COUNT >= window.CB_OTP_MAX_RESEND) {
+        ApzCOB.fnDisplayMsg("Maximum resend attempts reached", "E");
+        return;
+    }
+    let mobile = $(`#${screenId}primaryMobile`).val();
+    // let mobile = "6382154047";
+    if (apz.isNull(mobile) || mobile === "") {
+        ApzCOB.fnDisplayMsg("Primary mobile number not available", "E");
+        return;
+    }
+    window.CB_OTP_RESEND_COUNT++;
+    ApzCOB.OtpSmsService(mobile);
+    apz.app.CBcheck.startOtpTimer();
+    ApzCOB.fnDisplayMsg("OTP resent successfully", "S");
+};
+apz.app.CBcheck.otpVerifiedSuccess = function() {
+    let currentMobile = $(`#${screenId}primaryMobile`).val();
+    let isApplicant = gApzCOB.currentApplicant <= 1;
+    if (isApplicant) {
+        CB_OTP_STATE.applicant.verified = true;
+        CB_OTP_STATE.applicant.mobile = currentMobile;
+                CB_OTP_UI_UNLOCK.applicant = true;
 
+    } else {
+        CB_OTP_STATE.coapplicant.verified = true;
+        CB_OTP_STATE.coapplicant.mobile = currentMobile;
+                CB_OTP_UI_UNLOCK.coapplicant = true;
 
-apz.app.onShown_CBcheck = function() {};
+    }
+    if (window.CB_OTP_TIMER) {
+        clearInterval(window.CB_OTP_TIMER);
+        window.CB_OTP_TIMER = null;
+    }
+    ApzCOB.toggleModal(otpScreenId + "Otp_Modal");
+    $('#' + screenId + 'otpSuccessRow').removeClass('sno');
+    $('#' + screenId + 'sendOtpBtn').addClass('sno');
+    apz.app.CBcheck.toggleOtpProtectedSections();
+    ApzCOB.fnDisplayMsg("OTP Verified Successfully", "S");
+};
+apz.app.CBcheck.verifyOtp = function() {
+    let otp = '';
+    for (let i = 1; i <= 4; i++) {
+        otp += $('#' + otpScreenId + 'otp' + i).val();
+    }
+    if (otp.length !== 4) {
+        ApzCOB.fnDisplayMsg("Enter complete OTP", "E");
+        return;
+    }
+    ApzCOB.verfyOtpService(otp);
+};
+apz.app.CBcheck.togglePanView = function() {
+    let selectedVal = $('input[name="' + screenId + 'panVal_"]:checked').val();
+    if (selectedVal === 'N') {
+        $('#' + screenId + 'panView').addClass('sno'); // Hide
+    } else {
+        $('#' + screenId + 'panView').removeClass('sno'); // Show
+    }
+};
+apz.app.CBcheck.formValidator = function() {
+    let isValid = true;
+    let isApplicant = Number(gApzCOB.currentApplicant) === 1;
+
+    function check(result) {
+        if (!result) isValid = false;
+    }
+    let primaryMobileId = screenId + "primaryMobile";
+    check(CB_Validate.required(primaryMobileId, "Primary mobile number is required"));
+    check(CB_Validate.regex(primaryMobileId, /^[0-9]{10}$/, "Mobile number must be 10 digits"));
+    let otpState = isApplicant ? CB_OTP_STATE.applicant : CB_OTP_STATE.coapplicant;
+    if (!otpState.verified) {
+        showFieldError(primaryMobileId, "OTP verification is required");
+        isValid = false;
+    }
+    if (isApplicant) {
+        let loanAmountId = screenId + "loanAmount";
+        check(CB_Validate.required(loanAmountId, "Loan amount is required"));
+        let amountRaw = $("#" + loanAmountId).val();
+        let amount = Number(ApzCOB.fn_unFormatAmount(amountRaw));
+        if (!amountRaw || amount < Number(fdAmountMin) || amount > Number(fdAmountMax)) {
+            showFieldError(loanAmountId, "Amount must be within allowed range");
+            isValid = false;
+        }
+        check(CB_Validate.required(screenId + "loanPurpose", "Please select loan purpose"));
+        check(CB_Validate.required(screenId + "subLoanPurpose", "Please select sub purpose"));
+        check(CB_Validate.required(screenId + "frequencyOfRepayment", "Select repayment frequency"));
+    }
+    let dobId = isApplicant ? screenId + "dob" : screenId + "coDob";
+    let ageId = isApplicant ? screenId + "age" : screenId + "coAge";
+    check(CB_Validate.required(dobId, "Date of birth is required"));
+    let ageVal = $("#" + ageId).val();
+    let age = Number(ageVal);
+    if (!ageVal || age < 18) {
+        showFieldError(ageId, "Age must be 18 or above");
+        isValid = false;
+    }
+    let address1Id = screenId + "addressLine1";
+    let pincodeId = screenId + "pincode";
+    clearFieldError(address1Id);
+    check(CB_Validate.required(address1Id, "Address line 1 is required"));
+    if ($("#" + address1Id).val()) {
+        check(CB_Validate.lengthRange(address1Id, 8, 30, "Address must be 8-30 characters"));
+    }
+    clearFieldError(pincodeId);
+    check(CB_Validate.required(pincodeId, "Pincode is required"));
+    if ($("#" + pincodeId).val()) {
+        check(CB_Validate.regex(pincodeId, /^[0-9]{6}$/, "Pincode must be 6 digits"));
+    }
+    if (!isApplicant) {
+        let coNameId = screenId + "coCustomerName";
+        clearFieldError(coNameId);
+        check(CB_Validate.required(coNameId, "Co-applicant name is required"));
+        if ($("#" + coNameId).val()) {
+            check(CB_Validate.regex(coNameId, /^[A-Za-z ]+$/, "Only alphabets allowed"));
+        }
+        check(CB_Validate.required(screenId + "relationShipWithApplicant", "Select relationship"));
+        check(CB_Validate.required(screenId + "coGender", "Gender is required"));
+        check(CB_Validate.required(screenId + "coDob", "Date of birth is required"));
+        if (!ageVal || age < 18) {
+            showFieldError(ageId, "Co-applicant must be 18 or above");
+            isValid = false;
+        }
+    }
+    return isValid;
+};
+apz.app.CBcheck.validateForm = function() {
+    let valid = apz.app.CBcheck.formValidator();
+    if (!valid) {
+        ApzCOB.fnDisplayMsg("Please ensure all fields are properly filled before initiating the check.", "E");
+        return false;
+    }
+    return true;
+};
+apz.app.CBcheck.refreshOtpUI = function() {
+    let isApplicant = gApzCOB.currentApplicant <= 1;
+    let state = isApplicant ? CB_OTP_STATE.applicant : CB_OTP_STATE.coapplicant;
+    let currentMobile = $(`#${screenId}primaryMobile`).val();
+    if (state.verified && state.mobile === currentMobile) {
+        $('#' + screenId + 'otpSuccessRow').removeClass('sno');
+        $('#' + screenId + 'sendOtpBtn').addClass('sno');
+    } else {
+        $('#' + screenId + 'otpSuccessRow').addClass('sno');
+        $('#' + screenId + 'sendOtpBtn').removeClass('sno');
+    }
+    apz.app.CBcheck.toggleOtpProtectedSections();
+};
+
+function clearFieldError(fieldId) {
+    let field = document.getElementById(fieldId);
+    if (!field) return;
+    // Remove error-inline from any parent
+    let parent = field.parentElement;
+    while (parent) {
+        if (parent.classList.contains("error-inline")) {
+            parent.classList.remove("error-inline");
+            break;
+        }
+        parent = parent.parentElement;
+    }
+    // Remove error message
+    let errorEl = document.getElementById(fieldId + "_error");
+    if (errorEl) {
+        errorEl.remove();
+    }
+}
+
+function showFieldError(fieldId, message) {
+    let field = document.getElementById(fieldId);
+    if (!field) return;
+    clearFieldError(fieldId);
+    let wrapper;
+    // If dropdown (Appzillon select)
+    if (field.closest(".etb-slct")) {
+        wrapper = field.closest(".etb-slct").parentElement;
+    }
+    // If normal input
+    else if (field.closest(".ett-inpt")) {
+        wrapper = field.closest(".ett-inpt").parentElement;
+    }
+    // Fallback
+    else {
+        wrapper = field.parentElement;
+    }
+    if (wrapper) {
+        wrapper.classList.add("error-inline");
+    }
+    let error = document.createElement("div");
+    error.className = "cb-error-msg";
+    error.id = fieldId + "_error";
+    error.innerText = message;
+    wrapper.appendChild(error);
+}
+apz.app.CBcheck.validateMobileForOtp = function() {
+    let isApplicant = Number(gApzCOB.currentApplicant) === 1;
+    let mobileId = screenId + "primaryMobile";
+    let mobile = $("#" + mobileId).val();
+    clearFieldError(mobileId);
+    if (!mobile) {
+        showFieldError(mobileId, "Mobile number is required");
+        return false;
+    }
+    if (!/^[0-9]{10}$/.test(mobile)) {
+        showFieldError(mobileId, "Mobile number must be 10 digits");
+        return false;
+    }
+    // Co-applicant primary number matches Applicant mob number 
+    if (!isApplicant) {
+        let applicantMobile = CB_OTP_STATE.applicant.mobile;
+        if (applicantMobile && mobile === applicantMobile) {
+            // Mark co-applicant as auto verified
+            CB_OTP_STATE.coapplicant.verified = true;
+            CB_OTP_STATE.coapplicant.mobile = mobile;
+            // Hide existing OTP text div
+            $('#' + screenId + 'sendOtpBtn').addClass('sno');
+            $('#' + screenId + 'otpSuccessRow').addClass('sno');
+            // Show your custom div
+            $('#' + screenId + 'sameMobileInfoDiv').removeClass('sno');
+            return false; // prevent OTP modal opening
+        }
+    }
+    return true;
+};
+apz.app.CBcheck.ageCalculator = function(pthis) {
+    // Get the ID of the field that triggered the event
+    let id = pthis.id;
+    // Calculate the age based on the selected date of birth
+    let age = ApzCOB.getAge($('#' + id).val());
+    // Determine whether the current applicant is the main applicant or co-applicant
+    let isApplicant = gApzCOB.currentApplicant === 1; // true if Applicant, false if Co-applicant
+    // If age is valid, update the corresponding age field
+    if (age > 0) {
+        if (isApplicant) { // If the current applicant is the main applicant
+            $('#' + screenId + 'age').val(age).change(); // Update applicant's age
+        } else { // If the current applicant is the co-applicant
+            $('#' + screenId + 'coAge').val(age).change(); // Update co-applicant's age
+        }
+        // If age was previously set, clear the DOB field
+        if (window.age) {
+            $(`#${id}`).val('');
+        }
+    } else {
+        // If age calculation fails (invalid DOB), show error and clear both DOB and age
+        ApzCOB.fnDisplayMsg('Please select a valid date of birth', "E");
+        $('#' + id).val(''); // Clear the DOB field
+        if (isApplicant) {
+            $('#' + screenId + 'age').val('');
+        } else {
+            $('#' + screenId + 'coAge').val('');
+        }
+    }
+}
+
+function clearAllTabErrors() {
+    // Remove all inline error classes
+    $(".error-inline").removeClass("error-inline");
+    // Remove all error message divs
+    $(".cb-error-msg").remove();
+}
+
+apz.app.CBcheck.toggleOtpProtectedSections = function () {
+
+    let isApplicant = gApzCOB.currentApplicant <= 1;
+
+    // ? USE UI UNLOCK FLAG (NOT MOBILE MATCH)
+    let isUnlocked = isApplicant 
+        ? CB_OTP_UI_UNLOCK.applicant 
+        : CB_OTP_UI_UNLOCK.coapplicant;
+
+    // Hide everything first
+    $('.cb-otp-protected').addClass('sno');
+
+    // If not unlocked, stop here
+    if (!isUnlocked) return;
+
+    // Show common sections
+    $('.cb-otp-common').removeClass('sno');
+
+    // Show tab-specific sections
+    if (isApplicant) {
+        $('.src-app.cb-otp-protected').removeClass('sno');
+    } else {
+        $('.src-coapp.cb-otp-protected').removeClass('sno');
+    }
+};
