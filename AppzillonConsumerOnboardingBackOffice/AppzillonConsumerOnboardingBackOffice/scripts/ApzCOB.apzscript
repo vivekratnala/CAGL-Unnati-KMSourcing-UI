@@ -1,5 +1,5 @@
-window.APP_VERSION = "V1.6.48";
-window.ENVCode = "SIT-";
+window.APP_VERSION = "V1.7.31";
+window.ENVCode = "UAT-";
 window.IS_MOBILE_DEDUPE_REQ = false;
 window.versionNum = 1;
 window.dashBoardKey = '';
@@ -77,242 +77,242 @@ window.previousScreenId = '';
 window.previousMicroAppId = '';
 window.specificLang = false;
 var BranchArr = [],
-    coOrdinateInputTag = '',
-    BankFacScrId = "BnkFac__BankingFacilities__",
-    isdone = 1,
-    itsobject = [],
-    slectedProductsArr = [],
-    BaseDivId = 'div[id^= "',
-    formatdate = [],
-    customerNames = "",
-    currencyremove = [],
-    WidgetInProgress = [],
-    Widget = [],
-    WidgetSubmitted = [],
-    WidgetDeleted = [],
-    WidgetRejected = [],
-    WidgetApproved = [],
-    WidgetPending = [],
-    productCodeBasedName = {
-        "1009": "Grameen Unnati Loan",
-        "1002": "Grameen Unnati Renewal Loan"
-    },
-    DBKITDOCSIZEMAP = [],
-    selectedType = "",
-    status1 = [],
-    custTypeToSubMenu = {
-        A: 1,
-        C: 2
-    },
-    occupationType = [],
-    designation = [],
-    yrsExp = [],
-    curEmpyrs = [],
-    relations = [],
-    noOfyrs = [],
-    noOfmons = [],
-    addressType = [],
-    nameTitle = [],
-    gender = [],
-    tinType = [],
-    tinReason = [],
-    noOfLeaves = [],
-    secondaryKyc = [],
-    maritalStatus = [],
-    resOwnership = [],
-    resYr = [],
-    resMn = [],
-    loanPurpose = [],
-    loanSubPurpose = [],
-    disbursementMode = [],
-    frequencyOfRepayment = [],
-    nomineeRel = [],
-    retirementAge = [],
-    natureOfEmp = [],
-    typeOfEmp = [],
-    loanDtls = [],
-    cibilDtls = {},
-    earningMembersDtls = [],
-    ifscCodes = [],
-    currentresidenceproof = [],
-    occupations = [],
-    typbssEmpent = [],
-    bssAddrProof = [],
-    empProof = [],
-    bssPerOwn = [],
-    freqOfInc = [],
-    othSrcInc = [],
-    accTypes = [],
-    agriculture = [],
-    animalHusbandry = [],
-    manufacturing = [],
-    production = [],
-    serviceSector = [],
-    trading = [],
-    transportation = [],
-    loanTenureMonths = [],
-    religion = [],
-    caste = [],
-    education = [],
-    language = [],
-    stateAndlanguage = [],
-    states = [],
-    rateOfInteres = [],
-    businessActivity = [],
-    KendraMeetingDays = [],
-    currentAddressProofDocMap = [],
-    businessAddressProofDocMap = [],
-    employmentProofDocMap = [],
-    docMaxAndMand = [],
-    DASHBOARD_TABS = [],
-    BRE_MAPPING = [],
-    cbCallType = [],
-    DASHBOARD_CONFIG = [],
-    AADHAR_CONFIG = [],
-    houseOwnership = [],
-    typeOfHouse = [],
-    modeOfSavings = [],
-    noOfRoomsInHouse = [],
-    typeOfRoof = [],
-    noOfTwowheelerOwned = [],
-    noOfSmartphones = [],
-    businessLocation = [],
-    buffaloYield = [],
-    TypeOfBussiness = [],
-    NoOfBuffalo = [],
-    KbusinessTenure = [],
-    CowYield = [],
-    KbusinessLocation = [],
-    KTypeOfShops = [],
-    NoOfCows = [],
-    businessTenure = [],
-    KTypeOfBussiness = [],
-    TbusinessLocation = [],
-    TNumOfMachine = [],
-    TType = [],
-    TbusDimFac = [],
-    TTypeoFMach = [],
-    TTypeOfBussiness = [],
-    TbusinessTenure = [],
-    TNumOfTail = [],
-    KOccupancy = [],
-    KConversionMetric = [],
-    OtherTypeOfBussiness = [],
-    OtherbusinessTenure = [],
-    KMarketClassification = [],
-    agriLandHolding = [],
-    OtherFamilyMemebersIncome = [],
-    OtherFamilyIncomeInfo = [],
-    AgritypeOfAgricultureLand = [],
-    AgrilandInAcres = [],
-    AgriCropType = [],
-    SalMonth = [],
-    SalYears = [],
-    SalNatureOfEmP = [],
-    SalModeOfsal = [],
-    IncomeselectBuildingType = [],
-    RelationshipWithApplicant = [],
-    noOfFamilyMembers = [],
-    noOfOtherEarningMembers = [],
-    AgricultureCropType = [],
-    RPC_STAGES = [],
-    SANCTION_MATRIX = [],
-    fileArr = [],
-    DASHBOARDORDER = [],
-    demoMode = "",
-    workFlowConf = "",
-    STAGES = "",
-    RPC_ALLSTAGES = [],
-    queriestage1ts = '',
-    sanctionTS = '',
-    queriestage2ts = '',
-    eNachTS = '',
-    queriestage3ts = '',
-    udyamTS = '',
-    reEnachNavtyp = '',
-    formattedTimestamp = '',
-    otherInputMaxlength = 250,
-    forbiddenChars = /[\^?$_&~|\\%<>`'"]/g,
-    gALLOWONLYNUM = /\D/g,
-    gALLOWDASHNUM = /[^0-9 -]/g,
-    gALPHANUMERIC = /[^a-zA-Z0-9]/g,
-    gALPHANUMERICWSPACE = /[^a-zA-Z0-9 ]/g,
-    gALLOWALPHA = /[^a-zA-Z ]/g,
-    gALLOWNUMBERDECIMALS = /^(?:\d+|\d*\.\d+)$/,
-    gALLOWFORADDRESS = /[^a-zA-Z0-9 /#.-]/g,
-    gALLOWFORNAME = /[^a-zA-Z .]/g,
-    gALLOWFORSEARCH = /[^a-zA-Z0-9]/g,
-    gALLOWFORSEARCHRPC = /[^a-zA-Z0-9 ]/g,
-    gALLOWFORNAMEEMP = /[^a-zA-Z .-]/g,
-    gALLOWONLYDOORNUM = /[^0-9 /-]/g,
-    gALLOWONLYDOB = /[^0-9,/]/g,
-    gALLOWONLYINPNUM = /[^0-9/]/g,
-    gIFSCRegex = /^[A-Za-z]{4}\d{7}$/,
-    ddMMYYYYRegex = /^([0-2]\d|3[0-1])\/(0[1-9]|1[0-2])\/\d{4}$/,
-    YYYYMMDDRegex = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2]\d|3[0-1])$/,
-    pincodeRegex = /^[1-9]\d{5}$/,
-    gBaseScreenDiv = gAppId + "__BaseScreens__launchRow",
-    gMonthArr = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", ],
-    gCountries = "",
-    gBanks = [],
-    newHeight = "",
-    pinCodeVerified = false,
-    gStates = "",
-    gCities = "",
-    gBranches = "",
-    gLovs = "",
-    eNachstageDocuments = '',
-    fatcaDetBaseRow = 0,
-    fatcaDetSTAGENO = 0,
-    crsDetBaseRow = 0,
-    crsDetSTAGENO = 0,
-    States = [],
-    ActiveprogressBar = {
-        width: "100%",
-    },
-    InactiveprogressBar = {
-        width: "0%",
-    },
-    JointAccount = "Joint Account",
-    ApplicationPDF = "application/pdf",
-    ApplicationPDFbase64 = "data:application/pdf;base64,",
-    ApplicationPNGbase64 = "data:image/png;base64,",
-    ApplicationJPEGbase64 = "data:image/jpeg;base64,",
-    stateID = "BnkFac__BankingFacilities__state",
-    cityID = "BnkFac__BankingFacilities__city",
-    branchID = "BnkFac__BankingFacilities__branch",
-    Cities = [], //call ApzCOB.FetchCountries,FetchStates for assigning
-    Branches = [],
-    CommonCodes = [],
-    ConfigureScrJson = {},
-    isAppTokenSet = "N",
-    isAppTokenCounter = 0,
-    leads = [],
-    PRIMARY_DEDUPE_STATUS,
-    PRIMARY_KYC_VERIFICATION,
-    ALTERNATE_DEDUPE_STATUS,
-    ALTERNATE_KYC_VERIFICATION,
-    SECONDARY_KYC_VERIFICATION,
-    SECONDARY_DEDUPE_STATUS,
-    IS_SECONDARY_DEDUPE = false,
-    IS_ALTERNATE_DEDUPE = false,
-    IS_APPLICANT_PRIMARY_DEDUPE = false,
-    IS_CO_APPLICANT_PRIMARY_DEDUPE = false,
-    IS_CO_APPLICANT_SECONDARY_DEDUPE = false,
-    IS_CO_APPLICANT_ALTERNATE_DEDUPE = false,
-    CO_APPLICANT_PRIMARY_DEDUPE_STATUS,
-    CO_APPLICANT_SECONDARY_DEDUPE_STATUS,
-    CO_APPLICANT_ALTERNATE_DEDUPE_STATUS,
-    CO_APPLICANT_PRIMARY_KYC_VERIFICATION,
-    CO_APPLICANT_SECONDARY_KYC_VERIFICATION,
-    CO_APPLICANT_ALTERNATE_KYC_VERIFICATION,
-    IS_SERVICE_CALLBACK = false,
-    completeArray = [],
-    inprogressArray = [],
-    currentTypeFields = [],
-    scale = 1,
-    rotation = 0,
-    isPreviewvisible = false;
+coOrdinateInputTag = '',
+BankFacScrId = "BnkFac__BankingFacilities__",
+isdone = 1,
+itsobject = [],
+slectedProductsArr = [],
+BaseDivId = 'div[id^= "',
+formatdate = [],
+customerNames = "",
+currencyremove = [],
+WidgetInProgress = [],
+Widget = [],
+WidgetSubmitted = [],
+WidgetDeleted = [],
+WidgetRejected = [],
+WidgetApproved = [],
+WidgetPending = [],
+productCodeBasedName = {
+    "1009": "Grameen Unnati Loan",
+    "1002": "Grameen Unnati Renewal Loan"
+},
+DBKITDOCSIZEMAP = [],
+selectedType = "",
+status1 = [],
+custTypeToSubMenu = {
+    A: 1,
+    C: 2
+},
+occupationType = [],
+designation = [],
+yrsExp = [],
+curEmpyrs = [],
+relations = [],
+noOfyrs = [],
+noOfmons = [],
+addressType = [],
+nameTitle = [],
+gender = [],
+tinType = [],
+tinReason = [],
+noOfLeaves = [],
+secondaryKyc = [],
+maritalStatus = [],
+resOwnership = [],
+resYr = [],
+resMn = [],
+loanPurpose = [],
+loanSubPurpose = [],
+disbursementMode = [],
+frequencyOfRepayment = [],
+nomineeRel = [],
+retirementAge = [],
+natureOfEmp = [],
+typeOfEmp = [],
+loanDtls = [],
+cibilDtls = {},
+earningMembersDtls = [],
+ifscCodes = [],
+currentresidenceproof = [],
+occupations = [],
+typbssEmpent = [],
+bssAddrProof = [],
+empProof = [],
+bssPerOwn = [],
+freqOfInc = [],
+othSrcInc = [],
+accTypes = [],
+agriculture = [],
+animalHusbandry = [],
+manufacturing = [],
+production = [],
+serviceSector = [],
+trading = [],
+transportation = [],
+loanTenureMonths = [],
+religion = [],
+caste = [],
+education = [],
+language = [],
+stateAndlanguage = [],
+states = [],
+rateOfInteres = [],
+businessActivity = [],
+KendraMeetingDays = [],
+currentAddressProofDocMap = [],
+businessAddressProofDocMap = [],
+employmentProofDocMap = [],
+docMaxAndMand = [],
+DASHBOARD_TABS = [],
+BRE_MAPPING = [],
+cbCallType = [],
+DASHBOARD_CONFIG = [],
+AADHAR_CONFIG = [],
+houseOwnership = [],
+typeOfHouse = [],
+modeOfSavings = [],
+noOfRoomsInHouse = [],
+typeOfRoof = [],
+noOfTwowheelerOwned = [],
+noOfSmartphones = [],
+businessLocation = [],
+buffaloYield = [],
+TypeOfBussiness = [],
+NoOfBuffalo = [],
+KbusinessTenure = [],
+CowYield = [],
+KbusinessLocation = [],
+KTypeOfShops = [],
+NoOfCows = [],
+businessTenure = [],
+KTypeOfBussiness = [],
+TbusinessLocation = [],
+TNumOfMachine = [],
+TType = [],
+TbusDimFac = [],
+TTypeoFMach = [],
+TTypeOfBussiness = [],
+TbusinessTenure = [],
+TNumOfTail = [],
+KOccupancy = [],
+KConversionMetric = [],
+OtherTypeOfBussiness = [],
+OtherbusinessTenure = [],
+KMarketClassification = [],
+agriLandHolding = [],
+OtherFamilyMemebersIncome = [],
+OtherFamilyIncomeInfo = [],
+AgritypeOfAgricultureLand = [],
+AgrilandInAcres = [],
+AgriCropType = [],
+SalMonth = [],
+SalYears = [],
+SalNatureOfEmP = [],
+SalModeOfsal = [],
+IncomeselectBuildingType = [],
+RelationshipWithApplicant = [],
+noOfFamilyMembers = [],
+noOfOtherEarningMembers = [],
+AgricultureCropType = [],
+RPC_STAGES = [],
+SANCTION_MATRIX = [],
+fileArr = [],
+DASHBOARDORDER = [],
+demoMode = "",
+workFlowConf = "",
+STAGES = "",
+RPC_ALLSTAGES = [],
+queriestage1ts = '',
+sanctionTS ='',
+queriestage2ts ='',
+eNachTS = '',
+queriestage3ts = '',
+udyamTS ='',
+reEnachNavtyp = '',
+formattedTimestamp = '',
+otherInputMaxlength = 250,
+forbiddenChars = /[\^?$_&~|\\%<>`'"]/g,
+gALLOWONLYNUM = /\D/g,
+gALLOWDASHNUM = /[^0-9 -]/g,
+gALPHANUMERIC = /[^a-zA-Z0-9]/g,
+gALPHANUMERICWSPACE = /[^a-zA-Z0-9 ]/g,
+gALLOWALPHA = /[^a-zA-Z ]/g,
+gALLOWNUMBERDECIMALS = /^(?:\d+|\d*\.\d+)$/,
+gALLOWFORADDRESS = /[^a-zA-Z0-9 /#.-]/g,
+gALLOWFORNAME = /[^a-zA-Z .]/g,
+gALLOWFORSEARCH = /[^a-zA-Z0-9]/g,
+gALLOWFORSEARCHRPC = /[^a-zA-Z0-9 ]/g,
+gALLOWFORNAMEEMP = /[^a-zA-Z .-]/g,
+gALLOWONLYDOORNUM = /[^0-9 /-]/g,
+gALLOWONLYDOB = /[^0-9,/]/g,
+gALLOWONLYINPNUM = /[^0-9/]/g,
+gIFSCRegex = /^[A-Za-z]{4}\d{7}$/,
+ddMMYYYYRegex = /^([0-2]\d|3[0-1])\/(0[1-9]|1[0-2])\/\d{4}$/,
+YYYYMMDDRegex = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2]\d|3[0-1])$/,
+pincodeRegex = /^[1-9]\d{5}$/,
+gBaseScreenDiv = gAppId + "__BaseScreens__launchRow",
+gMonthArr = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", ],
+gCountries = "",
+gBanks = [],
+newHeight = "",
+pinCodeVerified = false,
+gStates = "",
+gCities = "",
+gBranches = "",
+gLovs = "",
+eNachstageDocuments = '',
+fatcaDetBaseRow = 0,
+fatcaDetSTAGENO = 0,
+crsDetBaseRow = 0,
+crsDetSTAGENO = 0,
+States = [],
+ActiveprogressBar = {
+width: "100%",
+},
+InactiveprogressBar = {
+width: "0%",
+},
+JointAccount = "Joint Account",
+ApplicationPDF = "application/pdf",
+ApplicationPDFbase64 = "data:application/pdf;base64,",
+ApplicationPNGbase64 = "data:image/png;base64,",
+ApplicationJPEGbase64 = "data:image/jpeg;base64,",
+stateID = "BnkFac__BankingFacilities__state",
+cityID = "BnkFac__BankingFacilities__city",
+branchID = "BnkFac__BankingFacilities__branch",
+Cities = [], //call ApzCOB.FetchCountries,FetchStates for assigning
+Branches = [],
+CommonCodes = [],
+ConfigureScrJson = {},
+isAppTokenSet = "N",
+isAppTokenCounter = 0,
+leads = [],
+PRIMARY_DEDUPE_STATUS,
+PRIMARY_KYC_VERIFICATION,
+ALTERNATE_DEDUPE_STATUS,
+ALTERNATE_KYC_VERIFICATION,
+SECONDARY_KYC_VERIFICATION,
+SECONDARY_DEDUPE_STATUS,
+IS_SECONDARY_DEDUPE = false,
+IS_ALTERNATE_DEDUPE = false,
+IS_APPLICANT_PRIMARY_DEDUPE = false,
+IS_CO_APPLICANT_PRIMARY_DEDUPE = false,
+IS_CO_APPLICANT_SECONDARY_DEDUPE = false,
+IS_CO_APPLICANT_ALTERNATE_DEDUPE = false,
+CO_APPLICANT_PRIMARY_DEDUPE_STATUS,
+CO_APPLICANT_SECONDARY_DEDUPE_STATUS,
+CO_APPLICANT_ALTERNATE_DEDUPE_STATUS,
+CO_APPLICANT_PRIMARY_KYC_VERIFICATION,
+CO_APPLICANT_SECONDARY_KYC_VERIFICATION,
+CO_APPLICANT_ALTERNATE_KYC_VERIFICATION,
+IS_SERVICE_CALLBACK = false,
+completeArray = [],
+inprogressArray = [],
+currentTypeFields = [],
+scale = 1,
+rotation = 0,
+isPreviewvisible = false;
 window.PARALLEL_FLOW_STAGE_NO = [3, 4, 5, 6];
 window.OTP_ATTEMPT_LEFT = "";
 window.OTP_REF = "";
@@ -336,30 +336,24 @@ window.documentList = [];
 window.picture = '';
 window.isrpcEditAcccancel = '';
 let eNachRetryAttempts = 3,
-    maxStdDocUpload = 2,
-    minStdDocUpload = 1,
-    minAnnualIncome,
-    maxAge,
-    minAge,
-    maxAnnualIncome,
-    vintageYears,
-    cbTimeOutSec,
-    maxDocUploadSize,
-    dbkitmaxDocUploadSize = 300,
-    ProductData = [],
-    applicantState = "",
-    queryData = "",
-    dashBoardtitle = "",
-    activityIntfId = 'APZCBO__ActivityLog__o__APZCBO__ActivityLog_Res__',
-    cbSummaryArr = ["bureauName", "cbScore", "cgpDpd", "overdueAmt", "totIndebtness", "writeOffAmt", "writtenOff", "writenoffAmt",
-        "individualIndebtness", "caglDpdFlag", "eligibleEMI", "writeoffSuitFiledFlag", "caglUnnatiFlag"
-    ],
-    propertiesToCheck = {
-        "aadhaar_instant_code": "Aadhaar (Instant)",
-        "debit_card_code": "Debit Card",
-        "net_banking_code": "Net Banking",
-        "aadhaar_otp_code": "Aadhaar (OTP)"
-    };
+maxStdDocUpload = 2,
+minStdDocUpload = 1,
+minAnnualIncome,
+maxAge,
+minAge,
+maxAnnualIncome,
+vintageYears,
+cbTimeOutSec,
+maxDocUploadSize,
+dbkitmaxDocUploadSize = 300,
+ProductData = [],
+applicantState = "",
+queryData = "",
+dashBoardtitle = "",
+activityIntfId = 'APZCBO__ActivityLog__o__APZCBO__ActivityLog_Res__',
+cbSummaryArr = ["bureauName", "cbScore", "cgpDpd", "overdueAmt", "totIndebtness", "writeOffAmt", "writtenOff", "writenoffAmt",
+"individualIndebtness", "caglDpdFlag", "eligibleEMI", "writeoffSuitFiledFlag", "caglUnnatiFlag"],
+propertiesToCheck = {"aadhaar_instant_code": "Aadhaar (Instant)", "debit_card_code": "Debit Card", "net_banking_code":"Net Banking", "aadhaar_otp_code":"Aadhaar (OTP)"};
 window.DASHBOARD_CONFIG = [];
 window.docMaxAndMand = [];
 window.RPC_ALL_STAGE_FIELDS = {};
@@ -410,9 +404,7 @@ window.RPC_SCREEN_WRAPPER = [{
     stage_wrapper: ["customerDetailsList", "addressDetailsWrapperList"],
     docTypes: [""]
 }];
-window.COMPARE_DOC_TYPES = ["PRIMARY_KYC", "CUSTOMER_PHOTOGRAPH", "SECONDARY_KYC", "RELATIONSHIP_PROOF", "ADDRESS_PROOF", "RESIDENCE_PREMISE_PHOTO",
-    "BUSINESS_PREMISE_PHOTO", "BUSINESS_ADDRESS_PROOF", "EMPLOYMENT_PROOF", "BANK_ACCOUNT_PROOF"
-];
+window.COMPARE_DOC_TYPES = ["PRIMARY_KYC", "CUSTOMER_PHOTOGRAPH", "SECONDARY_KYC", "RELATIONSHIP_PROOF", "ADDRESS_PROOF", "RESIDENCE_PREMISE_PHOTO", "BUSINESS_PREMISE_PHOTO", "BUSINESS_ADDRESS_PROOF", "EMPLOYMENT_PROOF", "BANK_ACCOUNT_PROOF"];
 window.occBasedDocType = {
     "Self Employed": "businessAddressProof",
     "Wage earner": "businessAddressProof",
@@ -423,15 +415,14 @@ window.leftImg = false;
 window.rightImg = false;
 window.RPC_SIDEMENU_LAUNCHED = false;
 var editFlag = false,
-    pcount = 0,
-    rpcCompareLeftIndex = 0,
-    rpcCompareRightIndex = 0,
-    PleaseSelect = 'Please Select',
-    hideShowRadioOptions = ["houseType", "residenceAddressSince", "residenceCitySince", "residenceOwnership", "currentAddressProof", "addressSameAs",
-        "editBankDetails"
-    ],
-    amtFields = ["annualIncome", "otherSourceAnnualIncome", "loanAmount"],
-    upDocsData = '';
+pcount = 0,
+rpcCompareLeftIndex = 0,
+rpcCompareRightIndex = 0,
+PleaseSelect = 'Please Select',
+hideShowRadioOptions = ["houseType", "residenceAddressSince", "residenceCitySince", "residenceOwnership", "currentAddressProof", "addressSameAs",
+    "editBankDetails"],
+amtFields = ["annualIncome", "otherSourceAnnualIncome", "loanAmount"],
+upDocsData = '';
 const mainSec = `RPC__RpcStageScreen__gr_col_2`;
 const rpcFooterRow = `RPC__RpcStageScreen__gr_row_3`;
 const RPC_CB_REHIT_STAGES = [1, 4, 7];
@@ -2812,118 +2803,118 @@ ApzCOB = {
             gLovs = response;
             window.KM_STAGES = [];
             occupationType = [],
-                designation = [],
-                yrsExp = [],
-                curEmpyrs = [],
-                relations = [],
-                noOfyrs = [],
-                noOfmons = [],
-                addressType = [],
-                nameTitle = [],
-                gender = [],
-                tinType = [],
-                tinReason = [],
-                noOfLeaves = [],
-                secondaryKyc = [],
-                maritalStatus = [],
-                resOwnership = [],
-                resYr = [],
-                resMn = [],
-                loanPurpose = [],
-                loanSubPurpose = [],
-                disbursementMode = [],
-                frequencyOfRepayment = [],
-                nomineeRel = [],
-                retirementAge = [],
-                natureOfEmp = [],
-                typeOfEmp = [],
-                loanDtls = [],
-                earningMembersDtls = [],
-                ifscCodes = [],
-                currentresidenceproof = [],
-                occupations = [],
-                typbssEmpent = [],
-                bssAddrProof = [],
-                empProof = [],
-                bssPerOwn = [],
-                freqOfInc = [],
-                othSrcInc = [],
-                accTypes = [],
-                agriculture = [],
-                animalHusbandry = [],
-                manufacturing = [],
-                production = [],
-                serviceSector = [],
-                trading = [],
-                transportation = [],
-                loanTenureMonths = [],
-                religion = [],
-                caste = [],
-                education = [],
-                language = [],
-                loanSubPurpose = [],
-                stateAndlanguage = [],
-                states = [],
-                rateOfInteres = [],
-                businessActivity = [],
-                KendraMeetingDays = [],
-                currentAddressProofDocMap = [],
-                businessAddressProofDocMap = [],
-                employmentProofDocMap = [],
-                docMaxAndMand = [],
-                DASHBOARD_TABS = [],
-                BRE_MAPPING = [],
-                cbCallType = [],
-                DASHBOARD_CONFIG = [],
-                AADHAR_CONFIG = [],
-                houseOwnership = [],
-                typeOfHouse = [],
-                modeOfSavings = [],
-                noOfRoomsInHouse = [],
-                typeOfRoof = [],
-                noOfTwowheelerOwned = [],
-                noOfSmartphones = [],
-                businessLocation = [],
-                buffaloYield = [],
-                TypeOfBussiness = [],
-                NoOfBuffalo = [],
-                KbusinessTenure = [],
-                CowYield = [],
-                KbusinessLocation = [],
-                KTypeOfShops = [],
-                NoOfCows = [],
-                businessTenure = [],
-                KTypeOfBussiness = [],
-                TbusinessLocation = [],
-                TNumOfMachine = [],
-                TType = [],
-                TbusDimFac = [],
-                TTypeoFMach = [],
-                TTypeOfBussiness = [],
-                TbusinessTenure = [],
-                TNumOfTail = [],
-                KOccupancy = [],
-                KConversionMetric = [],
-                OtherTypeOfBussiness = [],
-                OtherbusinessTenure = [],
-                KMarketClassification = [],
-                agriLandHolding = [],
-                OtherFamilyMemebersIncome = [],
-                OtherFamilyIncomeInfo = [],
-                AgritypeOfAgricultureLand = [],
-                AgrilandInAcres = [],
-                AgriCropType = [],
-                SalMonth = [],
-                SalYears = [],
-                SalNatureOfEmP = [],
-                SalModeOfsal = [],
-                IncomeselectBuildingType = [],
-                RelationshipWithApplicant = [],
-                noOfFamilyMembers = [],
-                noOfOtherEarningMembers = [],
-                AgricultureCropType = [],
-                RPC_STAGES = [],
-                DASHBOARDORDER = [];
+            designation = [],
+            yrsExp = [],
+            curEmpyrs = [],
+            relations = [],
+            noOfyrs = [],
+            noOfmons = [],
+            addressType = [],
+            nameTitle = [],
+            gender = [],
+            tinType = [],
+            tinReason = [],
+            noOfLeaves = [],
+            secondaryKyc = [],
+            maritalStatus = [],
+            resOwnership = [],
+            resYr = [],
+            resMn = [],
+            loanPurpose = [],
+            loanSubPurpose = [],
+            disbursementMode = [],
+            frequencyOfRepayment = [],
+            nomineeRel = [],
+            retirementAge = [],
+            natureOfEmp = [],
+            typeOfEmp = [],
+            loanDtls = [],
+            earningMembersDtls = [],
+            ifscCodes = [],
+            currentresidenceproof = [],
+            occupations = [],
+            typbssEmpent = [],
+            bssAddrProof = [],
+            empProof = [],
+            bssPerOwn = [],
+            freqOfInc = [],
+            othSrcInc = [],
+            accTypes = [],
+            agriculture = [],
+            animalHusbandry = [],
+            manufacturing = [],
+            production = [],
+            serviceSector = [],
+            trading = [],
+            transportation = [],
+            loanTenureMonths = [],
+            religion = [],
+            caste = [],
+            education = [],
+            language = [],
+            loanSubPurpose = [],
+            stateAndlanguage = [],
+            states = [],
+            rateOfInteres = [],
+            businessActivity = [],
+            KendraMeetingDays = [],
+            currentAddressProofDocMap = [],
+            businessAddressProofDocMap = [],
+            employmentProofDocMap = [],
+            docMaxAndMand = [],
+            DASHBOARD_TABS = [],
+            BRE_MAPPING = [],
+            cbCallType = [],
+            DASHBOARD_CONFIG = [],
+            AADHAR_CONFIG = [],
+            houseOwnership = [],
+            typeOfHouse = [],
+            modeOfSavings = [],
+            noOfRoomsInHouse = [],
+            typeOfRoof = [],
+            noOfTwowheelerOwned = [],
+            noOfSmartphones = [],
+            businessLocation = [],
+            buffaloYield = [],
+            TypeOfBussiness = [],
+            NoOfBuffalo = [],
+            KbusinessTenure = [],
+            CowYield = [],
+            KbusinessLocation = [],
+            KTypeOfShops = [],
+            NoOfCows = [],
+            businessTenure = [],
+            KTypeOfBussiness = [],
+            TbusinessLocation = [],
+            TNumOfMachine = [],
+            TType = [],
+            TbusDimFac = [],
+            TTypeoFMach = [],
+            TTypeOfBussiness = [],
+            TbusinessTenure = [],
+            TNumOfTail = [],
+            KOccupancy = [],
+            KConversionMetric = [],
+            OtherTypeOfBussiness = [],
+            OtherbusinessTenure = [],
+            KMarketClassification = [],
+            agriLandHolding = [],
+            OtherFamilyMemebersIncome = [],
+            OtherFamilyIncomeInfo = [],
+            AgritypeOfAgricultureLand = [],
+            AgrilandInAcres = [],
+            AgriCropType = [],
+            SalMonth = [],
+            SalYears = [],
+            SalNatureOfEmP = [],
+            SalModeOfsal = [],
+            IncomeselectBuildingType = [],
+            RelationshipWithApplicant = [],
+            noOfFamilyMembers = [],
+            noOfOtherEarningMembers = [],
+            AgricultureCropType = [],
+            RPC_STAGES = [],
+            DASHBOARDORDER = [];
             SANCTION_MATRIX = [];
             let lovDtlsParsed;
             $.each(response, function(m, n) {
@@ -6480,8 +6471,7 @@ ApzCOB = {
         let errMsg = "";
         if (!apz.isNull(params.resFull.appzillonBody.APZCBO__SendbackDataFetch_Res)) {
             if (!apz.isNull(params.resFull.appzillonBody.APZCBO__SendbackDataFetch_Res.apiResponse.ResponseHeader.ResponseMessage)) {
-                errMsg = "Fetch Application Data Service Failed." + "<br/>" + params.resFull.appzillonBody.APZCBO__SendbackDataFetch_Res
-                    .apiResponse.ResponseHeader.ResponseMessage;
+                errMsg = "Fetch Application Data Service Failed." + "<br/>" + params.resFull.appzillonBody.APZCBO__SendbackDataFetch_Res.apiResponse.ResponseHeader.ResponseMessage;
             }
         } else if (!apz.isNull(params.resFull.appzillonBody.APZCBO__FetchApplication_Res)) {
             if (!apz.isNull(params.resFull.appzillonBody.APZCBO__FetchApplication_Res.apiResponse.ResponseHeader.ResponseMessage)) {
@@ -6733,8 +6723,7 @@ ApzCOB = {
                     window.LoanInProgressProductGroupCode = response.applicationMaster.productGroupCode;
                     let ApplStatus = response.applicationMaster.applicationStatus;
                     if (ApplStatus === "INPROGRESS" || ApplStatus === "INPUTINPROGRESS" || ApplStatus === "PUSHBACK" || ApplStatus ===
-                        "CAPUSHBACK" || ApplStatus === "IPUSHBACK" || (ApplStatus == "PENDING" && gApzCOB.LoggedInUserDetails.loginResponse
-                            .addInfo1 === "BM")) {
+                        "CAPUSHBACK" || ApplStatus === "IPUSHBACK" || (ApplStatus == "PENDING" && gApzCOB.LoggedInUserDetails.loginResponse.addInfo1 === "BM")) {
                         if (leads.length > 0) {
                             let selectedLeadInfo = leads.filter(function(item) {
                                 return (item.map.customerId == response.applicationMaster.searchCode2);
@@ -8543,8 +8532,7 @@ ApzCOB = {
         try {
             ApzCOB.hideLoader();
             window.dedupeAccerrMsg = responseObj;
-            window.bankDeduperes = JSON.parse(JSON.parse(params.res.APZCBO__DedupeVoterID_Res.apiResponse.ResponseBody.responseObj)
-                .responseObj);
+            window.bankDeduperes = JSON.parse(JSON.parse(params.res.APZCBO__DedupeVoterID_Res.apiResponse.ResponseBody.responseObj).responseObj);
             window.coAppverified = false;
             if (ApzCOB.handleServiceCallBacks(params)) {
                 if (responseObj.ResponseCode == 0) {
@@ -9262,16 +9250,20 @@ ApzCOB = {
         }
     },
     OtpSmsService: function(mobileNo) {
-        $("#" + screenId + "otp").val("");
-        let language = "";
-        if (!apz.isNull(inSessionStore.loanDetails)) {
-            language = inSessionStore.loanDetails.payload.language;
+        if (apz.currAppId === 'KmSourc') {
+            branchState = apz.isNull(gApzCOB.selLeadDtls.glBranchState) ? '' : gApzCOB.selLeadDtls.glBranchState?.toUpperCase();
+            otpLanguage = language.find(el => el.key?.split('~')?.[1]?.toUpperCase() == branchState)?.value ?? "";
+            custName = gApzCOB.selLeadDtls.fullName ?? "";
         } else {
-            language = $("#" + screenId + "language").val() !== PleaseSelect ? $("#" + screenId + "language").val() : "";
+            $("#" + screenId + "otp").val("");
+            if (!apz.isNull(inSessionStore.loanDetails)) {
+                otpLanguage = inSessionStore.loanDetails.payload.language;
+            } else {
+                otpLanguage = $("#" + screenId + "language").val() !== PleaseSelect ? $("#" + screenId + "language").val() : "";
+            }
+            custType = gApzCOB.currentApplicant > 1 ? "Co-App" : "Applicant"; 
+            custName = ApzCOB.getPayloadDatafromWrapper('customerName', custType, 'customerDetailsList');
         }
-        let currentIndex = inSessionStore.customerDetailsList.findIndex(
-            (custData) => custData.custDtlId === (gApzCOB.currentApplicant > 1 ? gApzCOB.userDetails.CoApplicantCustomerId : gApzCOB
-                .userDetails.custDtlId));
         let req = {
             apiRequest: {
                 interfaceName: "GenOtp",
@@ -9282,10 +9274,9 @@ ApzCOB = {
                 requestObj: {
                     payload: {},
                     actionType: "otp",
-                    language: language,
+                    language: otpLanguage,
                     mobileNo: mobileNo,
-                    custName: !apz.isNull(currentIndex) && currentIndex >= 0 ? inSessionStore.customerDetailsList[currentIndex]
-                        .customerName : "",
+                    custName: custName ?? "",
                     otp: "",
                     validTill: "",
                 },
@@ -9358,7 +9349,7 @@ ApzCOB = {
                 } else {
                     apz.startLoader();
                     ApzCOB.callCBService();
-                } // Calling CB based on Type 
+                } // Calling CB based on Type
             } else {
                 apz.stopLoader();
                 ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_LOAN_DETAILS_INVALID_OTP"), "E");
@@ -9490,13 +9481,9 @@ ApzCOB = {
             coAppData = [],
             depName = "",
             coApp_flag = 0,
-            kycId, custDtlPayload, loanAMount, frequency, income, activation_date, branch = "",
-            kendraId = "",
-            branchId = "",
+            kycId, custDtlPayload, loanAMount, frequency, income, activation_date, branch = "", kendraId = "", branchId = "",
             term = "",
-            applicantIncome = "",
-            currentStage = "",
-            caglOs = "";
+            applicantIncome = "", currentStage = "",caglOs = "";
         let loanData = {};
         let loanDataPayload = {};
         if (!apz.isNull(inSessionStore.loanDetails)) {
@@ -9586,11 +9573,8 @@ ApzCOB = {
                 branchId = gApzCOB?.selLeadDtls?.glBranchId || "";
             }
         }
-        if (LoggedInUserDetails?.loginResponse?.addInfo1 === 'KM' && typeof inSessionStore?.applicationMaster?.applicationStatus ===
-            'undefined') {
-            inSessionStore.applicationMaster = {
-                ...inSessionStore.applicationMaster
-            };
+        if (LoggedInUserDetails?.loginResponse?.addInfo1 === 'KM' && typeof inSessionStore?.applicationMaster?.applicationStatus === 'undefined') {
+            inSessionStore.applicationMaster = {...inSessionStore.applicationMaster};
             inSessionStore.applicationMaster.applicationStatus = 'INPROGRESS';
         }
         currentStage = `${inSessionStore.applicationMaster?.applicationStatus} | ${inSessionStore.applicationMaster?.applicationStatus}`;
@@ -9832,12 +9816,8 @@ ApzCOB = {
     //     }
     // },
     BRECbServiceCB: function(params) {
-    
-        window.CBBASE64 = "";
-        window.CB_HIGHMARK_REPORT_LINK = "";
-    
+        window.CBBASE64 = "", window.CB_HIGHMARK_REPORT_LINK = "";
         let errMsg = "";
-    
         if (!apz.isNull(params.resFull.appzillonBody.APZCBO__BRECBCheck_Res.apiResponse)) {
             if (!apz.isNull(params.resFull.appzillonBody.APZCBO__BRECBCheck_Res.apiResponse.ResponseHeader.ResponseMessage)) {
                 errMsg = params.resFull.appzillonBody.APZCBO__BRECBCheck_Res.apiResponse.ResponseHeader.ResponseMessage;
@@ -9845,9 +9825,7 @@ ApzCOB = {
         } else {
             errMsg = ApzCOB.getDescfromLitCode("LIT_LOAN_DETAILS_CB_CHECK_SERVICE_FAILED");
         }
-    
         if (ApzCOB.handleServiceCallBacks(params)) {
-    
             if (!isRPCLogin) {
                 apz.stopLoader();
             } else {
@@ -11173,8 +11151,7 @@ ApzCOB = {
                     if (apz.isNull(income)) {
                         if (!apz.isNull(inSessionStore.occupationDetailsWrapperList) && inSessionStore.occupationDetailsWrapperList.length >
                             0) {
-                            const occData = inSessionStore.occupationDetailsWrapperList.filter((el) => el.occupationDetails.custDtlId ===
-                                custId);
+                            const occData = inSessionStore.occupationDetailsWrapperList.filter((el) => el.occupationDetails.custDtlId === custId);
                             if (!apz.isNull(occData) && occData.length > 0) {
                                 income = !apz.isNull(occData[0].occupationDetails.payload.annualIncome) ? occData[0].occupationDetails.payload
                                     .annualIncome : "";
@@ -11586,9 +11563,8 @@ ApzCOB = {
         apz.data.scrdata.Select__IpaintProductDetails_Res = {};
         apz.data.scrdata.Select__IpaintProductDetails_Res.data = window.subProductResponse;
         ApzCOB.getProductData();
-        if ((IS_DASHBOARD_VIEW_DATA || UNATTENDED_DATA) && (apz.childScr !== 'Saloandetails' && apz.currAppId !== "DBkitG" && apz.childScr !==
-                'CaDashboard')) {
-            if (UNATTENDED_DATA && apz.childScr === 'DashboardViewAllApplication') {
+        if ((IS_DASHBOARD_VIEW_DATA || UNATTENDED_DATA) && (apz.childScr !== 'Saloandetails' && apz.currAppId !== "DBkitG" && apz.childScr !== 'CaDashboard')) {
+            if(UNATTENDED_DATA && apz.childScr === 'DashboardViewAllApplication'){
                 let reqObj = {};
                 reqObj.memberId = gApzCOB.selLeadDtls?.customerId;
                 ApzCOB.fetchExistingLoans(reqObj);
@@ -11871,8 +11847,7 @@ ApzCOB = {
         try {
             if (!apz.isNull(params.res.APZCBO__RPCStageFields_Res) && params.res.APZCBO__RPCStageFields_Res.length > 0) {
                 if (RPC_CURRENT_STAGE === "ReviewConfirm") {
-                    window.RPC_CURRENT_STAGE_FIELDS = params.res.APZCBO__RPCStageFields_Res.filter(stage => stage.stage_name !==
-                        RPC_CURRENT_STAGE);
+                    window.RPC_CURRENT_STAGE_FIELDS = params.res.APZCBO__RPCStageFields_Res.filter(stage => stage.stage_name !== RPC_CURRENT_STAGE);
                     apz.app.ReviewConfirm.paintStages();
                 } else {
                     window.RPC_CURRENT_STAGE_FIELDS = params.res.APZCBO__RPCStageFields_Res.filter(
@@ -11915,26 +11890,21 @@ ApzCOB = {
             window.COMPARE_DOC_TYPES = window.COMPARE_DOC_TYPES.filter(item => item !== "PAN_NUMBER_PHOTO");
         }
         if (custType === "Co-App" && !apz.isNull(apz.data.scrdata.RPC__PaintDocumentType_Res)) {
-            apz.data.scrdata.RPC__PaintDocumentType_Res = apz.data.scrdata.RPC__PaintDocumentType_Res.filter(doc => doc.doctype !==
-                "Relationship proof");
+            apz.data.scrdata.RPC__PaintDocumentType_Res = apz.data.scrdata.RPC__PaintDocumentType_Res.filter(doc => doc.doctype !== "Relationship proof");
             if (ApzCOB.getOccupation() === "Salaried") {
-                apz.data.scrdata.RPC__PaintDocumentType_Res = apz.data.scrdata.RPC__PaintDocumentType_Res.filter(doc => doc.doctype !==
-                    "Employment proof");
+                apz.data.scrdata.RPC__PaintDocumentType_Res = apz.data.scrdata.RPC__PaintDocumentType_Res.filter(doc => doc.doctype !== "Employment proof");
             }
             apz.data.loadData('PaintDocumentType', 'RPC');
         }
         if (RPC_CURRENT_STAGE_NO === 2) {
-            addrType = 'Personal';
-            subAddrType = 'SecondaryKyc';
+            addrType = 'Personal'; subAddrType = 'SecondaryKyc';
             window.isSecKycExist = apz.app.SecondaryKYCRPC.checkRpcSecKycDataExist();
         } else if (RPC_CURRENT_STAGE_NO === 3) {
             window.custType = "Co-App";
         } else if (RPC_CURRENT_STAGE_NO === 4 || RPC_CURRENT_STAGE_NO === 5) {
-            addrType = 'Personal';
-            subAddrType = 'Present';
+            addrType = 'Personal'; subAddrType = 'Present';
         } else if (RPC_CURRENT_STAGE_NO === 7) {
-            addrType = 'Occupation';
-            subAddrType = 'Office';
+            addrType = 'Occupation'; subAddrType = 'Office';
         }
         $('.fieldEditedTag,span.err').remove();
         $('.err-inpt').removeClass('err-inpt');
@@ -12086,8 +12056,7 @@ ApzCOB = {
         if (RPC_CURRENT_STAGE_NO === 8) {
             window.kmAccverified = ApzCOB.getPayloadDatafromWrapper("accntVerified", "Applicant", "bankDetailsWrapperList");
             if (gApzCOB.selectedRole == 'RPC_Checker') {
-                IS_ACCOUNTNUMBER_EDITED = inSessionStore?.rpcStatDetails?.some(item => item?.stageID === 8 && item?.editedFields?.some(
-                    field => ["reEnterAccountNumber", "accountNumber"].includes(field)));
+                IS_ACCOUNTNUMBER_EDITED = inSessionStore?.rpcStatDetails?.some(item => item?.stageID === 8 && item?.editedFields?.some(field => ["reEnterAccountNumber", "accountNumber"].includes(field)));
             }
             if ($(`#RPC__${RPC_CURRENT_STAGE}__editBankDetailsInput_option_2`).is(":checked")) {
                 if (kmAccverified == 'Verified') {
@@ -12147,8 +12116,7 @@ ApzCOB = {
                     return;
                 }
                 if (exceptionDoc.length > 0) {
-                    $(`#${bankScrnId}pennyCheckBtnForm, #${bankScrnId}statusform,  #${bankScrnId}exceptionForm, #${bankScrnId}exceptionMsg`)
-                        .removeClass('sno');
+                    $(`#${bankScrnId}pennyCheckBtnForm, #${bankScrnId}statusform,  #${bankScrnId}exceptionForm, #${bankScrnId}exceptionMsg`).removeClass('sno');
                     $(`#RPC__${RPC_CURRENT_STAGE}__statusform`).addClass('sno');
                     $(`#${bankScrnId}statustext`).attr('class', 'ett-para pri fs14 penny-failed');
                     $(`#RPC__BankAccountProofRPC__statustext_txtcnt`).text('Penny Check Response: Fail');
@@ -12398,8 +12366,7 @@ ApzCOB = {
             if ($(`#${bussAddrPrfScrId}addressSameAsInput_option_Present`).is(":checked")) {
                 addressradioCheck = 'Present'
                 apz.app.BusinessAddressProofRPC.fetchAddressData(addressradioCheck)
-                window.fields = [`${bussAddrPrfScrId}addressLine1Input`, `${bussAddrPrfScrId}addressLine2Input`,
-                    `${bussAddrPrfScrId}addressLine3Input`, `${bussAddrPrfScrId}landMarkInput`, `${bussAddrPrfScrId}pinCodeInput`
+                window.fields = [`${bussAddrPrfScrId}addressLine1Input`, `${bussAddrPrfScrId}addressLine2Input`, `${bussAddrPrfScrId}addressLine3Input`, `${bussAddrPrfScrId}landMarkInput`, `${bussAddrPrfScrId}pinCodeInput`
                 ];
                 fields.forEach(id => ApzCOB.addDisableToInput(id));
                 ApzCOB.addDisableToInput(`${bussAddrPrfScrId}businessAddressProofInput_ext`);
@@ -12582,8 +12549,7 @@ ApzCOB = {
         }
         if ((lstageId ?? RPC_CURRENT_STAGE_NO) === 7) lstageName = "BusinessPhotoRPC";
         if ([4, 5].includes(lstageId ?? RPC_CURRENT_STAGE_NO)) {
-            addrType = 'Personal';
-            subAddrType = 'Present';
+            addrType = 'Personal'; subAddrType = 'Present';
         }
         return ApzCOB.getPayloadData(docTypeMap[lstageId ?? RPC_CURRENT_STAGE_NO], custType, lstageName);
     },
@@ -12599,8 +12565,7 @@ ApzCOB = {
         let applnDocData = [];
         let kycdocuments = [];
         if (RPC_CURRENT_STAGE === 'ResidenceAddressProofRPC' && !stageDocType.includes("PRIMARY_KYC")) {
-            addrType = 'Personal';
-            subAddrType = 'Present';
+            addrType = 'Personal'; subAddrType = 'Present';
             let residenceAsKYC = ApzCOB.getPayloadData('currentAddressProof', 'Applicant');
             if (ApzCOB.isResidenceSameAsKyc() || residenceAsKYC === "As per Co-Applicant Primary KYC document") {
                 let kycCustId = ApzCOB.getCustDetailID('Applicant');
@@ -12616,12 +12581,10 @@ ApzCOB = {
             }
         } else if (RPC_CURRENT_STAGE === 'BusinessAddressProofRPC' && !stageDocType.includes("PRIMARY_KYC")) {
             let bussAddrProofAsKYC = ApzCOB.getPayloadData('businessAddressProof', custType);
-            addrType = 'Occupation';
-            subAddrType = 'Office';
+            addrType = 'Occupation';  subAddrType = 'Office';
             let bussAddrTag = ApzCOB.getPayloadDatafromWrapper('addressSameAs', custType, 'addressDetailsWrapperList') === "Present";
             let kycCustId = ApzCOB.getCustDetailID(custType);
-            applnDocData = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList?.filter(cust => cust.custDtlId ===
-                kycCustId) || [];
+            applnDocData = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList?.filter(cust => cust.custDtlId === kycCustId) || [];
             if (Array.isArray(applnDocData) || applnDocData.length > 0) {
                 if (bussAddrProofAsKYC === "As per Voter ID") {
                     kycdocuments = applnDocData.filter(appDoc => {
@@ -12637,8 +12600,7 @@ ApzCOB = {
             }
         }
         let custDetailID = ApzCOB.getCustDetailID(docCustType);
-        applicationData = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList?.filter(cust => cust.custDtlId ===
-            custDetailID) || [];
+        applicationData = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList?.filter(cust => cust.custDtlId === custDetailID) || [];
         $('#scr__RPC__RPCDocumentSection__main').removeClass('sno');
         if (!Array.isArray(applicationData) || applicationData.length === 0) {
             //"documentDetails is not an array or is empty"
@@ -12657,10 +12619,8 @@ ApzCOB = {
                     documents = applicationData.filter(appDoc => {
                         return appDoc.payload.documentType === docType && appDoc.payload.isAdiDoc !== 'Y';
                     })
-                    addrType = 'Occupation';
-                    subAddrType = 'Office';
-                    bussAddrTag = ApzCOB.getPayloadDatafromWrapper('addressSameAs', custType, 'addressDetailsWrapperList') ===
-                        "Present";
+                    addrType = 'Occupation';  subAddrType = 'Office';
+                    bussAddrTag = ApzCOB.getPayloadDatafromWrapper('addressSameAs', custType, 'addressDetailsWrapperList') === "Present";
                     if (RPC_CURRENT_STAGE === 'BusinessAddressProofRPC' && bussAddrTag) {
                         documents = [];
                     }
@@ -12715,8 +12675,7 @@ ApzCOB = {
         if (RPCDBVerify_STAGES[apz.childScr]?.id == 2) {
             docDispName = (RPCDBVerify_STAGES[apz.childScr].id == 2) ? "Passbook" : docPayload.documentType;
         } else if (RPCDBVerify_STAGES[apz.childScr]?.id == 3 || RPCDBVerify_STAGES[apz.childScr]?.id == 5) {
-            docDispName = (RPCDBVerify_STAGES[apz.childScr].id == 3) || (RPCDBVerify_STAGES[apz.childScr]?.id == 5) ?
-                "Udyam status screenshot" : docPayload.documentType;
+            docDispName = (RPCDBVerify_STAGES[apz.childScr].id == 3) || ( RPCDBVerify_STAGES[apz.childScr]?.id == 5) ? "Udyam status screenshot" : docPayload.documentType;
         }
         if (docPayload?.documentName?.includes('Pennyless')) docDispName = 'Exception document';
         if (!isCompare) {
@@ -12730,8 +12689,7 @@ ApzCOB = {
         if (elemId == 'eNach') {
             window.stageDocuments = eNachstageDocuments;
         }
-        if (apz.childScr == 'RPCDBUdyamReg' || apz.childScr == 'RPCDBeNach' || apz.childScr == 'RPCDBReviewCnf' || apz.childScr ==
-            'PreviewDBveriification') {
+        if (apz.childScr == 'RPCDBUdyamReg' || apz.childScr == 'RPCDBeNach' || apz.childScr == 'RPCDBReviewCnf' || apz.childScr == 'PreviewDBveriification') {
             fileName = stageDocuments?.[pcount]?.payload?.documentFileName;
         }
         let applnId;
@@ -12757,8 +12715,7 @@ ApzCOB = {
     downloadFileFromServerCB: function(params) {
         window.docSecScrId = 'RPC__RPCDocumentSection__';
         if (!apz.isNull(params.base64)) {
-            if (apz.childScr == 'RPCDBUdyamReg' || apz.childScr == 'RPCDBeNach' || apz.childScr == 'RPCDBReviewCnf' || apz.childScr ==
-                'PreviewDBveriification') {
+            if (apz.childScr == 'RPCDBUdyamReg' || apz.childScr == 'RPCDBeNach' || apz.childScr == 'RPCDBReviewCnf' || apz.childScr == 'PreviewDBveriification') {
                 if (!isCompare) {
                     if (downloadDocflag) {
                         if (apz.childScr == 'RPCDBReviewCnf') {
@@ -12769,7 +12726,7 @@ ApzCOB = {
                                 docSecImageId.selector = '#RPCDBV__RPCDBReviewCnf__imgView'
                             }
                         } else if (apz.childScr == 'PreviewDBveriification') {
-                            docSecScrId = 'cmnPre__PreviewDBveriification__'
+                                docSecScrId = 'cmnPre__PreviewDBveriification__'
                             if (reEnachNavtyp == 'eNext' || reEnachNavtyp == 'efront') {
                                 docSecImageId.selector = '#cmnPre__PreviewDBveriification__img'
                             } else {
@@ -13021,8 +12978,7 @@ ApzCOB = {
         if (!isCompare) {
             pcount = navType === 'Prev' ? Math.max(0, pcount - 1) : Math.min(stageDocuments.length - 1, pcount + 1);
             fileName = ApzCOB.getFileName(pcount);
-            if (apz.childScr == 'RPCDBUdyamReg' || apz.childScr == 'RPCDBeNach' || apz.childScr == 'RPCDBReviewCnf' || apz.childScr ==
-                'PreviewDBveriification') {
+            if (apz.childScr == 'RPCDBUdyamReg' || apz.childScr == 'RPCDBeNach' || apz.childScr == 'RPCDBReviewCnf' || apz.childScr == 'PreviewDBveriification') {
                 window.downloadDocflag = true
             }
             window.ImageLocationDetails = {
@@ -13738,11 +13694,9 @@ ApzCOB = {
                                 }
                                 ApzCOB.removeDisableToInput(inputSelectorID);
                                 if ($(`#${inputSelectorID}`).val() !== '') {
-                                    $(`#${inputSelectorID}`).hasClass('sub-elt') ? $(`#${inputSelectorID}`).val(PleaseSelect)
-                                    .change() : $(`#${inputSelectorID}`).val('');
+                                    $(`#${inputSelectorID}`).hasClass('sub-elt') ? $(`#${inputSelectorID}`).val(PleaseSelect).change() : $(`#${inputSelectorID}`).val('');
                                     ApzCOB.removeDisableToInput(inputSelectorID);
-                                    dropDownArrowId = ($(containerSelector).find('.sub-elt1')?.length > 0) ? $(containerSelector)
-                                        .find('.sub-elt1').attr('id') : '';
+                                    dropDownArrowId = ($(containerSelector).find('.sub-elt1')?.length > 0) ? $(containerSelector).find('.sub-elt1').attr('id') : '';
                                     if (!apz.isNull(dropDownArrowId)) {
                                         $("#" + dropDownArrowId).removeClass("sno")
                                     }
@@ -13898,8 +13852,7 @@ ApzCOB = {
         let kycFields = [`${primaryKycTagId}primaryKycIdInput`, `${primaryKycTagId}alternateVoterIdInput`];
         if (RPC_CURRENT_STAGE_NO === 1) {
             let maritalStatus = $(`#${primaryKycTagId}maritalStatusInput`).val();
-            let fieldId = maritalStatus?.toLowerCase() === "married" ? `#${primaryKycTagId}spouseNameInput` :
-                `#${primaryKycTagId}fathersNameInput`;
+            let fieldId = maritalStatus?.toLowerCase() === "married" ? `#${primaryKycTagId}spouseNameInput` : `#${primaryKycTagId}fathersNameInput`;
             if (apz.isNull($(fieldId).val())) {
                 error.push($(fieldId).attr("id"));
             }
@@ -13984,8 +13937,7 @@ ApzCOB = {
             ApzCOB.fnDisplayMsg("Please Verify Bank Account", "E");
             return;
         }
-        if (RPC_CURRENT_STAGE_NO === 1 && !$("#RPC__PrimaryKycRPC__verifyAlternateVoter").hasClass("sno") && (!$(
-                "#RPC__PrimaryKycRPC__el_txt_10_txtcnt").is(":visible") || $("#RPC__PrimaryKycRPC__el_hpl_3_txtcnt").is(":visible"))) {
+        if (RPC_CURRENT_STAGE_NO === 1 && !$("#RPC__PrimaryKycRPC__verifyAlternateVoter").hasClass("sno") && (!$("#RPC__PrimaryKycRPC__el_txt_10_txtcnt").is(":visible") || $("#RPC__PrimaryKycRPC__el_hpl_3_txtcnt").is(":visible"))) {
             ApzCOB.fnDisplayMsg("Please verify Alternate Voter ID", "E");
             return;
         }
@@ -14131,14 +14083,11 @@ ApzCOB = {
     RpcEditAddressWrapper: function() {
         let custDetailID = ApzCOB.getCustDetailID(custType);
         if (RPC_CURRENT_STAGE_NO === 2) {
-            addrType = 'Personal';
-            subAddrType = 'SecondaryKyc';
+            addrType = 'Personal'; subAddrType = 'SecondaryKyc';
         } else if (RPC_CURRENT_STAGE_NO === 4 || RPC_CURRENT_STAGE_NO === 5) {
-            addrType = 'Personal';
-            subAddrType = 'Present';
+            addrType = 'Personal'; subAddrType = 'Present';
         } else if (RPC_CURRENT_STAGE_NO === 7) {
-            addrType = 'Occupation';
-            subAddrType = 'Office';
+            addrType = 'Occupation'; subAddrType = 'Office';
         }
         let custTypeAddressData = currentApplicationData.addressDetailsWrapperList?.[0].addressDetailsList.find(address => address
             .custDtlId === custDetailID && address.addressType.toLowerCase() === addrType.toLowerCase());
@@ -14335,8 +14284,7 @@ ApzCOB = {
             ...dataPayload
         };
         if (reqWrapper === "customerDetailsList" && custType === 'Co-App' && ApplicationType === 'RENEWAL' && RPC_CURRENT_STAGE_NO === 1) {
-            currentWrapperTypeData.payload.isNewCustomer = $('#RPC__PrimaryKycRPC__isNewCustomer .etb-rdio input:checked').next().attr(
-                'title');
+            currentWrapperTypeData.payload.isNewCustomer = $('#RPC__PrimaryKycRPC__isNewCustomer .etb-rdio input:checked').next().attr('title');
         }
         if (subWrapperTypes.includes(reqWrapper) && !apz.isNull(currSubWrapper)) {
             wrapperData[reqWrapper].push({
@@ -14426,8 +14374,7 @@ ApzCOB = {
         });
     },
     getNextDocLevel: function(docType, custDtlId) {
-        let currDocs = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList?.filter(el => el.custDtlId === custDtlId &&
-            el?.payload?.documentType === docType);
+        let currDocs = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList?.filter(el => el.custDtlId === custDtlId && el?.payload?.documentType === docType);
         const existingLevels = currDocs.map(doc => parseInt(doc?.payload?.docLevel));
         for (let i = 1; i <= existingLevels?.length; i++) {
             if (!existingLevels.includes(i)) {
@@ -14689,10 +14636,8 @@ ApzCOB = {
                     var responseObj = JSON.parse(params.res.APZCBO__UploadRPCLoanData_Res.apiResponse.ResponseBody.responseObj);
                     window.latestAppDocId = responseObj.applicationDocumentsWrapperList[0].applicationDocumentsList['length'] - 1;
                     appDocID = responseObj.applicationDocumentsWrapperList[0].applicationDocumentsList[latestAppDocId].appDocId;
-                    window.storelatitude = JSON.parse(responseObj.applicationDocumentsWrapperList[0].applicationDocumentsList[latestAppDocId]
-                        .payload).latitude;
-                    window.storelongitude = JSON.parse(responseObj.applicationDocumentsWrapperList[0].applicationDocumentsList[latestAppDocId]
-                        .payload).longitude;
+                    window.storelatitude = JSON.parse(responseObj.applicationDocumentsWrapperList[0].applicationDocumentsList[latestAppDocId].payload).latitude;
+                    window.storelongitude = JSON.parse(responseObj.applicationDocumentsWrapperList[0].applicationDocumentsList[latestAppDocId].payload).longitude;
                     apz.app.UploadDocuments.StoreAppDocID(appDocID, storelatitude, storelongitude);
                     apz.app.UploadDocuments.displayFileNameNew();
                 }
@@ -14707,13 +14652,11 @@ ApzCOB = {
         window.selectedDocLevel = pthis.textContent;
         selectedDocLevel = selectedDocLevel.replace(/ /g, "_").toUpperCase();
         if (selectedDocLevel === 'ADDRESS_PROOF') {
-            addrType = 'Personal';
-            subAddrType = 'Present';
+            addrType = 'Personal'; subAddrType = 'Present';
             residenceAsKYC = ApzCOB.getPayloadDatafromWrapper('currentAddressProof', 'Applicant', 'addressDetailsWrapperList')
             if (/voter|kyc/.test(residenceAsKYC.toLowerCase())) selectedDocLevel = 'PRIMARY_KYC';
         } else if (selectedDocLevel === 'BUSINESS_ADDRESS_PROOF') {
-            addrType = 'Occupation';
-            subAddrType = 'Office';
+            addrType = 'Occupation';  subAddrType = 'Office';
             let businessAsKYC = ApzCOB.getPayloadDatafromWrapper('businessAddressProof', custType, 'occupationDetailsWrapperList');
             if (/voter|kyc/.test(businessAsKYC.toLowerCase())) selectedDocLevel = 'PRIMARY_KYC';
         }
@@ -14722,7 +14665,7 @@ ApzCOB = {
         rpcCompareLeftIndex = 0;
         let fileNameFromSD = ApzCOB.getFileName(pcount);
         if (fileNameFromSD) {
-            window.ImageLocationDetails = {
+          window.ImageLocationDetails = {
                 latitude: window.stageDocuments[pcount].payload.latitude || "",
                 longitude: window.stageDocuments[pcount].payload.longitude || "",
                 uploadedTs: window.stageDocuments[pcount].payload.uploadedTs || "",
@@ -14739,13 +14682,11 @@ ApzCOB = {
         window.filteredDocumentArray = [];
         var custId = ApzCOB.getCustDetailID(custType);
         if (selectedDocLevel === 'ADDRESS_PROOF') {
-            addrType = 'Personal';
-            subAddrType = 'Present';
+            addrType = 'Personal'; subAddrType = 'Present';
             residenceAsKYC = ApzCOB.getPayloadDatafromWrapper('currentAddressProof', 'Applicant', 'addressDetailsWrapperList')
             if (/voter|kyc/.test(residenceAsKYC.toLowerCase())) selectedDocLevel = 'PRIMARY_KYC';
         } else if (selectedDocLevel === 'BUSINESS_ADDRESS_PROOF') {
-            addrType = 'Occupation';
-            subAddrType = 'Office';
+            addrType = 'Occupation';  subAddrType = 'Office';
             bussAddrTag = ApzCOB.getPayloadDatafromWrapper('addressSameAs', custType, 'addressDetailsWrapperList') === "Present";
             let businessAsKYC = ApzCOB.getPayloadDatafromWrapper('businessAddressProof', custType, 'occupationDetailsWrapperList');
             if (/voter|kyc/.test(businessAsKYC.toLowerCase())) {
@@ -14761,8 +14702,7 @@ ApzCOB = {
         selectedDocTypeArray = docArray.filter(doc => doc.payload.documentType === selectedDocLevel);
         let panStatusVal = ApzCOB.getPayloadDatafromWrapper('panNumberStatus', custType, 'customerDetailsList') === 'Verified';
         if (selectedDocLevel === 'PRIMARY_KYC' && panStatusVal) {
-            selectedDocTypeArray = docArray.filter(doc => doc.payload.documentType === selectedDocLevel || doc.payload.documentType ===
-                'PAN_NUMBER_PHOTO');
+            selectedDocTypeArray = docArray.filter(doc => doc.payload.documentType === selectedDocLevel || doc.payload.documentType === 'PAN_NUMBER_PHOTO');
         }
         if (selectedDocLevel === 'ADDITIONAL_DOCUMENTS') {
             selectedDocTypeArray = docArray.filter(doc => doc.payload.isAdiDoc === 'Y');
@@ -14906,20 +14846,17 @@ ApzCOB = {
                 queriestage3ts = inSessionStore?.dbKitStatDetails.filter(el => el.stageID == 3)
                 if (RPCDBVerify_STAGES[apz.childScr].id === 1) {
                     apz.app.RPCDBVerify.queriestimeStamp(queriestage1ts);
-                    $("#RPCDBV__RPCdbsanctionDtl__queryDisplay_txtcnt").text("Queries (RPC DB verification ," + LoggedInUserDetails
-                        ?.loginResponse?.userDet?.id + " " + formattedTimestamp + ")");
+                    $("#RPCDBV__RPCdbsanctionDtl__queryDisplay_txtcnt").text("Queries (RPC DB verification ," + LoggedInUserDetails?.loginResponse?.userDet?.id + " " + formattedTimestamp + ")");
                     sanctionTS = formattedTimestamp;
                 }
                 if (RPCDBVerify_STAGES[apz.childScr].id === 2) {
                     apz.app.RPCDBVerify.queriestimeStamp(queriestage2ts);
-                    $("#RPCDBV__RPCDBeNach__EqueryDisplay_txtcnt").text("Queries (RPC DB verification ," + LoggedInUserDetails?.loginResponse
-                        ?.userDet?.id + " " + formattedTimestamp + ")");
+                    $("#RPCDBV__RPCDBeNach__EqueryDisplay_txtcnt").text("Queries (RPC DB verification ," + LoggedInUserDetails?.loginResponse?.userDet?.id + " " + formattedTimestamp + ")");
                     eNachTS = formattedTimestamp;
                 }
                 if (RPCDBVerify_STAGES[apz.childScr].id === 3) {
                     apz.app.RPCDBVerify.queriestimeStamp(queriestage2ts);
-                    $("#RPCDBV__RPCDBUdyamReg__UqueryDisplay_txtcnt").text("Queries (RPC DB verification ," + LoggedInUserDetails
-                        ?.loginResponse?.userDet?.id + " " + formattedTimestamp + ")");
+                    $("#RPCDBV__RPCDBUdyamReg__UqueryDisplay_txtcnt").text("Queries (RPC DB verification ," + LoggedInUserDetails?.loginResponse?.userDet?.id + " " + formattedTimestamp + ")");
                     udyamTS = formattedTimestamp;
                 }
                 if (RPCDBVerify_STAGES[apz.childScr].id === 4) {
@@ -15028,8 +14965,7 @@ ApzCOB = {
             }
             if (pthis.id === `RPC__${RPC_CURRENT_STAGE}__mobileNumberInput`) moblengthErr = false;
             $input.next(".err").remove();
-            lengthValidationErr =
-                `<span class='err' style='color: red; font-size: 12px;'>Please enter minimum:${minlength} & maximum:${maxlength} characters.!</span>`
+            lengthValidationErr = `<span class='err' style='color: red; font-size: 12px;'>Please enter minimum:${minlength} & maximum:${maxlength} characters.!</span>`
             $(lengthValidationErr).insertAfter($input); // fieldValidationErr
             /*if (apz.isNull($('#DBkitG__eNach__ifsc').val())) {
                 $("#" + scrId + "verifyACC").addClass('sno');
@@ -15133,8 +15069,7 @@ ApzCOB = {
             }
         } else if (modalType === "Success") {
             let currentScreenId = '';
-            if (apz.childScr == "Saloandetails" || apz.childScr == "CaotherDetails" || apz.childScr == "CaIncomeDetails" || apz.childScr ===
-                'LUCDetails' || apz.childScr == "AadhaarDetails" || apz.childScr == "documentCapture") {
+            if (apz.childScr == "Saloandetails" || apz.childScr == "CaotherDetails" || apz.childScr == "CaIncomeDetails" || apz.childScr === 'LUCDetails' || apz.childScr == "AadhaarDetails" || apz.childScr == "documentCapture") {
                 currentScreenId = currScrId;
                 $(`#${currentScreenId}successText_txtcnt`).html(propObj.text);
                 $(`#${currentScreenId}succBtn_txtcnt`).text(propObj.Btn1.text);
@@ -15213,8 +15148,7 @@ ApzCOB = {
         return isExist;
     },
     rpcVerifyStages: function() {
-        if (gApzCOB.selectedRole == 'RPC_Maker' && $("#RPC__BankAccountProofRPC__pennyCheckBtnId").is(":enabled") && $(`.fieldEditedTag`).is(
-                ':visible')) {
+        if (gApzCOB.selectedRole == 'RPC_Maker' && $("#RPC__BankAccountProofRPC__pennyCheckBtnId").is(":enabled") && $(`.fieldEditedTag`).is(':visible')) {
             ApzCOB.fnDisplayMsg("Please complete the penny check.", "E");
             return;
         }
@@ -15247,8 +15181,7 @@ ApzCOB = {
                         apz.stopLoader();
                         return;
                     } else {
-                        let errMsgBRE =
-                            `BRE failed due to ${rejectRsn}.<br/>Remaining retry attempts: ${retry_Attempts}.<br/>Do you want to rehit BRE?`
+                        let errMsgBRE = `BRE failed due to ${rejectRsn}.<br/>Remaining retry attempts: ${retry_Attempts}.<br/>Do you want to rehit BRE?`
                         if (irisMsg?.includes('bureauError') && !irisMsg?.includes('roll')) {
                             errMsgBRE = `BRE failed due to ${rejectRsn}.<br/>Do you want to rehit BRE?`
                         }
@@ -15435,16 +15368,10 @@ ApzCOB = {
             }
             ApzCOB.addDisableToInput('RPCDBV__RPCDBVerify__AccpetNextbtn');
             popUpObj = {
-                text: "Processing Data! Please wait...",
-                Btn1: {
-                    text: "",
-                    onClick: ""
-                },
-                Btn2: {
-                    text: "",
-                    onClick: ""
-                }
-            };
+                    text: "Processing Data! Please wait...",
+                    Btn1: { text: "", onClick: "" },
+                    Btn2: { text: "", onClick: "" }
+                };
             ApzCOB.showNewCommonConfirmationModal(popUpObj);
             setTimeout(() => {
                 // apz.startLoader();
@@ -15473,9 +15400,7 @@ ApzCOB = {
                 ApzCOB.updateSideMenuStatusTags();
                 //apz.app.RPCFooter.updateQueriesWithLatestDateTime();
                 //ApzCOB.moveToNextStageOnVerification();
-                if ((RPCDBVerify_STAGES[apz.childScr].id == 1 && window.sanctionDtlsQueries.length !== 0) || (RPCDBVerify_STAGES[apz.childScr]
-                        .id == 2 && window.eNachQueries.length !== 0) || (RPCDBVerify_STAGES[apz.childScr].id == 3 && window.udyamQueries
-                        .length !== 0) || (RPCDBVerify_STAGES[apz.childScr].id == 4 && inSessionStore.dbVerificationQueries.length !== 0)) {
+                if ((RPCDBVerify_STAGES[apz.childScr].id == 1 && window.sanctionDtlsQueries.length !== 0) || (RPCDBVerify_STAGES[apz.childScr].id == 2 && window.eNachQueries.length !== 0) || (RPCDBVerify_STAGES[apz.childScr].id == 3 && window.udyamQueries.length !== 0) || (RPCDBVerify_STAGES[apz.childScr].id == 4 && inSessionStore.dbVerificationQueries.length !== 0)) {
                     apz.app.RPCDBVerify.addErrorStatus(`${DBVerifyscrId}stage_${RPCDBVerify_STAGES[apz.childScr].id }`);
                 } else {
                     apz.app.RPCDBVerify.addCompleteStatus(`${DBVerifyscrId}stage_${RPCDBVerify_STAGES[apz.childScr].id }`);
@@ -15726,17 +15651,13 @@ ApzCOB = {
         let editedKeys = '';
         editedKeys = ApzCOB.checkIfRPCSendback();
         if (!editedKeys) return rpcStepperStatus;
-
         function isStageVerified(stageID, subMenu) {
-            verifiedStgData = inSessionStore.verifiedStage?.find(el => el.split('_')[0] === stageID && custTypeToSubMenu[el.split('_')[1]]
-                .toString() === subMenu);
-            return apz.isNull(verifiedStgData) ? false : true;
+            verifiedStgData = inSessionStore.verifiedStage?.find(el => el.split('_')[0] === stageID && custTypeToSubMenu[el.split('_')[1]].toString() === subMenu);
+            return apz.isNull(verifiedStgData) ? false: true;
         }
-
         function checkQueryExists(stageID, subMenu) {
-            queryData = inSessionStore.rpcStatDetails?.find(el => el.stageID === stageID && custTypeToSubMenu[el.custType] === subMenu && el
-                .query.length > 0);
-            return (apz.isNull(queryData)) ? false : true;
+            queryData = inSessionStore.rpcStatDetails?.find(el => el.stageID === stageID && custTypeToSubMenu[el.custType] === subMenu && el.query.length > 0);
+            return (apz.isNull(queryData)) ? false: true;
         }
         const updatedStepperStatus = rpcStepperStatus.map(entry => {
             isStgVerified = isStageVerified(entry.stageID.toString(), entry.subMenu.toString())
@@ -15753,21 +15674,18 @@ ApzCOB = {
         let editedKeys = '';
         let lastTimeline = inSessionStore.applicationTimelineDtl[inSessionStore.applicationTimelineDtl.length - 1];
         let lastSecondTimeline = inSessionStore.applicationTimelineDtl?.[inSessionStore.applicationTimelineDtl.length - 2];
-        if (lastTimeline.actionTaken === "RPC Pushback By" && lastTimeline.stage === "RPC Checker" && lastTimeline.hasOwnProperty(
-                "rpcStatRemaks")) {
+        if(lastTimeline.actionTaken === "RPC Pushback By" && lastTimeline.stage === "RPC Checker" && lastTimeline.hasOwnProperty("rpcStatRemaks")) {
             editedKeys = new Set(lastTimeline.rpcStatRemaks.filter(item => item.query.length > 0).map(item =>
                 `${item.stageID}_${custTypeToSubMenu[item.custType]}`));
-        } else if (lastTimeline.actionTaken === "Submitted By" && lastTimeline.stage.includes("KM") && lastTimeline.hasOwnProperty(
-            "remarks")) {
+        } else if (lastTimeline.actionTaken === "Submitted By" && lastTimeline.stage.includes("KM") && lastTimeline.hasOwnProperty("remarks")) {
             if (lastTimeline.remarks.includes(`"response":`)) {
                 let lastSendbackTM = inSessionStore.applicationTimelineDtl[inSessionStore.applicationTimelineDtl.length - 2];
                 if (lastSendbackTM.stage.includes('RPC') && lastSendbackTM.hasOwnProperty("rpcStatRemaks")) {
                     editedKeys = new Set(lastSendbackTM.rpcStatRemaks.filter(item => item.query.length > 0).map(item =>
-                        `${item.stageID}_${custTypeToSubMenu[item.custType]}`));
+                `${item.stageID}_${custTypeToSubMenu[item.custType]}`));
                 }
             }
-        } else if (lastSecondTimeline?.actionTaken === "RPC Pushback By" && lastSecondTimeline?.stage === "RPC Checker" && lastSecondTimeline
-            ?.hasOwnProperty("rpcStatRemaks")) {
+        } else if (lastSecondTimeline?.actionTaken === "RPC Pushback By" && lastSecondTimeline?.stage === "RPC Checker" && lastSecondTimeline?.hasOwnProperty("rpcStatRemaks")) {
             editedKeys = new Set(lastSecondTimeline.rpcStatRemaks.filter(item => item.query.length > 0).map(item =>
                 `${item.stageID}_${custTypeToSubMenu[item.custType]}`));
         }
@@ -15913,8 +15831,7 @@ ApzCOB = {
         };
         if (!cbStatus) {
             if (!retry_Attempts || retry_Attempts === 0) {
-                let errMsgBRE =
-                `CB retrigger limit exceeded.Reject the application.<br/>Reject reason: ${cibilDtls?.rejectionReason ?? '-'}.`;
+                let errMsgBRE = `CB retrigger limit exceeded.Reject the application.<br/>Reject reason: ${cibilDtls?.rejectionReason ?? '-'}.`;
                 if (cibilDtls?.irisMessage?.includes('success')) {
                     errMsgBRE = `CB check failed!.Reject the application.<br/>Reject reason: ${cibilDtls?.rejectionReason ?? '-'}.`
                 }
@@ -15929,8 +15846,7 @@ ApzCOB = {
                 apz.stopLoader();
                 return;
             } else {
-                let errMsgBRE =
-                    `BRE failed due to ${rejectRsn}.<br/>Remaining retry attempts: ${retry_Attempts}.<br/>Do you want to rehit BRE?`
+                let errMsgBRE = `BRE failed due to ${rejectRsn}.<br/>Remaining retry attempts: ${retry_Attempts}.<br/>Do you want to rehit BRE?`
                 if (cibilDtls?.irisMessage?.includes('bureauError') && !cibilDtls?.irisMessage?.includes('roll')) {
                     errMsgBRE = `BRE failed due to ${rejectRsn}.<br/>Do you want to rehit BRE?`
                 }
@@ -16270,8 +16186,7 @@ ApzCOB = {
             $(`#${docSecScrId}Compare_btn`).click();
         }*/
         if (COMPARE_DOC_TYPES.length > 0) {
-            additionalDocs = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList.filter(id => id.payload.isAdiDoc ===
-                'Y' && id.custDtlId === ApzCOB.getCustDetailID(custType));
+            additionalDocs = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList.filter(id => id.payload.isAdiDoc === 'Y' && id.custDtlId === ApzCOB.getCustDetailID(custType));
             let stageWrapper = RPC_SCREEN_WRAPPER.find(screen => screen.stage_id === RPC_CURRENT_STAGE_NO);
             if (RPC_CURRENT_STAGE_NO === 9) {
                 var additionalDocTypes = []
@@ -16293,8 +16208,7 @@ ApzCOB = {
                                 }
                                 let isDuplicate = docToShow.some(doc => doc.doctype === obj.doctype);
                                 if (!isDuplicate) {
-                                    if ((obj.doctype === "Employment proof" && occObj[custType] !== 'Salaried') || (obj
-                                            .doctype === "Relationship proof" && custType === 'Co-App')) return;
+                                    if ((obj.doctype === "Employment proof" && occObj[custType] !== 'Salaried') || (obj.doctype === "Relationship proof" && custType === 'Co-App')) return;
                                     docToShow.push(obj);
                                 }
                             }
@@ -16333,13 +16247,11 @@ ApzCOB = {
         setTimeout(() => {
             var activityIntfId = 'APZCBO__ActivityLog__o__APZCBO__ActivityLog_Res__'
             let arr = [];
-            let timeLineWrapper = structuredClone ? structuredClone(inSessionStore.applicationTimelineDtl) : JSON.parse(JSON
-                .stringify(inSessionStore.applicationTimelineDtl))
+            let timeLineWrapper = structuredClone ? structuredClone(inSessionStore.applicationTimelineDtl) : JSON.parse(JSON.stringify(inSessionStore.applicationTimelineDtl))
             timeLineWrapper.forEach(function(el, index) {
                 timeStamp = '---';
                 if (el?.timeStamp.includes(' ')) {
-                    timeStamp = typeof(el.timeStamp) === 'string' ? ApzCOB.dateformatter(el.timeStamp.replace(' ', 'T'),
-                        "date", "d/m/Y") : '---';
+                    timeStamp = typeof(el.timeStamp) === 'string' ? ApzCOB.dateformatter(el.timeStamp.replace(' ', 'T'), "date", "d/m/Y") : '---';
                 }
                 if (Array.isArray(el?.rpcStatRemaks)) {
                     el.rpcStatRemaks = ApzCOB.getQueryValues(el.rpcStatRemaks, el);
@@ -16356,12 +16268,10 @@ ApzCOB = {
                         if (remarksArray.length > 0) {
                             remarksArray.map(remark => {
                                 let [stageId = '', queryId = ''] = remark?.split('_') || [];
-                                const currentStage = CA_ALL_STAGE_FIELDS.find(caData => caData.id === Number(
-                                stageId));
+                                const currentStage = CA_ALL_STAGE_FIELDS.find(caData => caData.id === Number(stageId));
                                 let currentQueries = JSON.parse(currentStage?.queries || '{}').sendbackReason || [];
                                 if (queryId.includes('R')) {
-                                    currentQueries = JSON.parse(currentStage?.rejectReasons || '{}')
-                                    .rejectReason || [];
+                                    currentQueries = JSON.parse(currentStage?.rejectReasons || '{}').rejectReason || [];
                                 }
                                 const queryDesc = currentQueries.find(q => q.id === queryId);
                                 if (queryDesc?.value) {
@@ -16398,11 +16308,9 @@ ApzCOB = {
                 let lobj = {
                     "stage": apz.isNull(el?.stage) ? "---" : el?.stage,
                     "action": apz.isNull(el?.actionTaken) ? "---" : el?.actionTaken,
-                    "userName": apz.isNull(el?.userId) ? "---" : (el?.userId.includes('SYSTEM') ? el?.userId.replace(
-                        "SYSTEM(SYSTEM)", "Auto Approved") : el?.userId),
+                    "userName": apz.isNull(el?.userId) ? "---" : (el?.userId.includes('SYSTEM') ? el?.userId.replace("SYSTEM(SYSTEM)", "Auto Approved") : el?.userId),
                     "actionTimeline": timeStamp,
-                    "rpcStatRemaks": (apz.isNull(el?.rpcStatRemaks) || el?.rpcStatRemaks.length === 0) ? "---" : el
-                        ?.rpcStatRemaks,
+                    "rpcStatRemaks": (apz.isNull(el?.rpcStatRemaks) || el?.rpcStatRemaks.length === 0) ? "---" : el?.rpcStatRemaks,
                     "remarks": el?.remarks ? el?.remarks : "---"
                 }
                 arr.push(lobj);
@@ -16455,8 +16363,7 @@ ApzCOB = {
         const allQueries = [];
         let stageData = [];
         if (decodeRemarkStages.includes(tracker.stage) && tracker.stage !== "Disbursement Kit Verification") {
-            let sanctionStage = tracker.stage === "Pre Sanction" ? "ReAssessment" : tracker.stage === "Resanction" ? "Sanction" : tracker
-                .stage;
+            let sanctionStage = tracker.stage === "Pre Sanction" ? "ReAssessment" : tracker.stage === "Resanction" ? "Sanction" : tracker.stage;
             const sanctionEntry = SANCTION_QUERIES.find(sa => sa.stage_name.toLocaleLowerCase() === sanctionStage.toLocaleLowerCase());
             let stageQueries = [];
             if (apz.isNull(sanctionEntry)) {
@@ -16482,24 +16389,15 @@ ApzCOB = {
             });
         } else {
             if (Array.isArray(queryArray)) {
-                queryArray.forEach(({
-                    custType,
-                    query,
-                    stageID
-                }, index) => {
-                    if (apz.isNull(custType) && queryArray.some(item => item.includes('_')) && tracker.stage ===
-                        "Disbursement Kit Verification") {
+                queryArray.forEach(({ custType, query, stageID }, index) => {
+                    if (apz.isNull(custType) && queryArray.some(item => item.includes('_')) && tracker.stage === "Disbursement Kit Verification") {
                         [stageID, query, TS] = queryArray[index].split('_');
                         stageID = parseInt(stageID);
                         custType = 'A';
                     }
                     if (!apz.isNull(tracker.stage)) {
                         if (tracker.stage === 'Disbursement Kit' || tracker.stage === "Disbursement Kit Verification") {
-                            const stageIdMap = {
-                                1: 8,
-                                2: 9,
-                                3: 10
-                            };
+                            const stageIdMap = {1: 8, 2: 9, 3: 10};
                             let currentStage = DBKIT_MASTERDATA.find(dbData => dbData.id === stageID);
                             if (tracker.stage === "Disbursement Kit Verification") {
                                 mappedStageID = stageIdMap[stageID]; // e.g., 3 => 10
@@ -16878,8 +16776,7 @@ ApzCOB = {
                 ApzCOB.launchURL(eNachRespObj?.urlString);
                 apz.app.eNach.updateENachRespinSessionStore(eNachRespObj);
                 if (custType === 'Co-App') {
-                    inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList = inSessionStore
-                        .applicationDocumentsWrapperList[0].applicationDocumentsList.filter(el => el.documentType !== 'DBBankUpdate');
+                    inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList.filter(el => el.documentType !== 'DBBankUpdate');
                 }
                 ApzCOB.checkTransactionStatus(eNachReqId, custType);
             } else {
@@ -16921,14 +16818,12 @@ ApzCOB = {
                     apz.stopLoader();
                     let ApplresDesc = (ApzCOB.getPayloadDatafromWrapper("resDesc", "Applicant", "enachDetails") || '').toLowerCase();
                     let CoAppresDesc = (ApzCOB.getPayloadDatafromWrapper("resDesc", "Co-App", "enachDetails") || '').toLowerCase();
-                    if (custType === 'Applicant' && !apz.isNull(CoAppresDesc) && CoAppresDesc === 'pending' && window.firstStatusCall !==
-                        'Co-App') {
+                    if (custType === 'Applicant' && !apz.isNull(CoAppresDesc) && CoAppresDesc === 'pending' && window.firstStatusCall !== 'Co-App') {
                         window.firstStatusCall = 'Co-App';
                         coAppEnachData.enachReqId = ApzCOB.getPayloadDatafromWrapper("enachReqId", "Co-App", "enachDetails");
                         ApzCOB.checkTransactionStatus(coAppEnachData.enachReqId, 'Co-App', 'No');
                         return;
-                    } else if (custType === 'Co-App' && !apz.isNull(ApplresDesc) && ApplresDesc === 'pending' && window.firstStatusCall !==
-                        'Applicant') {
+                    } else if (custType === 'Co-App' && !apz.isNull(ApplresDesc) && ApplresDesc === 'pending' && window.firstStatusCall !== 'Applicant') {
                         window.firstStatusCall = 'Applicant';
                         appEnachData.enachReqId = ApzCOB.getPayloadDatafromWrapper("enachReqId", "Applicant", "enachDetails");
                         ApzCOB.checkTransactionStatus(appEnachData.enachReqId, appEnachData.customerType, 'No');
@@ -17075,8 +16970,7 @@ ApzCOB = {
                             process = 'SINGLE_DOC';
                             mergeFlag = 'Y';
                         } else {
-                            docType = DisbursementDocs[parseInt($('#DBkitG__DocExecutionManual__docsList .active').attr("rowNo"))]
-                                ?.docType;
+                            docType = DisbursementDocs[parseInt($('#DBkitG__DocExecutionManual__docsList .active').attr("rowNo"))]?.docType;
                             process = 'Manual';
                         }
                     } else {
@@ -17205,8 +17099,7 @@ ApzCOB = {
                 var ifaceName = ApzCOB.GetInterfaceResMap(params);
                 responseObj = params.res[ifaceName].apiResponse.ResponseBody.responseObj;
                 if (typeof responseObj === 'string' && responseObj.includes('written')) {
-                    let gRowNo = '',
-                        docType = '';
+                    let gRowNo = '', docType = '';
                     if (DB_CURRENT_STAGE_NO === 4) {
                         if (currApplLanguage === "Malayalam" || currApplLanguage === "Odia") {
                             ApzCOB.showNewCommonSuccessModal('Document uploaded successfully!');
@@ -17582,8 +17475,7 @@ ApzCOB = {
             if (inSessionStore.applicationTimelineDtl.length > 0) {
                 let lastWrkflwData = inSessionStore.applicationTimelineDtl[inSessionStore.applicationTimelineDtl.length - 1];
                 if (lastWrkflwData.actionTaken.includes('Sent Back')) {
-                    if ((lastWrkflwData.stage === "RPC Maker" || lastWrkflwData.stage === "RPC Checker") && gApzCOB.userDetails
-                        .applicationStatus === 'IPUSHBACK') {
+                    if ((lastWrkflwData.stage === "RPC Maker" || lastWrkflwData.stage === "RPC Checker") && gApzCOB.userDetails.applicationStatus === 'IPUSHBACK') {
                         if (lastWrkflwData.rpcStatRemaks.length > 0) {
                             workflowQueries = structuredClone(lastWrkflwData.rpcStatRemaks);
                         }
@@ -17594,10 +17486,7 @@ ApzCOB = {
                             let workflowQueriesPre = lastWrkflwData.remarks.split('|');
                             workflowQueries = workflowQueriesPre.map(item => {
                                 const [stageID, query] = item.split('_');
-                                return {
-                                    stageID,
-                                    query
-                                };
+                                return { stageID, query };
                             });
                         } else if (!apz.isNull(lastWrkflwData.rpcStatRemaks)) {
                             if (lastWrkflwData.rpcStatRemaks.length > 0) {
@@ -17645,11 +17534,7 @@ ApzCOB = {
                             allQueries = queriesRaised;
                         }
                     } else if (!apz.isNull(stageData.rpcStatRemaks)) {
-                        stageData.rpcStatRemaks.forEach(({
-                            custType,
-                            query,
-                            stageID
-                        }) => {
+                        stageData.rpcStatRemaks.forEach(({ custType, query, stageID }) => {
                             const currentStage = DBKIT_MASTERDATA.find(dbData => dbData.id === stageID);
                             let currentQueries = [];
                             if (action === 'rejectReasons') {
@@ -17695,8 +17580,7 @@ ApzCOB = {
                         if (stageData.remarks?.includes('CB FAILED')) {
                             allQueries = stageData.remarks;
                         } else if (remarkArray?.length > 0 && !stageData.remarks?.includes('CB FAILED')) {
-                            sanctionStage = stageData.stage === "Pre Sanction" ? "ReAssessment" : stageData.stage === "Resanction" ?
-                                "Sanction" : stageData.stage;
+                            sanctionStage = stageData.stage === "Pre Sanction" ? "ReAssessment" : stageData.stage === "Resanction" ? "Sanction" : stageData.stage;
                             sanctionEntry = SANCTION_QUERIES.find(sa => sa.stage_name.toLowerCase() === sanctionStage.toLowerCase());
                             stageQueries = [];
                             if (apz.isNull(sanctionEntry)) {
@@ -17843,8 +17727,7 @@ ApzCOB = {
                 curStages.forEach(rpcStage => {
                     const rpcRaisedQueries = workflowQueries.filter(query => query.stageID === rpcStage);
                     rpcRaisedQueries.forEach(rpcQuery => {
-                        const queryDescription = RPC_ALL_STAGE_QUERIES.find(q => q.custType === rpcQuery.custType && q
-                            .stageID === rpcQuery.stageID);
+                        const queryDescription = RPC_ALL_STAGE_QUERIES.find(q => q.custType === rpcQuery.custType && q.stageID === rpcQuery.stageID);
                         if (!apz.isObjectEmpty(queryDescription)) {
                             const queryInfo = queryDescription.query || [];
                             const customerType = rpcQuery.custType === "A" ? "Applicant" : "Co-APP";
@@ -17874,8 +17757,7 @@ ApzCOB = {
                             queryDescVal = queries.query.split('?')[1] || '';
                         }
                         if (apz.isNull(queryDescVal)) {
-                            const queryDescription = CA_ALL_STAGE_FIELDS.find(q => Number(q.id) === Number(queries
-                                .stageID));
+                            const queryDescription = CA_ALL_STAGE_FIELDS.find(q => Number(q.id) === Number(queries.stageID));
                             if (!apz.isObjectEmpty(queryDescription)) {
                                 const queryInfo = queryDescription.queries || {};
                                 const queryInfoParsed = JSON.parse(queryInfo).sendbackReason || [];
@@ -17892,10 +17774,8 @@ ApzCOB = {
                                             }
                                         }
                                         if (!apz.isNull(queryDescVal)) {
-                                            const customerType = (queries.custType === "C" || queries
-                                                .custType === "R") ? "Co-APP" : "Applicant";
-                                            SOURCING_SENDBACK_QUERIES?.[stage]?.[customerType]?.query.push(
-                                                queryDescVal);
+                                            const customerType = (queries.custType === "C" || queries.custType === "R") ? "Co-APP" : "Applicant";
+                                            SOURCING_SENDBACK_QUERIES?.[stage]?.[customerType]?.query.push(queryDescVal);
                                         }
                                     });
                                 } else {
@@ -17980,8 +17860,7 @@ ApzCOB = {
         const pad = (num) => String(num).padStart(2, '0');
         let formatted = '';
         if (datetimeObj.hasOwnProperty('time')) {
-            formatted =
-                `${pad(datetimeObj.date.day)}/${pad(datetimeObj.date.month)}/${datetimeObj.date.year} - ${pad(datetimeObj.time.hour)}:${pad(datetimeObj.time.minute)}:${pad(datetimeObj.time.second)}`;
+            formatted = `${pad(datetimeObj.date.day)}/${pad(datetimeObj.date.month)}/${datetimeObj.date.year} - ${pad(datetimeObj.time.hour)}:${pad(datetimeObj.time.minute)}:${pad(datetimeObj.time.second)}`;
         } else {
             if (!datetimeObj.hasOwnProperty('date')) {
                 datetimeObj = {

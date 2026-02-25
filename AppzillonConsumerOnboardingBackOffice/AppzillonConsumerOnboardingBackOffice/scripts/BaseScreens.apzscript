@@ -5,7 +5,7 @@
 var BaseScrId = 'APZCBO__BaseScreens__';
 window.pageCount = 1;
 window.IS_MDM_REQUIRED = false;
-window.RT_REQ = false;
+window.RT_REQ = true;
 window.RPC_REV_CONF_VAL_REQ = true;
 window.panVerified = "";
 window.ApplicationType = 'NEW';
@@ -2764,7 +2764,7 @@ apz.app.BaseScreens.revieweditflow = function(pthis) {
     window.clickList = false;
     let goRow = growNo ?? '';
     var screenType = apz.app.Dashboard.setScreenType();
-    ApzCOB.launchMicroApp('Dashbo', 'ReviewConfirm', gAppId + '__BaseScreens__BaseDIV', {
+    ApzCOB.launchMicroApp('KmSourc', 'Kmbase', gAppId + '__BaseScreens__BaseDIV', {
         "screenType": screenType,
         "rowNum": goRow
     });
@@ -2836,6 +2836,7 @@ apz.app.BaseScreens.launchMicroApp = function(param) {
             ApzCOB.launchMicroApp(param.MicroAppID, param.ScreenID, BaseScrId + "STAGE" + baseRow, "");
         }
     } else {
+        param.MicroAppID = 'KmSourc', param.ScreenID = "Kmbase";
         ApzCOB.launchMicroApp(param.MicroAppID, param.ScreenID, BaseScrId + "STAGE" + baseRow, "");
     }
 };
