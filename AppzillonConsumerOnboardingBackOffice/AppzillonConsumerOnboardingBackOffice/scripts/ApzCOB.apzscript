@@ -6888,7 +6888,7 @@ ApzCOB = {
         } else if (apz.childScr === "LoanDetails") {
             window.tempFileArr = apz.app.LoanDetails.selectedFileData("");
         } else if (apz.childScr === 'Saloandetails' || apz.currAppId === 'DBkitG' || apz.childScr === 'CaotherDetails' || apz.childScr ===
-            'CaIncomeDetails' || apz.childScr === 'LUCDetails' || apz.childScr === 'AadhaarDetails' || apz.childScr === 'Kmbase') {
+            'CaIncomeDetails' || apz.childScr === 'LUCDetails' || apz.childScr === 'AadhaarDetails' || apz.childScr === 'Kmbase' || apz.childScr==='documentCapture') {
             window.tempFileArr = ApzCOB.getDocDetailsById(docId);
         }
         let callBackFunc = callBackFn || ApzCOB.deleteDocumentCB;
