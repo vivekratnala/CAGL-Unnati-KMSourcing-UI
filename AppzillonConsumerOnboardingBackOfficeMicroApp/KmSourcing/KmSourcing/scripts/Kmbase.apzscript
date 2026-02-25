@@ -218,35 +218,27 @@ apz.app.Kmbase.cameraCallback = function(params) {
     const custPrefix = isApplicant ? "Applicant" : "Co-applicant";
     const docType = TempImageObject?.Type || "";
     let finalName = "Document";
-    let addPrefix = true;
-    if (docType === "residenceimg") {
+    if (docType === "RESIDENCE_PREMISE_PHOTO") {
         finalName = "Residence Photo";
-    } else if (docType === "customerimg") {
-        finalName = "Photo";
-    } else if (docType === "presentaddrimg" || docType === "permanentaddrimg") {
+    } else if (docType === "CUSTOMER_PHOTOGRAPH") {
+        finalName = `${custPrefix}_Photo`;
+    } else if (docType === "ADDRESS_PROOF") {
         const addrProofId = AadhaarScrId + "addressProof";
-        let selected = $("#" + addrProofId + " option:selected").text();
-        if (!selected || selected === "Please Select") {
-            selected = "Address Proof";
-        }
-        finalName = selected;
-        addPrefix = false;
-    } else if (docType === "relationproofimg") {
+        let selected = $("#" + addrProofId).val()?.trim();
+        finalName = (selected && selected !== "Please Select") ? selected : "Address Proof";
+    } else if (docType === "RELATIONSHIP_PROOF") {
         const relId = AadhaarScrId + "relationshipProof";
-        let selected = $("#" + relId + " option:selected").text();
-        if (!selected || selected === "Please Select") {
-            selected = "Relationship Proof";
-        }
-        finalName = selected;
-        addPrefix = false;
+        let selected = $("#" + relId).val()?.trim();
+        finalName = (selected && selected !== "Please Select") ? selected : "Relationship Proof";
     }
-    const finalFileName = addPrefix ? `${custPrefix} ${finalName}` : `${finalName}`;
+    const finalFileName = finalName;
     apz.app.Kmbase.saveDocument(finalFileName, params.encodedImage);
 };
 apz.app.Kmbase.saveDocument = function(fileName, base64) {
+    let fileNameWithExt = fileName.includes('.jpg') ? fileName : fileName + '.jpg';
     let docLevel = "1";
-    let ActiveCustType = "Applicant";
-    docLevel = ApzCOB.getNextDocLevel(`${TempImageObject?.Type} Doc`, ApzCOB.getCustDetailID(ActiveCustType));
+    docLevel = ApzCOB.getNextDocLevel(`${TempImageObject?.Type} Doc`, gApzCOB.currentApplicant === 1 ? gApzCOB.userDetails.custDtlId : gApzCOB
+        .userDetails.CoApplicantCustomerId);
     let req = {
         apiRequest: {
             "requestObj": {
@@ -255,14 +247,14 @@ apz.app.Kmbase.saveDocument = function(fileName, base64) {
                 "versionNum": 1,
                 "stageId": "UPLOADDOCS",
                 "requestType": "Edit",
-                "customerType": "Applicant",
+                "customerType": gApzCOB.currentApplicant === 1 ? "Applicant" : "Co-App",
                 "uploadDocumentRequestFields": {
                     "versionNum": 1,
                     "applicationId": gApzCOB.userDetails.applicationId,
                     "appId": gApzCOB.userDetails.appId,
                     "srcScreen": "UPLOADDOCS",
                     "filePath": gApzCOB.userDetails.appId + /LOAN/ + gApzCOB.userDetails.applicationId,
-                    "fileName": fileName,
+                    "fileName": fileNameWithExt,
                     "base64Value": base64,
                     "productGroupCode": "LOAN",
                     "isExistingCustomer": "N"
@@ -287,8 +279,8 @@ apz.app.Kmbase.saveDocument = function(fileName, base64) {
                             "docStatus": "A",
                             "docSide": "Front",
                             "docSize": ApzCOB.getBase64FileSizeInBytes(base64),
-                            "documentFileName": fileName,
-                            "documentFormat": fileName,
+                            "documentFileName": fileName, // ← clean name WITHOUT .jpg
+                            "documentFormat": fileNameWithExt, // ← WITH .jpg for server
                             "isAdiDoc": "N",
                             "uploadedBy": "KM",
                             "latitude": window.currentGeoCords?.latitude,
@@ -302,12 +294,13 @@ apz.app.Kmbase.saveDocument = function(fileName, base64) {
             "appId": gApzCOB.userDetails.appId,
             "interfaceName": "UploadRPCLoanData"
         }
-    }
-    req.apiRequest.requestObj.applicationDocumentsWrapperList[0].applicationDocumentsList[0].custDtlId = ApzCOB.getCustDetailID("Applicant");
+    };
+    req.apiRequest.requestObj.applicationDocumentsWrapperList[0].applicationDocumentsList[0].custDtlId = gApzCOB.currentApplicant === 1 ? gApzCOB
+        .userDetails.custDtlId : gApzCOB.userDetails.CoApplicantCustomerId;
     apz.startLoader();
     setTimeout(() => {
         ApzCOB.serverBuildParam(gAppId, "UploadRPCLoanData", "N", "N", req, false, apz.app.Kmbase.saveDocumentCB);
-    }, 1000)
+    }, 1000);
 };
 apz.app.Kmbase.saveDocumentCB = function(params) {
     const docType = params.req.apiRequest.requestObj.applicationDocumentsWrapperList[0].applicationDocumentsList[0].payload.documentType;
@@ -330,70 +323,100 @@ apz.app.Kmbase.paintDocumentName = function(docType) {
     var AadhaarScrId = 'KmSourc__AadhaarDetails__';
     var documentCaptureScrId = 'KmSourc__documentCapture__';
     if (apz.isObjectEmpty(inSessionStore) || !inSessionStore.hasOwnProperty('applicationDocumentsWrapperList')) return;
-    let documentResp = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList
+    let documentResp = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList;
     if (documentResp.length > 0) {
-        window.custimg = documentResp.filter(docs => docs.payload.documentType === docType && parseInt(docs.custDtlId) === parseInt(gApzCOB
-            .userDetails.custDtlId));
-        if (custimg.length >= 0) {
-            if (docType === "customerimg Doc") {
-                cloneDiv = `${AadhaarScrId}custimg_1`;
-                parentDiv = $(`#${AadhaarScrId}custImg`);
-                parentDiv.html('');
-            } else if (docType === "residenceimg Doc") {
-                cloneDiv = `${AadhaarScrId}resImg_1`;
-                parentDiv = $(`#${AadhaarScrId}resImg`);
-                parentDiv.html('');
-            } else if (docType === "permanentaddrimg Doc") {
-                cloneDiv = `${AadhaarScrId}permanentAddrImg_1`;
-                parentDiv = $(`#${AadhaarScrId}permanentAddrImg`);
-                parentDiv.html('');
-            } else if (docType === "presentaddrimg Doc") {
-                cloneDiv = `${AadhaarScrId}presentAddrImg_1`;
-                parentDiv = $(`#${AadhaarScrId}presentAddrImg`);
-                parentDiv.html('');
-            } else if (docType === "relationproofimg Doc") {
-                cloneDiv = `${AadhaarScrId}relImg_1`;
-                parentDiv = $(`#${AadhaarScrId}relImg`);
-                parentDiv.html('');
-            } else if (docType === "frontimg Doc") {
-                cloneDiv = `${documentCaptureScrId}frontImg_1`;
-                parentDiv = $(`#${documentCaptureScrId}frontImg`);
-                parentDiv.html('');
-            } else if (docType === "backimg Doc") {
-                cloneDiv = `${documentCaptureScrId}backImg_1`;
-                parentDiv = $(`#${documentCaptureScrId}backImg`);
-                parentDiv.html('');
-            }
-            custimg.forEach((doc, index) => {
+        let custDtlId = gApzCOB.currentApplicant === 1 ? gApzCOB.userDetails.custDtlId : gApzCOB.userDetails.CoApplicantCustomerId;
+        window.custimg = documentResp.filter(docs => docs.payload.documentType === docType && parseInt(docs.custDtlId) === parseInt(custDtlId));
+        if (docType === "CUSTOMER_PHOTOGRAPH Doc") {
+            cloneDiv = `${AadhaarScrId}custimg_1`;
+            parentDiv = $(`#${AadhaarScrId}custImg`);
+        } else if (docType === "RESIDENCE_PREMISE_PHOTO Doc") {
+            cloneDiv = `${AadhaarScrId}resImg_1`;
+            parentDiv = $(`#${AadhaarScrId}resImg`);
+        } else if (docType === "ADDRESS_PROOF Doc") {
+            // Paint both present and permanent
+            cloneDiv = `${AadhaarScrId}presentAddrImg_1`;
+            parentDiv = $(`#${AadhaarScrId}presentAddrImg`);
+            parentDiv.html('');
+            window.custimg.forEach((doc, index) => {
                 let newId = ApzCOB.cloneDashboardDivs(cloneDiv, parentDiv, index + 1);
-                let baseName = doc.payload.documentFileName.match(/^[^\d]+/)[0];
-                var el = $(`#${newId}`);
+                let baseName = doc.payload.documentFileName.replace(/\.jpg$/i, '').replace(/\.jpeg$/i, '').replace(/\.png$/i, '').replace(
+                    /_\d+$/, '').trim();
+              
                 $(`#${newId} .docName a.ett-hypl span`).text(`${baseName}_${index + 1}.jpg`);
                 $(`#${newId}`).attr('data-id', doc.appDocId);
                 $(`#${newId}`).attr('data-doc-type', docType);
                 $(`#${newId}`).removeClass('sno');
-                ApzCOB.fnDisplayMsg(el.attr("class"));
-                // Luc__LUCDetails__purpose_img_name_2_txtcnt
-            })
+            });
+            cloneDiv = `${AadhaarScrId}permanentAddrImg_1`;
+            parentDiv = $(`#${AadhaarScrId}permanentAddrImg`);
+            parentDiv.html('');
+            window.custimg.forEach((doc, index) => {
+                let newId = ApzCOB.cloneDashboardDivs(cloneDiv, parentDiv, index + 1);
+                let baseName = doc.payload.documentFileName.replace(/\.jpg$/i, '').replace(/\.jpeg$/i, '').replace(/\.png$/i, '').replace(
+                    /_\d+$/, '').trim();
+               
+                $(`#${newId} .docName a.ett-hypl span`).text(`${baseName}_${index + 1}.jpg`);
+                $(`#${newId}`).attr('data-id', doc.appDocId);
+                $(`#${newId}`).attr('data-doc-type', docType);
+                $(`#${newId}`).removeClass('sno');
+            });
+            return; // already handled above
+        } else if (docType === "RELATIONSHIP_PROOF Doc") {
+            cloneDiv = `${AadhaarScrId}relImg_1`;
+            parentDiv = $(`#${AadhaarScrId}relImg`);
+        } else if (docType === "frontimg Doc") {
+            cloneDiv = `${documentCaptureScrId}frontImg_1`;
+            parentDiv = $(`#${documentCaptureScrId}frontImg`);
+        } else if (docType === "backimg Doc") {
+            cloneDiv = `${documentCaptureScrId}backImg_1`;
+            parentDiv = $(`#${documentCaptureScrId}backImg`);
+        } else {
+            return;
         }
+        parentDiv.html('');
+        window.custimg.forEach((doc, index) => {
+            let newId = ApzCOB.cloneDashboardDivs(cloneDiv, parentDiv, index + 1);
+            let baseName = doc.payload.documentFileName.replace(/\.jpg$/i, '').replace(/\.jpeg$/i, '').replace(/\.png$/i, '').replace(
+                /_\d+$/, '').trim();
+           
+            $(`#${newId} .docName a.ett-hypl span`).text(`${baseName}_${index + 1}.jpg`);
+            $(`#${newId}`).attr('data-id', doc.appDocId);
+            $(`#${newId}`).attr('data-doc-type', docType);
+            $(`#${newId}`).removeClass('sno');
+        });
     }
 };
+// Paint all existing documents on load / tab switch
+apz.app.Kmbase.paintAllDocuments = function() {
+    const docTypes = ["CUSTOMER_PHOTOGRAPH Doc", "RESIDENCE_PREMISE_PHOTO Doc", "ADDRESS_PROOF Doc", "RELATIONSHIP_PROOF Doc"];
+    docTypes.forEach(docType => {
+        apz.app.Kmbase.paintDocumentName(docType);
+    });
+};
 apz.app.Kmbase.viewDocument = function(pthis) {
-    let documentId = $(pthis).parents('.uploadimg').attr('data-id');
+    console.log("view");
+    let $uploadDiv = $(pthis).closest('.uploadimg');
+    let documentId = $uploadDiv.attr('data-id');
+    if (!documentId) {
+        ApzCOB.fnDisplayMsg("Document is not available");
+        return;
+    }
     let docDetails = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList.find(doc => parseInt(doc.appDocId) === parseInt(
         documentId));
     if (!apz.isObjectEmpty(docDetails)) {
-        let fileName = docDetails?.payload?.documentFileName;
-        let callBackFn = apz.app.Kmbase.viewDocumentCB;
+        let fileName = docDetails?.payload?.documentFormat || (docDetails?.payload?.documentFileName + ".jpg");
         window.ImageLocationDetails = {
             latitude: docDetails?.payload?.latitude || "",
             longitude: docDetails?.payload?.longitude || "",
             uploadedTs: docDetails?.payload?.uploadedTs || "",
             documentFileName: docDetails?.payload?.documentFileName || ""
         };
-        ApzCOB.downloadFileFromServer(fileName, callBackFn);
+        ApzCOB.downloadFileFromServer(fileName, apz.app.Kmbase.viewDocumentCB);
+    } else {
+        ApzCOB.fnDisplayMsg("Document is not available");
     }
-}
+};
 apz.app.Kmbase.viewDocumentCB = function(params) {
     apz.stopLoader();
     if (!apz.isNull(params.base64)) {
@@ -410,22 +433,23 @@ apz.app.Kmbase.viewDocumentCB = function(params) {
     }
 };
 apz.app.Kmbase.deleteDocument = function(pthis) {
-    let documentId = $(pthis).parents('.uploadimg').attr('data-id');
-    docDeleteType = $(pthis).parents('.uploadimg').attr('data-doc-type');
-    if (!apz.isNull(documentId)) {
-        let popUpObj = {};
-        popUpObj.text = "Do you want to delete this document?";
-        popUpObj.Btn1 = {
-            "text": "Yes",
-            "onClick": `apz.app.Kmbase.deleteDocumentCnfm(${documentId})`
+    let $uploadDiv = $(pthis).closest('.uploadimg');
+    let documentId = $uploadDiv.attr('data-id');
+    docDeleteType = $uploadDiv.attr('data-doc-type');
+    if (!documentId) return;
+    let popUpObj = {
+        text: "Do you want to delete this document?",
+        Btn1: {
+            text: "Yes",
+            onClick: `apz.app.Kmbase.deleteDocumentCnfm(${documentId})`
+        },
+        Btn2: {
+            text: "No",
+            onClick: "apz.app.Kmbase.closeDeleteCnfmModal()"
         }
-        popUpObj.Btn2 = {
-            "text": "No",
-            "onClick": "apz.app.Kmbase.closeDeleteCnfmModal()"
-        }
-        ApzCOB.showRpcModals(popUpObj, "confirmation");
-    }
-}
+    };
+    ApzCOB.showRpcModals(popUpObj, "confirmation");
+};
 apz.app.Kmbase.deleteDocumentCnfm = function(docId) {
     let callBackFn = apz.app.Kmbase.deleteDocumentCnfmCB;
     ApzCOB.deleteDocument('', '', '', docId, callBackFn)

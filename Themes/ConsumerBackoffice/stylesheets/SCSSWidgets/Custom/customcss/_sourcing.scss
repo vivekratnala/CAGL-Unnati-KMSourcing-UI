@@ -427,21 +427,24 @@
 #KmSourc__Kmbase__otpInfoText {
     font-weight: 600 !important;
 }
-
-.pan-verified-btn {
-    background-color: #d4edda !important;
-    color: #2e7d32 !important;
-    border: 1px solid #2e7d32 !important;
-    border-radius: 30px !important;
-    padding: 6px 16px !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 8px !important;
-    font-weight: 600 !important;
+.ocr-confirm-btn
+{
+    margin-left: auto !important
 }
-
-.pan-verified-btn:hover {
-    background-color: #d4edda !important;
-    color: #2e7d32 !important;
-    border: 1px solid #2e7d32 !important;
+.doc-upload-title{
+    font-size: 16px;
+    color: #231F20;
+    font-weight: 700;
+    line-height: 24px;
+    letter-spacing: 0px;
+}
+.doc-upload-desc{
+    font-size: 16px;
+    color: #231F20;
+    font-weight: 600;
+    line-height: 24px;
+    letter-spacing: 0px;
+}
+span#KmSourc__AadhaarDetails__communicationAddress {
+    white-space: nowrap !important;
 }
