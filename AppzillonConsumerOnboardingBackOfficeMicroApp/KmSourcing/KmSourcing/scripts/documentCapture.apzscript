@@ -122,6 +122,8 @@ apz.app.onLoad_documentCapture = function() {
             apz.app.documentCapture.PanVerification();
         });
     }
+
+     apz.app.Kmbase.paintAllDocuments();
 };
 apz.app.updateFieldLabel = function(screenPrefix, fieldName, newText) {
     if (!screenPrefix || !fieldName || !newText) return;
