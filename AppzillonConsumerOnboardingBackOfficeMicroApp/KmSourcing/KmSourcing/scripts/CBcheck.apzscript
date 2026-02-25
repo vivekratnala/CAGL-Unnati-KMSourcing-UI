@@ -3,12 +3,16 @@ window.CBcheckScr = 'KmSourc__CBcheck__';
 var screenId = 'KmSourc__CBcheck__';
 var otpScreenId = 'KmSourc__Kmbase__';
 window.CB_LOAN_ID = null;
-// var paintKYCId = 'KmSourc__IPaintKYCDetails__o__KmSourc__IPaintKYCDetails_Res__';
+IS_MOBILE_DEDUPE_REQ = true;
 //  OTP GLOBAL STATE
 window.CB_OTP_TIMER = null;
 window.CB_OTP_TIME_LEFT = 150;
 window.CB_OTP_RESEND_COUNT = 0;
 window.CB_OTP_MAX_RESEND = 3;
+window.CB_API_TRIGGERED = {
+    applicant: false,
+    coapplicant: false
+};
 window.CB_FORM_STATE = {
     applicant: {
         validated: false
@@ -112,6 +116,25 @@ window.CB_Validate = {
 };
 //   ON LOAD
 apz.app.onLoad_CBcheck = function() {
+    if (apz.isNull(gApzCOB.requestNodes.customerDetailsList)) {
+        gApzCOB.requestNodes.customerDetailsList = [];
+    }
+    
+    let existingApplicant =
+        gApzCOB.requestNodes.customerDetailsList.find(c =>
+            c.customerType === "Applicant"
+        );
+    
+    if (!existingApplicant && !apz.isNull(gApzCOB.userDetails?.custDtlId)) {
+    
+        gApzCOB.requestNodes.customerDetailsList.push({
+            custDtlId: gApzCOB.userDetails.custDtlId,
+            customerType: "Applicant",
+            customerName: "",
+            mobileNumber: "",
+            payload: {}
+        });
+    }
     gApzCOB.currentApplicant = 1;
     PerDetScrId = CBcheckScr;
     $('.cb-otp-protected').addClass('sno');
@@ -130,17 +153,16 @@ apz.app.onLoad_CBcheck = function() {
         ApzCOB.getDescfromLitCode("LIT_COMM_MSG_PLEASE_SELECT")
     ]));
     $(`#${CBcheckScr}subLoanPurpose`).attr('disabled', true);
-        let leadData = gApzCOB?.selLeadDtls ?? inSessionStore.leadDetails;
-        var kendraFreq = leadData?.kendraMeetingFreq || '';
-        if (kendraFreq === "WEEKLY") {
+    let leadData = gApzCOB?.selLeadDtls ?? inSessionStore.leadDetails;
+    var kendraFreq = leadData?.kendraMeetingFreq || '';
+    if (kendraFreq === "WEEKLY") {
         filteredFrequencies = frequencyOfRepayment.slice(0, 4);
     } else if (kendraFreq === "BIWEEKLY") {
-        filteredFrequencies = [0, 2, 3].map(i => frequencyOfRepayment[i]);   
+        filteredFrequencies = [0, 2, 3].map(i => frequencyOfRepayment[i]);
     } else {
-        filteredFrequencies = [0, 3].map(i => frequencyOfRepayment[i]);   
+        filteredFrequencies = [0, 3].map(i => frequencyOfRepayment[i]);
     }
     apz.populateDropdown(document.getElementById(`${CBcheckScr}frequencyOfRepayment`), ApzCOB.formatDropDownforArray(filteredFrequencies));
-    // apz.populateDropdown(document.getElementById(`${CBcheckScr}frequencyOfRepayment`), ApzCOB.formatDropDownforArray(frequencyOfRepayment));
     apz.populateDropdown(document.getElementById(`${CBcheckScr}coGender`), ApzCOB.formatDropDownforArray(gender));
     ApzCOB.setMinMaxLength([{
         'fieldName': 'Name',
@@ -176,27 +198,10 @@ apz.app.onLoad_CBcheck = function() {
         'fieldName': 'State',
         'fieldId': CBcheckScr + 'addPreState'
     }]);
-    // apz.app.CBcheck.paintLoanDetails();
     apz.app.CBcheck.togglePanView();
-    // apz.app.CBcheck.paintDetails();    
-    // apz.app.CBcheck.paintCustomerAndKycDetails();
     $("#scr__" + screenId + "main").on("mousedown", "input, select", function() {
         clearFieldError(this.id);
     });
-    // $(`#${screenId}primaryMobile`).on('input', function() {
-    //     this.value = this.value.replace(/[^0-9]/g, '');
-    //     let newMobile = $(this).val();
-    //     let isApplicant = gApzCOB.currentApplicant <= 1;
-    //     let state = isApplicant ? CB_OTP_STATE.applicant : CB_OTP_STATE.coapplicant;
-    //     if (state.verified && state.mobile !== newMobile) {
-    //         state.verified = false;
-    //         state.mobile = null;
-    //         $('#' + screenId + 'otpSuccessRow').addClass('sno');
-    //         $('#' + screenId + 'sendOtpBtn').removeClass('sno');
-    //         apz.app.CBcheck.toggleOtpProtectedSections();
-    //         ApzCOB.fnDisplayMsg("Mobile changed. Please verify OTP again.", "W");
-    //     }
-    // });
     $(`#${screenId}primaryMobile`).on('input', function() {
         this.value = this.value.replace(/[^0-9]/g, '');
         let newMobile = $(this).val();
@@ -249,35 +254,15 @@ apz.app.onLoad_CBcheck = function() {
     }
 };
 //   TAB SWITCH
-// apz.app.CBcheck.handletabSwitch = function(pthis, CustType) {
-//     clearAllTabErrors();
-//     $('.cbcheckSubMenu').removeClass('active');
-//     $(pthis).addClass('active');
-//     if (CustType === 'Applicant') {
-//         gApzCOB.currentApplicant = 1;
-//         $('.src-coapp').hide();
-//         $('.src-app').show();
-//     } else {
-//         gApzCOB.currentApplicant = 2;
-//         $('.src-app').hide();
-//         $('.src-coapp').show();
-//     }
-//     // apz.app.CBcheck.paintLoanDetails();
-//     // apz.app.CBcheck.paintCustomerAndKycDetails();
-//     let isApplicant = gApzCOB.currentApplicant <= 1;
-//     let custId = isApplicant ? gApzCOB.userDetails.custDtlId : gApzCOB.userDetails.CoApplicantCustomerId;
-//     apz.app.CBcheck.paintDetails();
-//     apz.app.CBcheck.refreshOtpUI();
-//     apz.app.CBcheck.togglePostValidationSections();
-//     if (apz.isNull(custId)) {
-//         apz.app.CBcheck.clearForm();
-//         apz.app.CBcheck.resetApplicantStates();
-//     }
-// };
 apz.app.CBcheck.handletabSwitch = function(pthis, CustType) {
     clearAllTabErrors();
     $('.cbcheckSubMenu').removeClass('active');
     $(pthis).addClass('active');
+        $('input[name="' + screenId + 'panVal_"][value="Y"]').prop('checked', true);
+    apz.app.CBcheck.togglePanView();
+    /* =========================================
+       TAB SWITCH
+    ========================================= */
     if (CustType === 'Applicant') {
         gApzCOB.currentApplicant = 1;
         $('.src-coapp').hide();
@@ -286,14 +271,64 @@ apz.app.CBcheck.handletabSwitch = function(pthis, CustType) {
         gApzCOB.currentApplicant = 2;
         $('.src-app').hide();
         $('.src-coapp').show();
+        /* =========================================
+           ENSURE CO-APPLICANT WRAPPER EXISTS
+        ========================================= */
+        if (!apz.isNull(gApzCOB.requestNodes)) {
+            if (apz.isNull(gApzCOB.requestNodes.customerDetailsList)) {
+                gApzCOB.requestNodes.customerDetailsList = [];
+            }
+            let custList = gApzCOB.requestNodes.customerDetailsList;
+            let existingCoApplicant = custList.find(c => c.customerType === "Co-App");
+            if (!existingCoApplicant) {
+                    let newCustDtlId = Date.now();
+                let newWrapper = {
+                    custDtlId: newCustDtlId,
+                    customerType: "Co-App",
+                    customerName: "",
+                    mobileNumber: "",
+                    payload: {
+                        relationShipWithApplicant: ""
+                    }
+                };
+                custList.push(newWrapper);
+                /* Link ID to userDetails (IMPORTANT) */
+                if (!apz.isNull(gApzCOB.userDetails)) {
+                    gApzCOB.userDetails.CoApplicantCustomerId = newCustDtlId;
+                }
+            }
+        }
     }
-    apz.app.CBcheck.paintDetails();
-    cibilDtls = {};
-    apz.app.CBcheck.restoreCbFromSession();
+    /* =========================================
+       CLEAR FORM BEFORE PAINT
+    ========================================= */
+    apz.app.CBcheck.clearForm();
     
-    console.log("Switched to:", gApzCOB.currentApplicant);
+//     apz.app.CBcheck.clearCbUI();
+// apz.app.CBcheck.resetApplicantStates();
 
-
+    /* =========================================
+       PAINT DETAILS
+    ========================================= */
+    apz.app.CBcheck.paintDetails();
+    /* =========================================
+       RESTORE CB SESSION DATA
+    ========================================= */
+    let custId = apz.app.CBcheck.getCurrentCustId();
+    if (!apz.isNull(inSessionStore.cibilDetailsWrapperList)) {
+        let existing = inSessionStore.cibilDetailsWrapperList.find(el => parseInt(el.cibilDetails.custDtlId) === parseInt(custId));
+        if (existing && existing.cibilDetails.payload) {
+            cibilDtls = JSON.parse(JSON.stringify(existing.cibilDetails.payload));
+            apz.app.CBcheck.paintCbDetails(cibilDtls);
+            apz.app.CBcheck.applyCbDecisionUI();
+            apz.app.CBcheck.applyApiStatusUI();
+            $('.cb-result-section').removeClass('sno');
+        } else {
+            apz.app.CBcheck.clearCbUI();
+        }
+    } else {
+        apz.app.CBcheck.clearCbUI();
+    }
 };
 //   BUILD SUB PURPOSE DROPDOWN
 apz.app.CBcheck.buildSubPurposeDropdown = function(selectedPurpose) {
@@ -316,20 +351,6 @@ apz.app.CBcheck.onChangeLoanPurpose = function(pthis) {
     ApzCOB.dropDownOnChange(pthis);
 };
 //   SLIDER
-// apz.app.CBcheck.showSlider = function() {
-//     $("#" + screenId + "loanSlider").slider({
-//         range: "min",
-//         value: parseInt(fdAmountMin),
-//         min: parseInt(fdAmountMin),
-//         max: parseInt(fdAmountMax),
-//         slide: function(event, ui) {
-//             ui.value = Math.round(ui.value / 1000) * 1000;
-//             $("#" + screenId + "loanAmount").val("\u20B9"+" "+ApzCOB.fn_FormatAmount(ui.value)).trigger("onchange");
-//         }
-//     }).slider("pips", {
-//         rest: false
-//     }).slider("float");
-// };
 apz.app.CBcheck.showSlider = function() {
     $("#" + screenId + "loanSlider").slider({
         range: "min",
@@ -345,14 +366,11 @@ apz.app.CBcheck.showSlider = function() {
             $("#" + screenId + "loanAmount").val("\u20B9" + " " + ApzCOB.fn_FormatAmount(ui.value));
         },
         stop: function(event, ui) {
-            // apz.app.LoanDetails.onChangeofdepoAmountSlider();
             ui.value = Math.round(ui.value / 1000) * 1000;
             $("#" + screenId + "loanAmount").val("\u20B9" + " " + ApzCOB.fn_FormatAmount(ui.value));
         }
     }).slider("pips", {
         rest: false,
-        //step: ((fdAmountMax - fdAmountMin) / 2) / 5
-        //step: fdAmountMin
     }).slider("float");
 }
 apz.app.CBcheck.setDefaultSliderValue = function() {
@@ -528,21 +546,12 @@ apz.app.CBcheck.formValidator = function() {
     let pincodeId = screenId + "pincode";
     clearFieldError(address1Id);
     check(CB_Validate.required(address1Id, "Address line 1 is required"));
-    // if ($("#" + address1Id).val()) {
-    //     check(CB_Validate.lengthRange(address1Id, 8, 30, "Address must be 8-30 characters"));
-    // }
     clearFieldError(pincodeId);
     check(CB_Validate.required(pincodeId, "Pincode is required"));
-    // if ($("#" + pincodeId).val()) {
-    //     check(CB_Validate.regex(pincodeId, /^[0-9]{6}$/, "Pincode must be 6 digits"));
-    // }
     if (!isApplicant) {
         let coNameId = screenId + "coCustomerName";
         clearFieldError(coNameId);
         check(CB_Validate.required(coNameId, "Co-applicant name is required"));
-        // if ($("#" + coNameId).val()) {
-        //     check(CB_Validate.regex(coNameId, /^[A-Za-z ]+$/, "Only alphabets allowed"));
-        // }
         check(CB_Validate.required(screenId + "relationShipWithApplicant", "Select relationship"));
         check(CB_Validate.required(screenId + "coGender", "Gender is required"));
         check(CB_Validate.required(screenId + "coDob", "Date of birth is required"));
@@ -716,23 +725,6 @@ function clearAllTabErrors() {
     // Remove all error message divs
     $(".cb-error-msg").remove();
 }
-// apz.app.CBcheck.toggleOtpProtectedSections = function() {
-//     let isApplicant = gApzCOB.currentApplicant <= 1;
-//     // USE UI UNLOCK FLAG (NOT MOBILE MATCH)
-//     let isUnlocked = isApplicant ? CB_OTP_UI_UNLOCK.applicant : CB_OTP_UI_UNLOCK.coapplicant;
-//     // Hide everything first
-//     $('.cb-otp-protected').addClass('sno');
-//     // If not unlocked, stop here
-//     if (!isUnlocked) return;
-//     // Show common sections
-//     $('.cb-otp-common').removeClass('sno');
-//     // Show tab-specific sections
-//     if (isApplicant) {
-//         $('.src-app.cb-otp-protected').removeClass('sno');
-//     } else {
-//         $('.src-coapp.cb-otp-protected').removeClass('sno');
-//     }
-// };
 apz.app.CBcheck.toggleOtpProtectedSections = function() {
     let isApplicant = gApzCOB.currentApplicant <= 1;
     let isUnlocked = isApplicant ? CB_OTP_UI_UNLOCK.applicant : CB_OTP_UI_UNLOCK.coapplicant;
@@ -766,176 +758,65 @@ apz.app.CBcheck.togglePostValidationSections = function() {
         $('.src-coapp.cb-post-validated').removeClass('sno');
     }
 };
-// apz.app.CBcheck.paintDetails = function () {
-//     /* =========================================
-//       SAFETY CHECK (Same as PersonalDetails)
-//     ========================================= */
-//     if (apz.isNull(gApzCOB.requestNodes) ||
-//         apz.isNull(gApzCOB.requestNodes.customerDetailsList) ||
-//         gApzCOB.requestNodes.customerDetailsList.length === 0) {
-//         return;
-//     }
-//     /* =========================================
-//       IDENTIFY CURRENT APPLICANT
-//     ========================================= */
-//     let isApplicant = gApzCOB.currentApplicant <= 1;
-//     let custId = isApplicant
-//         ? gApzCOB.userDetails.custDtlId
-//         : gApzCOB.userDetails.CoApplicantCustomerId;
-//     if (apz.isNull(custId)) {
-//         return;   // Fresh co-applicant case
-//     }
-//     /* =========================================
-//       FIND CUSTOMER WRAPPER
-//     ========================================= */
-//     let custWrapper =
-//         gApzCOB.requestNodes.customerDetailsList.find(c =>
-//             parseInt(c.custDtlId) === parseInt(custId)
-//         );
-//     if (apz.isNull(custWrapper) || apz.isNull(custWrapper.payload)) {
-//         return;
-//     }
-//     let payload = custWrapper.payload;
-//     /* =========================================
-//       BASIC DETAILS
-//     ========================================= */
-//     if (isApplicant) {
-//         $('#' + screenId + 'customerName')
-//             .val(custWrapper.customerName || "");
-//         $('#' + screenId + 'dob')
-//             .val(payload.dob || "");
-//         $('#' + screenId + 'age')
-//             .val(payload.age || "");
-//         $('#' + screenId + 'gender')
-//             .val(payload.gender || "");
-//         $('#' + screenId + 'fatherName')
-//             .val(payload.fathersName || "");
-//         $('#' + screenId + 'spouseName')
-//             .val(payload.spouseName || "");
-//     } else {
-//         $('#' + screenId + 'coCustomerName')
-//             .val(custWrapper.customerName || "");
-//         $('#' + screenId + 'coDob')
-//             .val(payload.dob || "");
-//         $('#' + screenId + 'coAge')
-//             .val(payload.age || "");
-//         $('#' + screenId + 'coGender')
-//             .val(payload.gender || "");
-//         $('#' + screenId + 'relationShipWithApplicant')
-//             .val(payload.relationShipWithApplicant || PleaseSelect);
-//     }
-//     /* =========================================
-//       KYC DETAILS
-//     ========================================= */
-//     $('#' + screenId + 'nameAsPerVoter')
-//         .val(payload.namePerKyc || "");
-//     $('#' + screenId + 'voterId')
-//         .val(payload.primaryKycId || "");
-//     $('#' + screenId + 'alternateVoterId')
-//         .val(payload.alternateVoterId || "");
-//     $('#' + screenId + 'ckycNumber')
-//         .val(payload.ckyc || "");
-//     /* =========================================
-//       MOBILE DETAILS
-//     ========================================= */
-//     $('#' + screenId + 'primaryMobile')
-//         .val(custWrapper.mobileNumber || "");
-//     $('#' + screenId + 'sec_mobile')
-//         .val(payload.secMobileNo || "");
-//     /* =========================================
-//       ADDRESS 
-//     ========================================= */
-//     if (!apz.isNull(gApzCOB.requestNodes.addressDetailsWrapperList) &&
-//         gApzCOB.requestNodes.addressDetailsWrapperList.length > 0) {
-//         let addressDetailsList =
-//             gApzCOB.requestNodes.addressDetailsWrapperList[0]
-//                 .addressDetailsList;
-//         if (!apz.isNull(addressDetailsList) &&
-//             addressDetailsList.length > 0) {
-//             let addressObj =
-//                 addressDetailsList.find(a =>
-//                     parseInt(a.custDtlId) === parseInt(custId)
-//                 );
-//             if (!apz.isNull(addressObj) &&
-//                 !apz.isNull(addressObj.payload) &&
-//                 !apz.isNull(addressObj.payload.addressList) &&
-//                 addressObj.payload.addressList.length > 0) {
-//                 let addr = addressObj.payload.addressList[0];
-//                 $('#' + screenId + 'addressLine1')
-//                     .val(addr.addressLine1 || "");
-//                 $('#' + screenId + 'addressLine2')
-//                     .val(addr.addressLine2 || "");
-//                 $('#' + screenId + 'addressLine3')
-//                     .val(addr.addressLine3 || "");
-//                 $('#' + screenId + 'addPreCity')
-//                     .val(addr.city || "");
-//                 $('#' + screenId + 'addPreDistrict')
-//                     .val(addr.district || "");
-//                 $('#' + screenId + 'addPreState')
-//                     .val(addr.state || "");
-//                 $('#' + screenId + 'pincode')
-//                     .val(addr.pinCode || "");
-//             }
-//         }
-//     }
-//     /* =========================================
-//       UI STATE RESTORE
-//     ========================================= */
-//     apz.app.CBcheck.refreshOtpUI();
-//     apz.app.CBcheck.toggleOtpProtectedSections();
-//     apz.app.CBcheck.togglePostValidationSections();
-// };
 apz.app.CBcheck.paintDetails = function() {
-    if (window.editappln || !window.JointFlow) {
-        /* ===========================
-           Resolve Data Source 
-        =========================== */
-        var custdata = apz.isNull(gApzCOB["requestNodes"]["customerDetailsList"]) ? "" : gApzCOB["requestNodes"]["customerDetailsList"];
-        custdata = apz.isNull(window.inSessionStore.customerDetailsList) ? JSON.parse(JSON.stringify(custdata)) : window.inSessionStore
-            .customerDetailsList;
-        var index = gApzCOB.currentApplicant - 1;
-        /* ===========================
-           Paint Customer Details
-        =========================== */
-        if (!apz.isNull(custdata[index])) {
-            if (!apz.isNull(custdata[index]["payload"])) {
-                var payload = custdata[index]["payload"];
-                if (!apz.isNull(custdata[index]["customerName"])) {
-                    if (index === 0) {
-                        $('#' + screenId + 'customerName').val(custdata[index]["customerName"]);
-                    } else {
-                        $('#' + screenId + 'coCustomerName').val(custdata[index]["customerName"]);
-                    }
-                }
-                $('#' + screenId + (index === 0 ? 'dob' : 'coDob')).val(payload["dob"] || "");
-                $('#' + screenId + (index === 0 ? 'age' : 'coAge')).val(payload["age"] || "");
-                $('#' + screenId + (index === 0 ? 'gender' : 'coGender')).val(payload["gender"] || "");
-                if (index === 1) {
-                    $('#' + screenId + 'relationShipWithApplicant').val(payload["relationShipWithApplicant"] || PleaseSelect);
-                }
-                /* KYC */
-                $('#' + screenId + 'nameAsPerVoter').val(payload["namePerKyc"] || "");
-                $('#' + screenId + 'voterId').val(payload["primaryKycId"] || "");
-                $('#' + screenId + 'alternateVoterId').val(payload["alternateVoterId"] || "");
-                $('#' + screenId + 'ckycNumber').val(payload["ckyc"] || "");
-                /* Mobile */
-                $('#' + screenId + 'primaryMobile').val(custdata[index]["mobileNumber"] || "");
-                $('#' + screenId + 'sec_mobile').val(payload["secMobileNo"] || "");
-            }
-        }
-        /* ===========================
-           Address Paint 
-        =========================== */
-        var addressWrapper = apz.isNull(gApzCOB["requestNodes"]["addressDetailsWrapperList"]) ? "" : gApzCOB["requestNodes"][
-            "addressDetailsWrapperList"
-        ];
-        addressWrapper = apz.isNull(window.inSessionStore.addressDetailsWrapperList) ? JSON.parse(JSON.stringify(addressWrapper)) : window
-            .inSessionStore.addressDetailsWrapperList;
-        if (!apz.isNull(addressWrapper) && !apz.isNull(addressWrapper[0]) && !apz.isNull(addressWrapper[0].addressDetailsList) && !apz.isNull(
-                addressWrapper[0].addressDetailsList[index])) {
-            var addressObj = addressWrapper[0].addressDetailsList[index];
-            if (!apz.isNull(addressObj.payload) && !apz.isNull(addressObj.payload.addressList) && addressObj.payload.addressList.length > 0) {
-                var addr = addressObj.payload.addressList[0];
+    /* =========================================
+      SAFETY CHECK
+    ========================================= */
+    if (apz.isNull(gApzCOB.requestNodes) || apz.isNull(gApzCOB.requestNodes.customerDetailsList) || gApzCOB.requestNodes.customerDetailsList
+        .length === 0) {
+        return;
+    }
+    /* =========================================
+      IDENTIFY CURRENT APPLICANT
+    ========================================= */
+    let isApplicant = gApzCOB.currentApplicant === 1;
+    let custWrapper = gApzCOB.requestNodes.customerDetailsList.find(c => isApplicant ? c.customerType === "Applicant" : c.customerType ===
+        "Co-App");
+    if (apz.isNull(custWrapper) || apz.isNull(custWrapper.payload)) {
+        return;
+    }
+    let custId = custWrapper.custDtlId;
+    if (apz.isNull(custWrapper) || apz.isNull(custWrapper.payload)) {
+        return;
+    }
+    let payload = custWrapper.payload;
+    /* =========================================
+      BASIC DETAILS
+    ========================================= */
+    if (isApplicant) {
+        $('#' + screenId + 'customerName').val(custWrapper.customerName || "");
+        $('#' + screenId + 'dob').val(payload.dob || "");
+        $('#' + screenId + 'age').val(payload.age || "");
+        $('#' + screenId + 'gender').val(payload.gender || "");
+    } else {
+        $('#' + screenId + 'coCustomerName').val(custWrapper.customerName || "");
+        $('#' + screenId + 'coDob').val(payload.dob || "");
+        $('#' + screenId + 'coAge').val(payload.age || "");
+        $('#' + screenId + 'coGender').val(payload.gender || "");
+        $('#' + screenId + 'relationShipWithApplicant').val(payload.relationShipWithApplicant || PleaseSelect);
+    }
+    /* =========================================
+      KYC
+    ========================================= */
+    $('#' + screenId + 'nameAsPerVoter').val(payload.namePerKyc || "");
+    $('#' + screenId + 'voterId').val(payload.primaryKycId || "");
+    $('#' + screenId + 'alternateVoterId').val(payload.alternateVoterId || "");
+    $('#' + screenId + 'ckycNumber').val(payload.ckyc || "");
+    /* =========================================
+      MOBILE
+    ========================================= */
+    $('#' + screenId + 'primaryMobile').val(custWrapper.mobileNumber || "");
+    $('#' + screenId + 'sec_mobile').val(payload.secMobileNo || "");
+    /* =========================================
+      ADDRESS (Same Pattern)
+    ========================================= */
+    if (!apz.isNull(gApzCOB.requestNodes.addressDetailsWrapperList) && gApzCOB.requestNodes.addressDetailsWrapperList.length > 0) {
+        let addressDetailsList = gApzCOB.requestNodes.addressDetailsWrapperList[0].addressDetailsList;
+        if (!apz.isNull(addressDetailsList)) {
+            let addressObj = addressDetailsList.find(a => parseInt(a.custDtlId) === parseInt(custId));
+            if (!apz.isNull(addressObj) && !apz.isNull(addressObj.payload) && !apz.isNull(addressObj.payload.addressList) && addressObj.payload
+                .addressList.length > 0) {
+                let addr = addressObj.payload.addressList[0];
                 $('#' + screenId + 'addressLine1').val(addr.addressLine1 || "");
                 $('#' + screenId + 'addressLine2').val(addr.addressLine2 || "");
                 $('#' + screenId + 'addressLine3').val(addr.addressLine3 || "");
@@ -945,12 +826,13 @@ apz.app.CBcheck.paintDetails = function() {
                 $('#' + screenId + 'pincode').val(addr.pinCode || "");
             }
         }
-        /* ===========================
-           Restore UI State
-        =========================== */
-        apz.app.CBcheck.refreshOtpUI();
-        apz.app.CBcheck.togglePostValidationSections();
     }
+    /* =========================================
+      UI STATE RESTORE
+    ========================================= */
+    apz.app.CBcheck.refreshOtpUI();
+    apz.app.CBcheck.toggleOtpProtectedSections();
+    apz.app.CBcheck.togglePostValidationSections();
 };
 apz.app.CBcheck.clearForm = function() {
     let isApplicant = gApzCOB.currentApplicant <= 1;
@@ -981,6 +863,9 @@ apz.app.CBcheck.clearForm = function() {
     $('#' + screenId + 'addPreDistrict').val("");
     $('#' + screenId + 'addPreState').val("");
     $('#' + screenId + 'pincode').val("");
+    $('input[name="' + screenId + 'panVal_"][value="Y"]').prop('checked', true);
+    apz.app.CBcheck.togglePanView();
+
 };
 apz.app.CBcheck.resetApplicantStates = function() {
     let isApplicant = gApzCOB.currentApplicant <= 1;
@@ -1033,40 +918,33 @@ apz.app.CBcheck.paintLoanDetails = function() {
 apz.app.onShown_CBcheck = function() {
     apz.app.CBcheck.paintLoanDetails();
     apz.app.CBcheck.paintDetails();
-    if (!apz.isNull(inSessionStore.cibilDetailsWrapperList)) {
-        // apz.app.CBcheck.restoreCbFromSession();
-    }
+    apz.app.CBcheck.handletabSwitch(document.querySelector('.cbcheckSubMenu.active'), gApzCOB.currentApplicant === 1 ? 'Applicant' :
+        'CoApplicant');
 };
-
-apz.app.CBcheck.restoreCbFromSession = function () {
-
+apz.app.CBcheck.restoreCbFromSession = function() {
     if (apz.isNull(inSessionStore.cibilDetailsWrapperList)) return;
-
     let custId = apz.app.CBcheck.getCurrentCustId();
-
     if (apz.isNull(custId)) return;
-
-    let item = inSessionStore.cibilDetailsWrapperList.find(el =>
-        parseInt(el.cibilDetails.custDtlId) === parseInt(custId)
-    );
-
+    let item = inSessionStore.cibilDetailsWrapperList.find(el => parseInt(el.cibilDetails.custDtlId) === parseInt(custId));
     if (!item || !item.cibilDetails.payload) return;
-
     cibilDtls = JSON.parse(JSON.stringify(item.cibilDetails.payload));
-
     CB_LOAN_ID = item.cibilDetails.cbDtlId ?? null;
-
     apz.app.CBcheck.paintCbDetails(cibilDtls);
     apz.app.CBcheck.applyCbDecisionUI();
     apz.app.CBcheck.applyApiStatusUI();
 };
 apz.app.CBcheck.initiateCreditCheck = function() {
+    let isApplicant = gApzCOB.currentApplicant <= 1;
+    if (isApplicant) {
+        CB_API_TRIGGERED.applicant = true;
+    } else {
+        CB_API_TRIGGERED.coapplicant = true;
+    }
     if (!apz.app.CBcheck.validateForm()) return;
-    // let custId = gApzCOB.currentApplicant <= 1 ? gApzCOB.userDetails.custDtlId : gApzCOB.userDetails.CoApplicantCustomerId;
-let custId = apz.app.CBcheck.getCurrentCustId();
+    let custId = apz.app.CBcheck.getCurrentCustId();
     console.log("CURRENT TAB:", gApzCOB.currentApplicant);
-console.log("Resolved custId:", custId);
-console.log("Session List:", inSessionStore.cibilDetailsWrapperList);
+    console.log("Resolved custId:", custId);
+    console.log("Session List:", inSessionStore.cibilDetailsWrapperList);
     let existingCB = null;
     if (!apz.isNull(inSessionStore.cibilDetailsWrapperList)) {
         existingCB = inSessionStore.cibilDetailsWrapperList.find(el => parseInt(el.cibilDetails.custDtlId) === parseInt(custId));
@@ -1082,12 +960,6 @@ console.log("Session List:", inSessionStore.cibilDetailsWrapperList);
         subCategory: $('#' + screenId + 'subLoanPurpose').val(),
         frequencyOfRepayment: $('#' + screenId + 'frequencyOfRepayment').val()
     };
-    // gApzCOB.requestNodes.cibilDetailsWrapperList = [{
-    //     cibilDetails: {
-    //         custDtlId: custId,
-    //         payload: payload
-    //     }
-    // }];
     let cibilObj = [{
         cibilDetails: {
             cbDtlId: "",
@@ -1099,11 +971,42 @@ console.log("Session List:", inSessionStore.cibilDetailsWrapperList);
             payload: payload
         }
     }];
-    gApzCOB.requestNodes['cibilDetailsWrapperList'] = cibilObj;
+            if (apz.isNull(gApzCOB.requestNodes.cibilDetailsWrapperList)) {
+            gApzCOB.requestNodes.cibilDetailsWrapperList = [];
+        }
+        
+        let list = gApzCOB.requestNodes.cibilDetailsWrapperList;
+        
+        let index = list.findIndex(el =>
+            parseInt(el.cibilDetails.custDtlId) === parseInt(custId)
+        );
+        
+        let wrapperObj = {
+            cibilDetails: {
+                cbDtlId: "",
+                requestId: "",
+                responseId: "",
+                custDtlId: custId,
+                cbDate: ApzCOB.dateformatter(new Date(), 'Y-m-d'),
+                cbStatus: "",
+                payload: payload
+            }
+        };
+        
+        if (index !== -1) {
+            list[index] = wrapperObj;
+        } else {
+            list.push(wrapperObj);
+        }
+        window.inSessionStore.cibilDetailsWrapperList =
+    JSON.parse(JSON.stringify(
+        gApzCOB.requestNodes.cibilDetailsWrapperList
+    ));
     apz.startLoader();
     ApzCOB.callCBService();
 };
 apz.app.CBcheck.paintCbDetails = function(data) {
+    data = apz.app.CBcheck.normalizeCbData(data);
     console.log("=== PAINT CB DETAILS DATA ===");
     console.log(data);
     console.log("Keys:", Object.keys(data));
@@ -1123,15 +1026,12 @@ apz.app.CBcheck.paintCbDetails = function(data) {
     $('#' + screenId + 'hitNohit').val(data.hitNohit || "");
     $('#' + screenId + 'cbScore').val(data.cbScore || "");
     $('#' + screenId + 'totIndebtness').val(data.totIndebtness || "");
-    // $('#' + screenId + 'NoParInLastMonths').val(data.NoParInLastMonths || "");
-    // $('#' + screenId + 'maxDpdInLastMonths').val(data.caglDpdFlag || "");
     $('#' + screenId + 'writeoffSuitFiledFlag').val(data.writeoffSuitFiledFlag || "");
     $('#' + screenId + 'overdueAmt').val(data.overdueAmt || "");
     $('#' + screenId + 'writeOffAmt').val(data.writeOffAmt || "");
-    // $('#' + screenId + 'eligibleAmt').val(data.eligibleAmt || "");
-    // $('#' + screenId + 'foir').val(data.foir || "");
     $('#' + screenId + 'cgp_dpd').val(data.caglDpdFlag || "");
-    // $('#' + screenId + 'finalDecision').val(data.finalDecision || "");
+
+    $('#' + screenId + 'unnatiDec').val(data.finalDecision || "");
     $('#' + screenId + 'roi').val(data.roi || "");
     $('#' + screenId + 'finalTenure').val(data.finalTenure || "");
     // Enable CB report button if available
@@ -1164,40 +1064,7 @@ apz.app.CBcheck.applyCbDecisionUI = function() {
         $('#' + screenId + 'cibilFailureIcon').removeClass('sno');
         $('#' + screenId + 'rejectReasonRow').removeClass('sno');
         $('#' + screenId + 'rejectReasonText').text(cibilDtls.rejectionReason ?? '-');
-        apz.app.CBcheck.handleRetryLogic();
-    }
-    // Eligible amount
-    $('#' + screenId + 'eligibleAmount').text("Eligible amount : " + (cibilDtls.eligibleAmt ?? "0"));
-    // ROI
-    $('#' + screenId + 'roiDisplay').text((cibilDtls.roi ?? "0") + '%');
-    // Bureau-based UI
-    apz.app.CBcheck.handleBureauSpecificUI();
-};
-apz.app.CBcheck.applyCbDecisionUI = function() {
-    if (!cibilDtls) return;
-    let finalDecision = cibilDtls.finalDecision?.toLowerCase() || '';
-    let isApproved = finalDecision.includes("approve") || finalDecision === "pass";
-    if (gApzCOB.currentApplicant <= 1) {
-        window.APPLICANT_CIBIL_STATUS = isApproved;
-    } else {
-        window.CO_APPLICANT_CIBIL_STATUS = isApproved;
-    }
-    // SUCCESS
-    if (isApproved) {
-        $('#' + screenId + 'decisionText').text('CB check successful');
-        $('#' + screenId + 'cibilSuccessIcon').removeClass('sno');
-        $('#' + screenId + 'cibilFailureIcon').addClass('sno');
-        $('#' + screenId + 'retryBtn').addClass('sno');
-        // Lock edit fields
-        apz.app.CBcheck.disableEditFields();
-    } else {
-        // FAILURE
-        $('#' + screenId + 'decisionText').text('CB check failed');
-        $('#' + screenId + 'cibilSuccessIcon').addClass('sno');
-        $('#' + screenId + 'cibilFailureIcon').removeClass('sno');
-        $('#' + screenId + 'rejectReasonRow').removeClass('sno');
-        $('#' + screenId + 'rejectReasonText').text(cibilDtls.rejectionReason ?? '-');
-        apz.app.CBcheck.handleRetryLogic();
+        // apz.app.CBcheck.handleRetryLogic();
     }
     // Eligible amount
     $('#' + screenId + 'eligibleAmount').text("Eligible amount : " + (cibilDtls.eligibleAmt ?? "0"));
@@ -1236,84 +1103,271 @@ apz.app.CBcheck.handleBureauSpecificUI = function() {
         $('.individualIndebtRow').addClass('sno');
     }
 };
-
 apz.app.CBcheck.applyApiStatusUI = function() {
-
     if (!cibilDtls) return;
-
-    let finalDecision = cibilDtls.finalDecision?.toLowerCase() || '';
-    let isApproved = finalDecision.includes("approve") || finalDecision === "pass";
-
+    //  Step 1: Check API technical success
+    let isApiSuccess = cibilDtls.irisMessage === "success";
     let today = new Date(cibilDtls.cbDate || new Date());
-
-    let dd = String(today.getDate()).padStart(2, '0');
-    let mm = String(today.getMonth() + 1).padStart(2, '0');
-    let yyyy = today.getFullYear();
-
-    let formattedDate = dd + '/' + mm + '/' + yyyy;
-
+    let formattedDate = String(today.getDate()).padStart(2, '0') + '/' + String(today.getMonth() + 1).padStart(2, '0') + '/' + today
+.getFullYear();
     $('#' + screenId + 'lastDate').text(formattedDate);
-
-    if (isApproved) {
-
-        $('#' + screenId + 'retryRow').addClass('sno');
-        $('#' + screenId + 'initiateRow').removeClass('sno');
-        $('#' + screenId + 'cbStatus').text('Success');
-
-    } else {
-
+    if (!isApiSuccess) {
+        //  API FAILURE STATE
         $('#' + screenId + 'initiateRow').addClass('sno');
         $('#' + screenId + 'retryRow').removeClass('sno');
         $('#' + screenId + 'cbStatus').text('Failure');
-
         let reason = cibilDtls.rejectionReason || "Credit Bureau service failed.";
-
-        $('#' + screenId + 'rejectText')
-            .html('<span class="icon-Error"></span> ' + reason);
+        $('#' + screenId + 'rejectText').html('<span class="icon-Error"></span> ' + reason);
+        return;
     }
+    //  API SUCCESS STATE
+    $('#' + screenId + 'retryRow').addClass('sno');
+    // $('#' + screenId + 'initiateRow').addClass('sno'); 
+    $('#' + screenId + 'cbText').addClass('sno');
+    $('#' + screenId + 'cbStatus').text('Success');
 };
-// apz.app.CBcheck.restoreCibilForCurrentApplicant = function () {
-
-//     if (apz.isNull(inSessionStore.cibilDetailsWrapperList)) return;
-
-//     let index = gApzCOB.currentApplicant - 1;
-
-//     let custId =
-//         gApzCOB.requestNodes.customerDetailsList[index]?.custDtlId;
-
-//     console.log("Restoring for custId:", custId);
-
-//     let itemIndex =
-//         inSessionStore.cibilDetailsWrapperList.findIndex(
-//             item =>
-//                 parseInt(item.cibilDetails.custDtlId) ===
-//                 parseInt(custId)
-//         );
-
-//     if (itemIndex >= 0) {
-
-//         let payload =
-//             inSessionStore.cibilDetailsWrapperList[itemIndex]
-//                 .cibilDetails.payload;
-
-//         // IMPORTANT — deep clone again
-//         cibilDtls = JSON.parse(JSON.stringify(payload));
-
-//         apz.app.CBcheck.paintCbDetails(cibilDtls);
-//         apz.app.CBcheck.applyCbDecisionUI();
-//         apz.app.CBcheck.applyApiStatusUI();
-//     }
+// apz.app.CBcheck.getCurrentCustId = function() {
+//     if (apz.isNull(gApzCOB.userDetails)) return null;
+//     let custId = gApzCOB.currentApplicant > 1 ? gApzCOB.userDetails.CoApplicantCustomerId : gApzCOB.userDetails.custDtlId;
+//     console.log("Resolved custId:", custId);
+//     return custId ?? null;
 // };
 apz.app.CBcheck.getCurrentCustId = function () {
 
-    if (apz.isNull(gApzCOB.userDetails)) return null;
+    if (apz.isNull(gApzCOB.requestNodes?.customerDetailsList))
+        return null;
 
-    let custId =
-        gApzCOB.currentApplicant > 1
-            ? gApzCOB.userDetails.CoApplicantCustomerId
-            : gApzCOB.userDetails.custDtlId;
+    let isApplicant = gApzCOB.currentApplicant === 1;
 
-    console.log("Resolved custId:", custId);
+    let wrapper = gApzCOB.requestNodes.customerDetailsList.find(c =>
+        isApplicant
+            ? c.customerType === "Applicant"
+            : c.customerType === "Co-App"
+    );
 
-    return custId ?? null;
+    return wrapper?.custDtlId ?? null;
 };
+apz.app.CBcheck.clearCbUI = function() {
+    cibilDtls = null;
+    $('.cb-result-section').addClass('sno');
+    $('#' + screenId + 'retryRow').addClass('sno');
+    $('#' + screenId + 'rejectReasonRow').addClass('sno');
+    $('#' + screenId + 'cbStatus').text('');
+    $('#' + screenId + 'lastDate').text('');
+};
+
+apz.app.CBcheck.normalizeCbData = function(data) {
+    if (!data) return data;
+
+    function clean(val) {
+        if (val === null || val === undefined) return "";
+        if (val === "null") return "";
+        return val;
+    }
+
+    function splitColon(val) {
+        if (!val || val === "null") return "";
+        if (val.includes(":")) {
+            return val.split(":")[1]?.trim() ?? "";
+        }
+        return val;
+    }
+
+    data.totIndebtness = splitColon(data.totIndebtness);
+    data.overdueAmt = splitColon(data.overdueAmt);
+    data.writeOffAmt = splitColon(data.writeOffAmt);
+    data.writeoffSuitFiledFlag = splitColon(data.writeoffSuitFiledFlag);
+    // data.caglDpdFlag = splitColon(data.cgpDpd);
+    data.caglDpdFlag = splitColon(data.caglDpdFlag);
+
+
+    data.cbScore = clean(data.cbScore);
+    data.eligibleAmt = clean(data.eligibleAmt);
+    data.finalTenure = clean(data.finalTenure);
+    data.roi = clean(data.roi);
+    data.foir = clean(data.foir);
+
+    return data;
+};
+
+apz.app.CBcheck.createRequest = function (iSave) {
+
+    /* =====================================================
+       VALIDATION GATE 
+    ===================================================== */
+
+    if (!apz.app.CBcheck.formValidator() && apz.isNull(iSave)) {
+        return [];
+    }
+
+    /* =====================================================
+       RESOLVE CURRENT CUSTOMER
+    ===================================================== */
+
+    let isApplicant = gApzCOB.currentApplicant === 1;
+
+    let custWrapper =
+        gApzCOB.requestNodes.customerDetailsList.find(c =>
+            isApplicant
+                ? c.customerType === "Applicant"
+                : c.customerType === "Co-App"
+        );
+
+    if (apz.isNull(custWrapper)) return [];
+
+    let custDtlId = custWrapper.custDtlId;
+
+    /* =====================================================
+       BUILD CUSTOMER OBJECT 
+    ===================================================== */
+
+    let customerObj = {
+        custDtlId: parseInt(custDtlId),
+        customerType: isApplicant ? "Applicant" : "Co-App",
+        customerName: isApplicant
+            ? $('#' + screenId + 'customerName').val()
+            : $('#' + screenId + 'coCustomerName').val(),
+        mobileNumber: $('#' + screenId + 'primaryMobile').val(),
+        payload: {
+            dob: isApplicant
+                ? $('#' + screenId + 'dob').val()
+                : $('#' + screenId + 'coDob').val(),
+
+            age: isApplicant
+                ? $('#' + screenId + 'age').val()
+                : $('#' + screenId + 'coAge').val(),
+
+            gender: isApplicant
+                ? $('#' + screenId + 'gender').val()
+                : $('#' + screenId + 'coGender').val(),
+
+            relationShipWithApplicant: isApplicant
+                ? ""
+                : $('#' + screenId + 'relationShipWithApplicant').val(),
+
+            namePerKyc: $('#' + screenId + 'nameAsPerVoter').val(),
+            primaryKycType: "VoterID",
+            primaryKycId: $('#' + screenId + 'voterId').val(),
+            alternateVoterId: $('#' + screenId + 'alternateVoterId').val(),
+            ckyc: $('#' + screenId + 'ckycNumber').val(),
+
+            panNumberValue: $('input[name="' + screenId + 'panVal_"]:checked').val(),
+            panNumber: $('#' + screenId + 'panNumber').val(),
+
+            secMobileNo: $('#' + screenId + 'sec_mobile').val()
+        }
+    };
+
+    /* =====================================================
+       UPDATE inSessionStore.customerDetailsList
+    ===================================================== */
+
+    if (apz.isNull(window.inSessionStore.customerDetailsList)) {
+        window.inSessionStore.customerDetailsList = [];
+    }
+
+    let custIndex =
+        window.inSessionStore.customerDetailsList.findIndex(c =>
+            parseInt(c.custDtlId) === parseInt(custDtlId)
+        );
+
+    if (custIndex !== -1) {
+        window.inSessionStore.customerDetailsList[custIndex] = customerObj;
+    } else {
+        window.inSessionStore.customerDetailsList.push(customerObj);
+    }
+
+    /* =====================================================
+       BUILD ADDRESS WRAPPER (Identical Pattern)
+    ===================================================== */
+
+    let addressObj = {
+        addressDetailsList: [{
+            addressDtlsId: "",
+            custDtlId: parseInt(custDtlId),
+            addressType: "Personal",
+            payload: {
+                addressList: [{
+                    addressLine1: $('#' + screenId + 'addressLine1').val(),
+                    addressLine2: $('#' + screenId + 'addressLine2').val(),
+                    addressLine3: $('#' + screenId + 'addressLine3').val(),
+                    landmark: $('#' + screenId + 'landmark').val(),
+                    area: $('#' + screenId + 'area').val(),
+                    city: $('#' + screenId + 'addPreCity').val(),
+                    district: $('#' + screenId + 'addPreDistrict').val(),
+                    state: $('#' + screenId + 'addPreState').val(),
+                    country: $('#' + screenId + 'country').val(),
+                    pinCode: $('#' + screenId + 'pincode').val()
+                }]
+            }
+        }]
+    };
+
+    if (apz.isNull(window.inSessionStore.addressDetailsWrapperList)) {
+        window.inSessionStore.addressDetailsWrapperList = [];
+    }
+
+    let addrWrapper = window.inSessionStore.addressDetailsWrapperList[0];
+
+    if (apz.isNull(addrWrapper)) {
+        window.inSessionStore.addressDetailsWrapperList = [addressObj];
+    } else {
+
+        let addrIndex =
+            addrWrapper.addressDetailsList.findIndex(a =>
+                parseInt(a.custDtlId) === parseInt(custDtlId)
+            );
+
+        if (addrIndex !== -1) {
+            addrWrapper.addressDetailsList[addrIndex] =
+                addressObj.addressDetailsList[0];
+        } else {
+            addrWrapper.addressDetailsList.push(
+                addressObj.addressDetailsList[0]
+            );
+        }
+    }
+
+    /* =====================================================
+       BUILD LOAN DETAILS (Applicant Only)
+    ===================================================== */
+
+    if (isApplicant) {
+
+        let loanObj = {
+            loanAmount: ApzCOB.fn_unFormatAmount(
+                $('#' + screenId + 'loanAmount').val()
+            ),
+            payload: {
+                loanPurpose: $('#' + screenId + 'loanPurpose').val(),
+                subCategory: $('#' + screenId + 'subLoanPurpose').val(),
+                frequencyOfRepayment: $('#' + screenId + 'frequencyOfRepayment').val()
+            }
+        };
+
+        window.inSessionStore.loanDetails = loanObj;
+        gApzCOB.requestNodes.loanDetails = loanObj;
+    }
+
+    /* =====================================================
+       ATTACH TO requestNodes
+    ===================================================== */
+
+    gApzCOB.requestNodes.customerDetailsList =
+        window.inSessionStore.customerDetailsList;
+
+    gApzCOB.requestNodes.addressDetailsWrapperList =
+        window.inSessionStore.addressDetailsWrapperList;
+
+    if (!apz.isNull(window.inSessionStore.cibilDetailsWrapperList)) {
+        gApzCOB.requestNodes.cibilDetailsWrapperList =
+            window.inSessionStore.cibilDetailsWrapperList;
+    }
+
+    /* =====================================================
+       RETURN FINAL OBJECT
+    ===================================================== */
+
+    return gApzCOB.requestNodes;
+};
+
