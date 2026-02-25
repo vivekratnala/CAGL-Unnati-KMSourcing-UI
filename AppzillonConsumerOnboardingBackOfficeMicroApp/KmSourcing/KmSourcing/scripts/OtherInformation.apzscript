@@ -1,0 +1,7 @@
+var kmScrId = 'KmSourc__OtherInformation__',
+KM_CURR_STAGE_NAME = 'OtherInformation',
+KM_CURR_STAGE_NO = '4';
+apz.app.onLoad_OtherInformation = function() {};
+apz.app.onShown_OtherInformation = function() {};
+apz.app.OtherInformation.paintData = function() {};
+apz.app.OtherInformation.createRequest = function() {};

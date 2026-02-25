@@ -1,4 +1,6 @@
 window.docScrId = 'KmSourc__documentCapture__';
+window.VERIFIED_PAN_VALUE = null;
+var panNumberTag = docScrId + 'ocrPanNumber';
 window.AADHAAR_DOC_CAPTURE_SUCCESS = false;
 window.documentCapture_Validate = {
     required: function(fieldId, message) {
@@ -63,7 +65,17 @@ apz.app.onLoad_documentCapture = function() {
         $('.ocrPanSection, .ocrAadhaarSection, .ocr-dobSection').hide();
         $('.ocr-verify-btn, .ocr-pincodeSection, .ocr-addressLine1Section, .ocr-addressLine2Section, .ocr-addressLine3Section, .ocrVoterSection, .dummy-ocrrow, .ocrAddressLine1, .ocrAddressLine2, .ocrAddressLine3, .ocrPincode')
             .show();
+        $(`#${docScrId}verifyBtn`).off('click').on('click', function() {
+            // if (apz.app.documentCapture.validateForm()) {
+            apz.app.documentCapture.primaryKycVerification();
+            // }
+        });
     } else if (apz.app.docType === 'PAN card') {
+        //         window.applicant_pancheck =false;
+        // window.coapplicant_pancheck = false;
+        $("#nxtBtn").prop("disabled", true);
+        let $btn = $("#" + docScrId + "verifyBtn");
+        $btn.removeClass("pan-verified-btn").html("Verify").prop("disabled", false);
         $('.doc-upload-title').text('Upload front & back side of PAN card');
         apz.app.updateFieldLabel(docScrId, 'ocrNameSection', 'Name as per PAN');
         apz.app.updateFieldLabel(kmbaseScr, 'ocrNameSection', 'Name as per PAN');
@@ -71,6 +83,44 @@ apz.app.onLoad_documentCapture = function() {
         $('.ocr-pincodeSection, .ocr-addressLine1Section, .ocr-addressLine2Section, .ocr-addressLine3Section, .dob-row, .ocrVoterSection, .ocrAadhaarSection, .ocr-dobSection')
             .hide();
         $('.ocr-verify-btn, .ocrPanSection, .dummy-ocrrow').show();
+        //  PAN INPUT RESET HANDLER
+        // $(`#${panNumberTag}`).off("input").on("input", function() {
+        //     $(this).removeClass("err");
+        //     clearFieldError(panNumberTag);
+        //     window.VERIFIED_PAN_VALUE = null;
+        //     let $btn = $("#" + docScrId + "verifyBtn");
+        //     $btn.removeClass("pan-verified-btn").html("Verify").prop("disabled", false);
+        //     if (gApzCOB.currentApplicant > 1) {
+        //         window.coapplicant_pancheck = false;
+        //     } else {
+        //         window.applicant_pancheck = false;
+        //     }
+        // });
+        $(`#${panNumberTag}`).off("input").on("input", function() {
+            let newVal = $(this).val().toUpperCase().trim();
+            $(this).val(newVal);
+            // Clear error UI completely
+            $(this).removeClass("err");
+            clearFieldError(panNumberTag);
+            // Enable field if previously disabled
+            ApzCOB.AddOrRemoveDisableFields([panNumberTag], false);
+            // Reset verification state
+            window.VERIFIED_PAN_VALUE = null;
+            if (gApzCOB.currentApplicant > 1) {
+                window.coapplicant_pancheck = false;
+            } else {
+                window.applicant_pancheck = false;
+            }
+            // Reset Verify button
+            let $btn = $("#" + docScrId + "verifyBtn");
+            $btn.removeClass("pan-verified-btn").html("Verify").prop("disabled", false);
+            // Disable Next button again
+            $("#nxtBtn").prop("disabled", true);
+        });
+        // VERIFY BUTTON
+        $(`#${docScrId}verifyBtn`).off('click').on('click', function() {
+            apz.app.documentCapture.PanVerification();
+        });
     }
 };
 apz.app.updateFieldLabel = function(screenPrefix, fieldName, newText) {
@@ -223,6 +273,21 @@ apz.app.documentCapture.copyOcrValuesFromModal = function() {
         const tgtId = tgt + mapping[srcKey];
         const value = $("#" + srcId).val();
         $("#" + tgtId).val(value);
+        if (tgtId === panNumberTag) {
+            let newPan = (value || "").toUpperCase().trim();
+            if (!window.VERIFIED_PAN_VALUE || window.VERIFIED_PAN_VALUE !== newPan) {
+                console.log("PAN changed from modal. Resetting verification.");
+                window.VERIFIED_PAN_VALUE = null;
+                $("#nxtBtn").prop("disabled", true);
+                if (gApzCOB.currentApplicant > 1) {
+                    window.coapplicant_pancheck = false;
+                } else {
+                    window.applicant_pancheck = false;
+                }
+                let $btn = $("#" + docScrId + "verifyBtn");
+                $btn.removeClass("pan-verified-btn").html("Verify").prop("disabled", false);
+            }
+        }
     });
 };
 apz.app.documentCapture.openEditModal = function() {
@@ -253,3 +318,392 @@ apz.app.documentCapture.ageCalculator = function(pthis) {
         return;
     }
 }
+apz.app.documentCapture.PanVerification = function() {
+    console.log("PAN Verification button clicked");
+    let isValidPanType = ApzCOB.validateEachInputField(panNumberTag);
+    let isValidPanId = ApzCOB.validateEachInputField(panNumberTag);
+    let isValidNumber = false;
+    isValidNumber = apz.app.documentCapture.PannumberVerCheck();
+    console.log("Validation Results:", {
+        isValidPanType,
+        isValidPanId,
+        isValidNumber
+    });
+    if (isValidPanType && isValidPanId && isValidNumber) {
+        var PanObj = {};
+        PanObj.kycType = 'pan';
+        PanObj.kycId = $('#' + panNumberTag).val().toUpperCase().trim();
+        console.log("Calling PAN API with:", PanObj);
+        // ApzCOB.PanVerificationCheck(PanObj);
+        ApzCOB.PanVerificationCheck(PanObj, apz.app.documentCapture.panVerificationCallback);
+    } else {
+        console.log("PAN verification blocked due to validation failure");
+    }
+};
+apz.app.documentCapture.PannumberVerCheck = function() {
+    let isNotSame = true;
+    let errmsg;
+    if (apz.isNull(inSessionStore.customerDetailsList)) {
+        isNotSame = true;
+    } else {
+        let currentType = gApzCOB.currentApplicant === 1 ? "Applicant" : "Co-App";
+        let otherCustomer = inSessionStore.customerDetailsList.find(c => c.customerType !== currentType);
+        let enteredPan = $('#' + panNumberTag).val().toUpperCase().trim();
+        let otherPan = otherCustomer?.payload?.panNumber?.toUpperCase().trim();
+        if (otherPan && enteredPan === otherPan) {
+            isNotSame = false;
+            errmsg = "LIT_PERDTLS_PANDTLS_ERR_TXT_SAMEPAN";
+            ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode(errmsg), "E");
+        }
+    }
+    return isNotSame;
+}
+apz.app.documentCapture.panValidationCheck = function() {
+    let isValid = false;
+    let errmsg;
+    // If PAN verify hyperlink or invalid text visible → not verified
+    let verifyPanVisible = $(`#${docScrId}el_hpl_3`).is(':visible');
+    let inValidPanVisible = $(`#${docScrId}el_txt_142`).is(':visible');
+    if (verifyPanVisible || inValidPanVisible) {
+        window.applicant_pancheck = false;
+    } else {
+        window.applicant_pancheck = true;
+    }
+    // Applicant vs Co-Applicant validation
+    if (gApzCOB.currentApplicant <= 1) {
+        if (window.applicant_pancheck === false) {
+            isValid = false;
+            errmsg = "LIT_PERDTLS_PANDTLS_ERR_TXT_VERIFYPAN";
+        } else {
+            isValid = true;
+        }
+    } else {
+        if (window.coapplicant_pancheck === false) {
+            isValid = false;
+            errmsg = "LIT_PERDTLS_PANDTLS_ERR_TXT_VERIFYPAN";
+        } else {
+            isValid = true;
+        }
+    }
+    if (!isValid) {
+        ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode(errmsg), "E");
+    }
+    return isValid;
+};
+// apz.app.documentCapture.paintpanDetails = function(params) {
+//     console.log("PAN API Response Received:", params);
+//     let data = params;
+//     if (data && data.payload) {
+//         console.log("PAN Status from API:", data.payload.panNumberStatus);
+//         if (data.payload.panNumberStatus === 'Verified') {
+//             console.log("✅ PAN VERIFICATION SUCCESS");
+//         } else {
+//             console.log("❌ PAN VERIFICATION FAILED");
+//         }
+//     }
+//     if (data && data.payload && (data.payload.panNumberStatus === 'Verified' || window.REINITIATE_PAN_CHECKED)) {
+//         // Clear and repopulate PAN
+//         $("#" + panNumberTag).val('');
+//         $("#" + panNumberTag).val(
+//             (data.payload.panNumber || '').toUpperCase());
+//         // Make PAN mandatory
+//         ApzCOB.addFieldMandatory(panNumberTag);
+//         // Disable PAN field after verification (same as PersonalDetails)
+//         ApzCOB.AddOrRemoveDisableFields([panNumberTag], true);
+//         // UI visibility handling (adjust IDs if your UL differs)
+//         $("#" + docScrId + "el_hpl_3_ul").addClass("sno"); // Hide Verify link
+//         $("#" + docScrId + "el_txt_141_ul").removeClass("sno"); // Show Verified text
+//         $("#" + docScrId + "el_txt_142_ul").addClass("sno"); // Hide Invalid text
+//         // Set global verification flags
+//         if (gApzCOB.currentApplicant > 1) {
+//             window.coapplicant_pancheck = true;
+//         } else {
+//             window.applicant_pancheck = true;
+//         }
+//         // Handle reinitiate & rejected logic
+//         apz.app.documentCapture.reinitiate_panstatus(data);
+//     }
+// };
+apz.app.documentCapture.paintpanDetails = function(params) {
+    if (!params || !params.payload) return;
+    let currentPan = $('#' + panNumberTag).val().toUpperCase().trim();
+    //  STRICT CHECK
+    if (params.payload.panNumberStatus !== "Verified" || window.VERIFIED_PAN_VALUE !== currentPan) {
+        console.log("PAN mismatch. Not applying verified UI.");
+        return;
+    }
+    // Keep field disabled
+    ApzCOB.AddOrRemoveDisableFields([panNumberTag], true);
+    $("#" + docScrId + "el_hpl_3_ul").addClass("sno");
+    $("#" + docScrId + "el_txt_141_ul").removeClass("sno");
+    $("#" + docScrId + "el_txt_142_ul").addClass("sno");
+    if (gApzCOB.currentApplicant > 1) {
+        window.coapplicant_pancheck = true;
+    } else {
+        window.applicant_pancheck = true;
+    }
+    console.log("Verified UI safely applied.");
+};
+apz.app.documentCapture.reinitiate_panstatus = function(data) {
+    // Decide reinitiate check flag
+    if ((data.payload.panNumberStatus !== "Verified") && (window.IS_REINITIATE_APPLICATION || window.IS_REJECTED_APPLICATION)) {
+        window.REINITIATE_PAN_CHECKED = false;
+    } else {
+        window.REINITIATE_PAN_CHECKED = true;
+    }
+    // Special handling for rejected applications
+    if (window.IS_REJECTED_APPLICATION && window.REINITIATE_PAN_CHECKED) {
+        // Reset verification flags
+        window.applicant_pancheck = false;
+        window.coapplicant_pancheck = false;
+        if (data.payload.panNumberStatus === 'Verified') {
+            $("#" + docScrId + "el_hpl_3_ul").removeClass("sno");
+            $("#" + docScrId + "el_txt_141_ul").addClass("sno");
+        } else {
+            $("#" + docScrId + "el_hpl_3_ul").addClass("sno");
+            $("#" + docScrId + "el_txt_141_ul").removeClass("sno");
+        }
+        $("#" + docScrId + "el_txt_142_ul").addClass("sno");
+        // Keep PAN but allow edit
+        $("#" + panNumberTag).val(
+            (data.payload.panNumber || '').toUpperCase());
+        // Enable field in rejected case
+        ApzCOB.AddOrRemoveDisableFields([panNumberTag], false);
+    }
+};
+apz.app.documentCapture.primaryKycVerification = function() {
+    IS_CO_APPLICANT_PRIMARY_DEDUPE = false;
+    IS_CO_APPLICANT_SECONDARY_DEDUPE = false;
+    IS_CO_APPLICANT_ALTERNATE_DEDUPE = false;
+    IS_APPLICANT_PRIMARY_DEDUPE = false;
+    IS_ALTERNATE_DEDUPE = false;
+    let isValid = ApzCOB.validateEachInputField(docScrId + 'ocrVoterNumber');
+    if (isValid) {
+        window.kycVerificationType = "primary";
+        var kycObj = {};
+        kycObj.kycType = "voter";
+        kycObj.kycId = $('#' + docScrId + 'ocrVoterNumber').val().trim().toLocaleUpperCase();
+        if (gApzCOB.currentApplicant > 1) {
+            IS_CO_APPLICANT_PRIMARY_DEDUPE = true;
+        } else {
+            IS_APPLICANT_PRIMARY_DEDUPE = true;
+        }
+        ApzCOB.KycDedupeCheck(kycObj.kycId);
+    }
+}
+apz.app.PersonalDetails.altVoterIdVerification = function() {
+    IS_CO_APPLICANT_PRIMARY_DEDUPE = false;
+    IS_CO_APPLICANT_SECONDARY_DEDUPE = false;
+    IS_APPLICANT_PRIMARY_DEDUPE = false;
+    let isValidKycId = ApzCOB.validateEachInputField(altVoterIdTag);
+    if (isValidKycId) {
+        window.kycVerificationType = "alternate";
+        var kycObj = {};
+        kycObj.kycType = "voter";
+        kycObj.kycId = $('#' + altVoterIdTag).val().trim().toLocaleUpperCase();
+        if (gApzCOB.currentApplicant > 1) {
+            IS_CO_APPLICANT_ALTERNATE_DEDUPE = true;
+        } else {
+            IS_ALTERNATE_DEDUPE = true;
+        }
+        ApzCOB.KycDedupeCheck(kycObj.kycId);
+    }
+}
+apz.app.PersonalDetails.primaryVoterOnChange = function() {
+    if (gApzCOB.currentApplicant <= 1) {
+        if (PRIMARY_KYC_VERIFICATION) {
+            $('#' + PerDetScrId + 'nameasKYC').val('');
+        }
+    } else {
+        if (CO_APPLICANT_PRIMARY_KYC_VERIFICATION) {
+            $('#' + PerDetScrId + 'nameasKYC').val('');
+        }
+    }
+    PRIMARY_KYC_VERIFICATION = false;
+    CO_APPLICANT_PRIMARY_KYC_VERIFICATION = false
+    $('#' + PerDetScrId + 'primaryKycVerifyBtn_ul').removeClass('sno');
+    $('#' + PerDetScrId + 'primaryKycVerifiedTxt_ul').addClass('sno');
+    $('#' + PerDetScrId + 'primaryKycFailedTxt_ul').addClass('sno');
+}
+apz.app.PersonalDetails.altVoterOnChange = function() {
+    if (ALTERNATE_KYC_VERIFICATION) {
+        if (gApzCOB.currentApplicant <= 1) {
+            if (PRIMARY_KYC_VERIFICATION) {
+                apz.app.PersonalDetails.primaryKycVerification()
+            }
+        } else {
+            $('#' + PerDetScrId + 'nameasKYC').val('');
+        }
+        $('#' + PerDetScrId + 'nameasKYC').val('');
+    }
+    ALTERNATE_KYC_VERIFICATION = false;
+    $('#' + PerDetScrId + 'altVoterVerifyBtn_ul').removeClass('sno');
+    $('#' + PerDetScrId + 'altVoterVerifiedTxt_ul').addClass('sno');
+    $('#' + PerDetScrId + 'altVoterFailTxt_ul').addClass('sno');
+}
+apz.app.PersonalDetails.kycValidationCheck = function() {
+    let isValid = false;
+    let errmsg;
+    if (gApzCOB.currentApplicant <= 1) {
+        if (!apz.isNull(PRIMARY_KYC_VERIFICATION)) {
+            if (PRIMARY_KYC_VERIFICATION) {
+                isValid = true;
+            } else {
+                if (ALTERNATE_KYC_VERIFICATION) {
+                    isValid = true;
+                } else {
+                    isValid = false;
+                    errmsg = "LIT_PRIMARY_AND_ALT_VOTERID_VERIFICATION_FAILED";
+                }
+            }
+        } else {
+            errmsg = "LIT_PLEASE_VALIDATE_PRIMARY_KYC";
+            isValid = false;
+        }
+    } else {
+        if (!apz.isNull(CO_APPLICANT_PRIMARY_KYC_VERIFICATION)) {
+            if (CO_APPLICANT_PRIMARY_KYC_VERIFICATION) {
+                isValid = true;
+            } else {
+                if (CO_APPLICANT_ALTERNATE_KYC_VERIFICATION) {
+                    isValid = true;
+                } else {
+                    isValid = false;
+                    errmsg = "LIT_PRIMARY_AND_ALT_VOTERID_VERIFICATION_FAILED";
+                }
+            }
+        } else {
+            errmsg = "LIT_PLEASE_VALIDATE_PRIMARY_KYC";
+            isValid = false;
+        }
+    }
+    if (!isValid) {
+        ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode(errmsg), "E");
+    } else {
+        //  isValid = ApzCOB.validateAlterVoterIfEntered();
+        // if (isValid) {
+        //   isValid = ApzCOB.validateSecondaryKycIfEntered(); 
+        // }
+        if (gApzCOB.currentApplicant <= 1) {
+            if (PRIMARY_KYC_VERIFICATION || ALTERNATE_KYC_VERIFICATION) {
+                isValid = true;
+            } else {
+                isValid = false;
+            }
+        } else {
+            if (CO_APPLICANT_PRIMARY_KYC_VERIFICATION || CO_APPLICANT_ALTERNATE_KYC_VERIFICATION) {
+                isValid = true;
+            } else {
+                isValid = false;
+            }
+        }
+    }
+    return isValid;
+}
+// apz.app.documentCapture.panVerificationCallback = function(params) {
+//     console.log("PAN CALLBACK RECEIVED:", params);
+//     ApzCOB.hideLoader();
+//     try {
+//         if (ApzCOB.handleServiceCallBacks(params)) {
+//             let responseObj = JSON.parse(params.res.APZCBO__ValidateVoterID_Res.apiResponse.ResponseBody.responseObj);
+//             console.log("Parsed PAN response:", responseObj);
+//             let $btn = $("#" + docScrId + "verifyBtn");
+//             if (responseObj.result_code === 101) {
+//                     // let verifiedPan = $('#' + panNumberTag).val().toUpperCase().trim();
+//                     let verifiedPan = (responseObj.client_ref_num || "").toUpperCase().trim();
+//     window.VERIFIED_PAN_VALUE = verifiedPan;
+//                 console.log("PAN VERIFICATION SUCCESS");
+//                 // Remove error if any
+//                 $("#" + panNumberTag).removeClass("err");
+//                 clearFieldError(panNumberTag);
+//                 // Change button to Verified pill
+//                 $btn.removeClass("btn-primary btn-danger pan-verified-btn").addClass("pan-verified-btn").html(`
+//     <span>Verified</span>
+//     <span class="verified-circle">&#10003;</span>
+// `).prop("disabled", true);
+//                 apz.app.documentCapture.paintpanDetails({
+//                     payload: {
+//                         panNumberStatus: "Verified",
+//                         panNumber: $('#' + panNumberTag).val()
+//                     }
+//                 });
+//             } else {
+//                 console.log("PAN VERIFICATION FAILED");
+//                 // Make editable
+//                 ApzCOB.AddOrRemoveDisableFields([panNumberTag], false);
+//                 // Add error border + message
+//                 $("#" + panNumberTag).addClass("err");
+//                 showFieldError(panNumberTag, "PAN verification failed. Please enter a valid PAN.");
+//                 // Reset button
+//                 $btn.removeClass("pan-verified-btn").html("Verify").prop("disabled", false);
+//                 if (gApzCOB.currentApplicant > 1) {
+//                     window.coapplicant_pancheck = false;
+//                 } else {
+//                     window.applicant_pancheck = false;
+//                 }
+//             }
+//         } else {
+//             console.log("Service callback validation failed");
+//         }
+//     } catch (e) {
+//         console.log("PAN CALLBACK ERROR:", e);
+//     }
+// };
+apz.app.documentCapture.panVerificationCallback = function(params) {
+    console.log("PAN CALLBACK RECEIVED:", params);
+    ApzCOB.hideLoader();
+    try {
+        if (!ApzCOB.handleServiceCallBacks(params)) return;
+        let responseObj = JSON.parse(params.res.APZCBO__ValidateVoterID_Res.apiResponse.ResponseBody.responseObj);
+        console.log("Parsed PAN response:", responseObj);
+        let $verifyBtn = $("#" + docScrId + "verifyBtn");
+        let $nextBtn = $("#nxtBtn");
+        if (responseObj.result_code === 101) {
+            console.log("PAN VERIFIED SUCCESS");
+            // Use API value, not UI field
+            let verifiedPan = (responseObj.client_ref_num || "").toUpperCase().trim();
+            let verifiedName = (responseObj.result?.name || "").toUpperCase().trim();
+            window.VERIFIED_PAN_VALUE = verifiedPan;
+            // Clear error UI completely
+            $("#" + panNumberTag).removeClass("err");
+            clearFieldError(panNumberTag);
+            // Update PAN field
+            $("#" + panNumberTag).val(verifiedPan);
+            // Disable after success
+            ApzCOB.AddOrRemoveDisableFields([panNumberTag], true);
+            // Update CBCheck screen fields
+            var screenId = 'KmSourc__CBcheck__';
+            $("#" + screenId + "panNum").val(verifiedPan);
+            $("#" + screenId + "panName").val(verifiedName);
+            // Enable NEXT button
+            $nextBtn.prop("disabled", false);
+            // Update Verify Button UI
+            $verifyBtn.removeClass().addClass("pan-verified-btn").html(`
+                    <span>Verified</span>
+                    <span class="verified-circle">&#10003;</span>
+                `).prop("disabled", true);
+            // Set flags
+            if (gApzCOB.currentApplicant > 1) {
+                window.coapplicant_pancheck = true;
+            } else {
+                window.applicant_pancheck = true;
+            }
+        } else {
+            console.log("PAN VERIFICATION FAILED");
+            window.VERIFIED_PAN_VALUE = null;
+            // Disable next button
+            $nextBtn.prop("disabled", true);
+            // Reset verify button
+            $verifyBtn.removeClass("pan-verified-btn").html("Verify").prop("disabled", false);
+            $("#" + panNumberTag).addClass("err");
+            showFieldError(panNumberTag, "PAN verification failed. Please enter a valid PAN.");
+            if (gApzCOB.currentApplicant > 1) {
+                window.coapplicant_pancheck = false;
+            } else {
+                window.applicant_pancheck = false;
+            }
+        }
+    } catch (e) {
+        console.log("PAN CALLBACK ERROR:", e);
+    }
+};
