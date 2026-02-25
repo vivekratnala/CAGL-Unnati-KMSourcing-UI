@@ -225,6 +225,43 @@ apz.app.Kmbase.validateMaxDocs = function(parentSelector, childClass, pthis, doc
     TempImageObject.docLevel = childClass === "backimg" ? "2" : "1";
     TempImageObject.index = "Applicant";
     apz.app.Kmbase.camera(pthis);
+apz.app.Kmbase.validateMaxDocs = function(parentSelector, childClass, pthis, docType) {
+    const docTypeMap = {
+        "Aadhaar": {
+            frontimg: "SECONDARY_KYC",
+            backimg: "SECONDARY_KYC"
+        },
+        "Voter ID": {
+            frontimg: "PRIMARY_KYC",
+            backimg: "PRIMARY_KYC"
+        },
+        "PAN card": {
+            frontimg: "PAN_NUMBER_PHOTO",
+            backimg: "PAN_NUMBER_PHOTO"
+        }
+    };
+    let currentDocType = docType || docTypeMap?.[apz.app.docType]?.[childClass] || childClass;
+    let {
+        max
+    } = apz.app.Kmbase.getDocLimits(currentDocType);
+    let custDtlId = gApzCOB.currentApplicant === 1 ? gApzCOB.userDetails.custDtlId : gApzCOB.userDetails.CoApplicantCustomerId;
+    let docs = (inSessionStore?.applicationDocumentsWrapperList?.[0]?.applicationDocumentsList || []).filter(d => d.payload.documentType ===
+        `${currentDocType} Doc` && parseInt(d.custDtlId) === parseInt(custDtlId));
+    // Aadhaar front/back handling
+    if (currentDocType === "SECONDARY_KYC") {
+        let level = childClass === "backimg" ? "2" : "1";
+        docs = docs.filter(d => d.payload.docLevel == level);
+        max = 1;
+    }
+    if (docs.length >= max) {
+        ApzCOB.fnDisplayMsg(`User allowed to upload maximum of ${max} documents`);
+        return;
+    }
+    TempImageObject.Type = currentDocType;
+    TempImageObject.docSide = childClass === "backimg" ? "Back" : "Front";
+    TempImageObject.docLevel = childClass === "backimg" ? "2" : "1";
+    TempImageObject.index = "Applicant";
+    apz.app.Kmbase.camera(pthis);
 };
 apz.app.Kmbase.camera = function(pthis) {
     var cameraObj = {
@@ -251,20 +288,27 @@ apz.app.Kmbase.cameraCallback = function(params) {
     const custPrefix = isApplicant ? "Applicant" : "Co-applicant";
     const docType = TempImageObject?.Type || "";
     const docSide = TempImageObject?.docSide || "Front";
+    const docSide = TempImageObject?.docSide || "Front";
     let finalName = "Document";
     if (docType === "RESIDENCE_PREMISE_PHOTO") {
         finalName = "Residence Photo";
     } else if (docType === "CUSTOMER_PHOTOGRAPH") {
         finalName = `${custPrefix} Photo`;
+        finalName = `${custPrefix} Photo`;
     } else if (docType === "ADDRESS_PROOF") {
+        let selected = $("#" + AadhaarScrId + "addressProof").val()?.trim();
         let selected = $("#" + AadhaarScrId + "addressProof").val()?.trim();
         finalName = (selected && selected !== "Please Select") ? selected : "Address Proof";
     } else if (docType === "RELATIONSHIP_PROOF") {
         let selected = $("#" + AadhaarScrId + "relationshipProof").val()?.trim();
+        let selected = $("#" + AadhaarScrId + "relationshipProof").val()?.trim();
         finalName = (selected && selected !== "Please Select") ? selected : "Relationship Proof";
     } else if (docType === "SECONDARY_KYC") {
         finalName = `Aadhaar ${docSide}`;
+    } else if (docType === "SECONDARY_KYC") {
+        finalName = `Aadhaar ${docSide}`;
     }
+    apz.app.Kmbase.saveDocument(finalName, params.encodedImage);
     apz.app.Kmbase.saveDocument(finalName, params.encodedImage);
 };
 apz.app.Kmbase.saveDocument = function(fileName, base64) {
@@ -303,6 +347,7 @@ apz.app.Kmbase.saveDocument = function(fileName, base64) {
                         "status": "A",
                         "payload": {
                             "docLevel": TempImageObject?.docLevel || docLevel,
+                            "docLevel": TempImageObject?.docLevel || docLevel,
                             "documentType": `${TempImageObject?.Type} Doc`,
                             "documentDesc": "",
                             "documentLoc": gApzCOB.userDetails.appId + /LOAN/ + gApzCOB.userDetails.applicationId,
@@ -311,7 +356,10 @@ apz.app.Kmbase.saveDocument = function(fileName, base64) {
                             "expiryDate": "",
                             "docStatus": "A",
                             "docSide": TempImageObject?.docSide || "Front",
+                            "docSide": TempImageObject?.docSide || "Front",
                             "docSize": ApzCOB.getBase64FileSizeInBytes(base64),
+                            "documentFileName": fileName,
+                            "documentFormat": fileNameWithExt,
                             "documentFileName": fileName,
                             "documentFormat": fileNameWithExt,
                             "isAdiDoc": "N",
@@ -366,6 +414,9 @@ apz.app.Kmbase.paintDocumentName = function(docType) {
             apz.app.Kmbase.toggleCaptureSection("CUSTOMER_PHOTOGRAPH", [{
                 captureBtn: AadhaarScrId + "custImgCaptureBtn"
             }]);
+            apz.app.Kmbase.toggleCaptureSection("CUSTOMER_PHOTOGRAPH", [{
+                captureBtn: AadhaarScrId + "custImgCaptureBtn"
+            }]);
         } else if (docType === "RESIDENCE_PREMISE_PHOTO Doc") {
             cloneDiv = `${AadhaarScrId}resImg_1`;
             parentDiv = $(`#${AadhaarScrId}resImg`);
@@ -377,6 +428,8 @@ apz.app.Kmbase.paintDocumentName = function(docType) {
                 let newId = ApzCOB.cloneDashboardDivs(cloneDiv, parentDiv, index + 1);
                 let baseName = doc.payload.documentFileName.replace(/\.(jpg|jpeg|png)$/i, '').replace(/_\d+$/, '').trim();
                 paintClonedDoc(newId, baseName, index, doc, docType);
+                let baseName = doc.payload.documentFileName.replace(/\.(jpg|jpeg|png)$/i, '').replace(/_\d+$/, '').trim();
+                paintClonedDoc(newId, baseName, index, doc, docType);
             });
             cloneDiv = `${AadhaarScrId}permanentAddrImg_1`;
             parentDiv = $(`#${AadhaarScrId}permanentAddrImg`);
@@ -385,7 +438,10 @@ apz.app.Kmbase.paintDocumentName = function(docType) {
                 let newId = ApzCOB.cloneDashboardDivs(cloneDiv, parentDiv, index + 1);
                 let baseName = doc.payload.documentFileName.replace(/\.(jpg|jpeg|png)$/i, '').replace(/_\d+$/, '').trim();
                 paintClonedDoc(newId, baseName, index, doc, docType);
+                let baseName = doc.payload.documentFileName.replace(/\.(jpg|jpeg|png)$/i, '').replace(/_\d+$/, '').trim();
+                paintClonedDoc(newId, baseName, index, doc, docType);
             });
+            return;
             return;
         } else if (docType === "RELATIONSHIP_PROOF Doc") {
             cloneDiv = `${AadhaarScrId}relImg_1`;
@@ -393,8 +449,17 @@ apz.app.Kmbase.paintDocumentName = function(docType) {
         } else if (docType === "SECONDARY_KYC Doc") {
             let frontDocs = window.custimg.filter(d => d.payload?.docLevel == "1");
             let backDocs = window.custimg.filter(d => d.payload?.docLevel == "2");
+        } else if (docType === "SECONDARY_KYC Doc") {
+            let frontDocs = window.custimg.filter(d => d.payload?.docLevel == "1");
+            let backDocs = window.custimg.filter(d => d.payload?.docLevel == "2");
             cloneDiv = `${documentCaptureScrId}frontImg_1`;
             parentDiv = $(`#${documentCaptureScrId}frontImg`);
+            parentDiv.html('');
+            frontDocs.forEach((doc, index) => {
+                let newId = ApzCOB.cloneDashboardDivs(cloneDiv, parentDiv, index + 1);
+                let baseName = doc.payload.documentFileName.replace(/\.(jpg|jpeg|png)$/i, '').replace(/_\d+$/, '').trim();
+                paintClonedDoc(newId, baseName, index, doc, docType);
+            });
             parentDiv.html('');
             frontDocs.forEach((doc, index) => {
                 let newId = ApzCOB.cloneDashboardDivs(cloneDiv, parentDiv, index + 1);
@@ -417,13 +482,30 @@ apz.app.Kmbase.paintDocumentName = function(docType) {
                 side: "Back"
             }]);
             return;
+            parentDiv.html('');
+            backDocs.forEach((doc, index) => {
+                let newId = ApzCOB.cloneDashboardDivs(cloneDiv, parentDiv, index + 1);
+                let baseName = doc.payload.documentFileName.replace(/\.(jpg|jpeg|png)$/i, '').replace(/_\d+$/, '').trim();
+                paintClonedDoc(newId, baseName, index, doc, docType);
+            });
+            apz.app.Kmbase.toggleCaptureSection("SECONDARY_KYC", [{
+                captureBtn: documentCaptureScrId + "frontCaptureBtn",
+                side: "Front"
+            }, {
+                captureBtn: documentCaptureScrId + "backCaptureBtn",
+                side: "Back"
+            }]);
+            return;
         } else {
             return;
         }
         // Common paint for CUSTOMER_PHOTOGRAPH, RESIDENCE_PREMISE_PHOTO, RELATIONSHIP_PROOF
+        // Common paint for CUSTOMER_PHOTOGRAPH, RESIDENCE_PREMISE_PHOTO, RELATIONSHIP_PROOF
         parentDiv.html('');
         window.custimg.forEach((doc, index) => {
             let newId = ApzCOB.cloneDashboardDivs(cloneDiv, parentDiv, index + 1);
+            let baseName = doc.payload.documentFileName.replace(/\.(jpg|jpeg|png)$/i, '').replace(/_\d+$/, '').trim();
+            paintClonedDoc(newId, baseName, index, doc, docType);
             let baseName = doc.payload.documentFileName.replace(/\.(jpg|jpeg|png)$/i, '').replace(/_\d+$/, '').trim();
             paintClonedDoc(newId, baseName, index, doc, docType);
         });
@@ -431,6 +513,8 @@ apz.app.Kmbase.paintDocumentName = function(docType) {
 };
 // Paint all existing documents on load / tab switch
 apz.app.Kmbase.paintAllDocuments = function() {
+    const docTypes = ["CUSTOMER_PHOTOGRAPH Doc", "RESIDENCE_PREMISE_PHOTO Doc", "ADDRESS_PROOF Doc", "RELATIONSHIP_PROOF Doc",
+        "SECONDARY_KYC Doc"];
     const docTypes = ["CUSTOMER_PHOTOGRAPH Doc", "RESIDENCE_PREMISE_PHOTO Doc", "ADDRESS_PROOF Doc", "RELATIONSHIP_PROOF Doc",
         "SECONDARY_KYC Doc"];
     docTypes.forEach(docType => {
@@ -519,6 +603,9 @@ apz.app.Kmbase.deleteDocumentCnfmCB = function(params) {
             }
         }
         apz.app.Kmbase.paintDocumentName(docDeleteType);
+        // Re-evaluate capture button visibility after delete
+        let rawDocType = docDeleteType.replace(' Doc', '');
+        apz.app.Kmbase.toggleCaptureSection(rawDocType, apz.app.Kmbase.getCaptureConfig(rawDocType));
         // Re-evaluate capture button visibility after delete
         let rawDocType = docDeleteType.replace(' Doc', '');
         apz.app.Kmbase.toggleCaptureSection(rawDocType, apz.app.Kmbase.getCaptureConfig(rawDocType));
