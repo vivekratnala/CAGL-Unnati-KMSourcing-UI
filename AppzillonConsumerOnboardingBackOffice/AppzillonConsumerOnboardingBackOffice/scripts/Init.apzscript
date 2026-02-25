@@ -116,6 +116,10 @@ apz.app.CBcheck = {};
 apz.app.AadhaarDetails = {};
 apz.app.AddressDetails = {};
 apz.app.documentCapture = {};
+apz.app.BusinessIncome = {};
+apz.app.OtherInformation = {};
+apz.app.KMReviewConfirm = {};
+apz.app.Kmcommon = {};
 
 setOrientation = function() { //TO SET THE MOBILE APP TO WORK ALWAYS IN PORTRAIT MODE
     var json = {};

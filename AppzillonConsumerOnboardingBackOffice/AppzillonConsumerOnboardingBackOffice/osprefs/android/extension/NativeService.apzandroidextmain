@@ -26,9 +26,6 @@ import androidx.annotation.RequiresApi;
 
 import com.iexceed.plugins.suremdm.CustomActivity;
 
-import com.signzy.imageanalysis.SignzyImageAnalysis;
-import com.signzy.imagequality.model.SignzyAnalysisResult;
-
 import com.iexceed.plugins.ApzPluginUtil;
 
 import org.json.JSONException;
@@ -87,9 +84,6 @@ public class NativeService {
                 String docType = json.getString("docType");
 
                 try {
-
-                    SignzyAnalysisResult result = getSignzyAnalysisResult(imageFileBase64, docType);
-
                     Log.d("TAG", "Analysis Results: " + result.toString());
                     String code = result.getError();
                     String msg = result.getErrorMessage();
@@ -141,11 +135,4 @@ public class NativeService {
     } catch (Exception e) {
         e.printStackTrace();
     }}
-    
-     @RequiresApi(api = Build.VERSION_CODES.N)
-    public static SignzyAnalysisResult getSignzyAnalysisResult(String base64Str, String docType) {
-        SignzyImageAnalysis signzyImageAnalysis = new SignzyImageAnalysis(mact.getApplicationContext());
-        return signzyImageAnalysis.runImageQualityAnalysis(base64Str,docType);
-    }
-
 }
