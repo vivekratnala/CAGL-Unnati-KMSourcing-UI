@@ -1,7 +1,7 @@
 var kmbaseScr = 'KmSourc__Kmbase__',
-KmAppId = 'KmSourc',
-KM_CURR_SCRN_NAME = 'Kmbase',
-KM_CURR_SCRN_NO = '';
+    KmAppId = 'KmSourc',
+    KM_CURR_SCRN_NAME = 'Kmbase',
+    KM_CURR_SCRN_NO = '';
 custType = "Applicant";
 window.KMScrIdMapping = {
     "CBcheck": 1,
@@ -12,11 +12,26 @@ window.KMScrIdMapping = {
 };
 apz.data.scrdata.KmSourc__IPaintLoanDetails_Res = [];
 window.KM_NEWTAGES = {
-    CBcheck: { id: 1, name: "CB check" },
-    AadhaarDetails: { id: 2, name: "Aadhaar, address & additional details" },
-    BusinessIncome: { id: 3, name: "Business/income source details" },
-    OtherInformation: { id: 4, name: "Other information" },
-    KMReviewConfirm: { id: 5, name: "Review & confirm" }
+    CBcheck: {
+        id: 1,
+        name: "CB check"
+    },
+    AadhaarDetails: {
+        id: 2,
+        name: "Aadhaar, address & additional details"
+    },
+    BusinessIncome: {
+        id: 3,
+        name: "Business/income source details"
+    },
+    OtherInformation: {
+        id: 4,
+        name: "Other information"
+    },
+    KMReviewConfirm: {
+        id: 5,
+        name: "Review & confirm"
+    }
 };
 apz.app.onLoad_Kmbase = function() {
     $("#scr__" + kmbaseScr + "main").on("mousedown", "input, select", function() {
@@ -91,14 +106,15 @@ apz.app.Kmbase.addCompleteStatus = function(hypId) {
     $(`#${hypId} svg`).addClass('suc');
     $(`#${hypId} use`).attr("xlink:href", "#icon-sidechk");
 };
-apz.app.DBbase.addErrorStatus = function(hypId) {
+apz.app.Kmbase.addErrorStatus = function(hypId) {
     apz.app.Kmbase.clearIcons(hypId);
     $(`#${hypId} svg`).addClass('error');
     $(`#${hypId} use`).attr("xlink:href", "#icon-fail-filled");
 };
 apz.app.Kmbase.clearIcons = function(hypId) {
     $(`#${hypId} svg`).removeClass('error suc inprg');
-    if (![`${kmbaseScr}CB_Applicant_Hyp`, `${kmbaseScr}CB_CoApplicant_Hyp`,`${kmbaseScr}Applicant_Hyp`, `${kmbaseScr}CoApplicant_Hyp`].includes(hypId)) {
+    if (![`${kmbaseScr}CB_Applicant_Hyp`, `${kmbaseScr}CB_CoApplicant_Hyp`, `${kmbaseScr}Applicant_Hyp`, `${kmbaseScr}CoApplicant_Hyp`].includes(
+            hypId)) {
         $(`#${hypId} use`).attr("xlink:href", "#icon-sidepnt");
     } else {
         $(`#${hypId} use`).attr("xlink:href", "#icon-sidechldopt");
@@ -127,17 +143,9 @@ apz.app.Kmbase.back = function() {
 }
 apz.app.Kmbase.next = function() {
     if (apz.childScr === "AadhaarDetails") {
-        if (!apz.app.AadhaarDetails.validateForm()) {
-            return;
-        }
-        if (gApzCOB.currentApplicant === 1) {
-            let tabs = $('.aadhaarSubMenu');
-            if (tabs.length > 1) {
-                let coAppTab = tabs.eq(1);
-                apz.app.AadhaarDetails.handletabSwitch(coAppTab, 'CoApplicant');
-            }
-            return;
-        }
+        if (!apz.app.AadhaarDetails.validateForm()) return;
+        apz.app.AadhaarDetails.saveAadhaarDetails(); 
+        return;
     }
     if (apz.childScr === 'documentCapture') {
         if (apz.app.docType === 'Aadhaar') {
@@ -259,7 +267,6 @@ apz.app.Kmbase.cameraCallback = function(params) {
         finalName = "Residence Photo";
     } else if (docType === "CUSTOMER_PHOTOGRAPH") {
         finalName = `${custPrefix} Photo`;
-        finalName = `${custPrefix} Photo`;
     } else if (docType === "ADDRESS_PROOF") {
         let selected = $("#" + AadhaarScrId + "addressProof").val()?.trim();
         finalName = (selected && selected !== "Please Select") ? selected : "Address Proof";
@@ -302,7 +309,8 @@ apz.app.Kmbase.saveDocument = function(fileName, base64) {
                         "applicationId": gApzCOB.userDetails.applicationId,
                         "versionNum": 1,
                         "appId": gApzCOB.userDetails.appId,
-                        "custDtlId": gApzCOB.userDetails.custDtlId,
+                        "custDtlId": gApzCOB.currentApplicant === 1 ? gApzCOB.userDetails.custDtlId : gApzCOB.userDetails
+                            .CoApplicantCustomerId,
                         "documentId": "",
                         "status": "A",
                         "payload": {
@@ -421,25 +429,9 @@ apz.app.Kmbase.paintDocumentName = function(docType) {
                 side: "Back"
             }]);
             return;
-            parentDiv.html('');
-            backDocs.forEach((doc, index) => {
-                let newId = ApzCOB.cloneDashboardDivs(cloneDiv, parentDiv, index + 1);
-                let baseName = doc.payload.documentFileName.replace(/\.(jpg|jpeg|png)$/i, '').replace(/_\d+$/, '').trim();
-                paintClonedDoc(newId, baseName, index, doc, docType);
-            });
-            apz.app.Kmbase.toggleCaptureSection("SECONDARY_KYC", [{
-                captureBtn: documentCaptureScrId + "frontCaptureBtn",
-                side: "Front"
-            }, {
-                captureBtn: documentCaptureScrId + "backCaptureBtn",
-                side: "Back"
-            }]);
-            return;
         } else {
             return;
         }
-        // Common paint for CUSTOMER_PHOTOGRAPH, RESIDENCE_PREMISE_PHOTO, RELATIONSHIP_PROOF
-        // Common paint for CUSTOMER_PHOTOGRAPH, RESIDENCE_PREMISE_PHOTO, RELATIONSHIP_PROOF
         parentDiv.html('');
         window.custimg.forEach((doc, index) => {
             let newId = ApzCOB.cloneDashboardDivs(cloneDiv, parentDiv, index + 1);
@@ -573,6 +565,9 @@ apz.app.Kmbase.paint_pincode = function(params, addressType) {
     $(`#${scrId}${addressType}City`).val(params.city).blur();
     $(`#${scrId}${addressType}District`).val(params.district).blur();
     $(`#${scrId}${addressType}State`).val(params.state).blur();
+    $(`#${scrId}${addressType}Country`).val(params.country).blur();
+    $(`#${scrId}${addressType}Area`).val(params.area).blur();
+    $(`#${scrId}${addressType}Landmark`).val(params.landMark).blur();
 };
 apz.app.otpMoveForward = function(current, nextId) {
     if (current.value && current.value.length === 1) {
@@ -680,6 +675,7 @@ apz.app.Kmbase.getCaptureConfig = function(docType) {
     };
     return map[docType] || [];
 };
+
 function paintClonedDoc(newId, baseName, index, doc, docType) {
     if (!newId) return;
     let $row = $("#" + newId);
