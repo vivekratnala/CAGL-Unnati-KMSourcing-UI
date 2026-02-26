@@ -1,4 +1,4 @@
-window.APP_VERSION = "V1.7.31";
+window.APP_VERSION = "V1.7.32";
 window.ENVCode = "UAT-";
 window.IS_MOBILE_DEDUPE_REQ = false;
 window.versionNum = 1;

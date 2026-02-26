@@ -672,6 +672,10 @@ apz.app.BusinessIncome.onSelectBussAddr = function(pthis) {
         if (this.id === pthis.id) return true;
         $(this).find('input[type="radio"]').prop('checked', false);
     })
+    $(`#${kmScrId+Index}_otherBussAddrRow`).addClass('sno');
+    if (pthis.id.includes(otherBuss)) {
+        $(`#${kmScrId+Index}_otherBussAddrRow`).removeClass('sno');
+    }
 }
 apz.app.BusinessIncome.OtherBusinessAddr = function(index) {
     addrFields = ['addressType', 'addressLine1', 'addressLine2', 'addressLine3', 'pinCode', 'city', 'district', 'area', 'landMark', 'state', 'country'];
