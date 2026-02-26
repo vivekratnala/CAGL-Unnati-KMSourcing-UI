@@ -218,7 +218,7 @@ apz.app.onLoad_AadhaarDetails = function() {
     // Permanent column
     $(".addr-body-row").eq(0).find("input[value*='permanent']").prop("checked", true);
     apz.app.AadhaarDetails.prePopulateAll();
-    apz.app.Kmbase.paintAllDocuments(); 
+    apz.app.Kmbase.paintAllDocuments();
     // Check Aadhaar doc capture flag
     if (window.AADHAAR_DOC_CAPTURE_SUCCESS) {
         $("#" + AadhaarScrId + "aadharDetails").removeClass('sno');
@@ -330,7 +330,7 @@ apz.app.AadhaarDetails.handletabSwitch = function(pthis, CustType) {
     }
     apz.app.AadhaarDetails.restoreForm();
     apz.app.AadhaarDetails.prePopulateAll();
-    apz.app.Kmbase.paintAllDocuments(); 
+    apz.app.Kmbase.paintAllDocuments();
     window.scrollTo(0, 0);
 };
 apz.app.AadhaarDetails.commoncodeConfTypesLst = function() {
@@ -508,8 +508,9 @@ apz.app.AadhaarDetails.paintAddressTable = function() {
     let customerList = inSessionStore?.customerDetailsList || gApzCOB?.requestNodes?.customerDetailsWrapperList;
     let addressWrapperRoot = inSessionStore?.addressDetailsWrapperList || gApzCOB?.requestNodes?.addressDetailsWrapperList;
     if (!customerList?.length || !addressWrapperRoot?.length) return;
-    ["applicant", "coapplicant"].forEach((type, index) => {
-        let custWrapper = customerList[index];
+    ["applicant", "coapplicant"].forEach((type) => {
+        let custType = type === "applicant" ? "Applicant" : "Co-App";
+        let custWrapper = customerList.find(c => c.customerType === custType);
         if (!custWrapper) return;
         let wrappers = addressWrapperRoot?.[0]?.addressDetailsList || addressWrapperRoot;
         let personalWrapper = wrappers.find(w => w.addressType === "Personal" && w.custDtlId == custWrapper.custDtlId);
@@ -610,8 +611,8 @@ apz.app.AadhaarDetails.toggleAddressRadios = function() {
         ?.addressDetailsList || [];
     let custList = inSessionStore?.customerDetailsList || gApzCOB?.requestNodes?.customerDetailsList || [];
     // Always check BOTH applicant and co-applicant independently
-    let applicantWrapper = custList[0];
-    let coApplicantWrapper = custList[1];
+    let applicantWrapper = custList.find(c => c.customerType === "Applicant");
+    let coApplicantWrapper = custList.find(c => c.customerType === "Co-App");
     let applicantPersonal = wrappers.find(w => w.addressType === "Personal" && w.custDtlId == applicantWrapper?.custDtlId);
     let coApplicantPersonal = wrappers.find(w => w.addressType === "Personal" && w.custDtlId == coApplicantWrapper?.custDtlId);
     let applicantHasAadhaar = applicantPersonal?.payload?.addressList?.some(a => a.addressType === "SecondaryKyc") || false;
@@ -716,14 +717,14 @@ apz.app.AadhaarDetails.onChangeResStability = function(pthis) {
 }
 apz.app.AadhaarDetails.prePopulateAll = function() {
     let p = AadhaarScrId;
-    let idx = gApzCOB.currentApplicant === 2 ? 1 : 0;
+    let custType = gApzCOB.currentApplicant === 1 ? "Applicant" : "Co-App";
     let customerList = inSessionStore?.customerDetailsList || gApzCOB?.requestNodes?.customerDetailsList || gApzCOB?.requestNodes
         ?.customerDetailsWrapperList;
     let addressWrapperRoot = inSessionStore?.addressDetailsWrapperList || gApzCOB?.requestNodes?.addressDetailsWrapperList;
     if (!customerList?.length) {
         return;
     }
-    let custWrapper = customerList[idx];
+    let custWrapper = customerList.find(c => c.customerType === custType);
     if (!custWrapper) return;
     let cust = custWrapper.payload || custWrapper;
     if (!cust) return;
