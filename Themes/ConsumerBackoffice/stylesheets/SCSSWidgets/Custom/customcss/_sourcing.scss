@@ -445,6 +445,68 @@
     line-height: 24px;
     letter-spacing: 0px;
 }
+/* Business Address Table CSS */
+.bussheaders {
+    padding: 16px;
+    background: #fff;
+    border-radius: 10px;
+}
+.bsaddress-table {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+.bsaddr-header-row {
+  display: flex;
+  padding: 14px 18px;
+  font-weight: 600;
+  background: #fafafa;
+  border-bottom: 1px solid #e5e5e5;
+}
+.bsaddr-header-row .bsaddr-cell:first-child {
+  flex: 1;
+}
+ 
+.bsaddr-header-row .bsaddr-cell:last-child {
+  width: 160px;
+  text-align: center;
+}
+.bsaddr-body-row {
+  display: flex;
+  padding: 16px 18px;
+  border-bottom: 1px solid #eee;
+  align-items: center;
+}
+.bsaddr-body-row:last-child {
+  border-bottom: none;
+}
+.bsaddr-cell.scb-col85,
+.bsaddr-cell.scb-col100 {
+  flex: 1;
+}
+ 
+.bskmsourcing-Table-Title p {
+  font-size: 13px;
+  color: #888;
+  margin: 0 0 4px 0;
+}
+ 
+.bskmsourcing-Table-des p {
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0;
+  line-height: 1.5;
+  color: #333;
+  white-space: pre-line;
+}
+.bsaddr-cell.scb-col15,
+.bsaddr-cell.scb-col25 {
+  width: 160px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 span#KmSourc__AadhaarDetails__communicationAddress {
     white-space: nowrap !important;
 }
