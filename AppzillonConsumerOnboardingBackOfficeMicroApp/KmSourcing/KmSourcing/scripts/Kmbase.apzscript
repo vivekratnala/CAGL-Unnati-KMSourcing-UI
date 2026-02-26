@@ -19,6 +19,9 @@ window.KM_NEWTAGES = {
     KMReviewConfirm: { id: 5, name: "Review & confirm" }
 };
 apz.app.onLoad_Kmbase = function() {
+    $(document).ready(function () {
+    $("#KmSourc__Kmbase__Otp_Modal_window").addClass("otp-modal");
+});
     $("#scr__" + kmbaseScr + "main").on("mousedown", "input, select", function() {
         clearFieldError(this.id);
     });
