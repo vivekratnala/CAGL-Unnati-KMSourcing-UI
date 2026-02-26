@@ -77,6 +77,7 @@ apz.app.Kmbase.NavigateSidebar = function(pstageId, pthis) {
     $(pthis).addClass('active');
     scrName = Object.keys(window.KM_NEWTAGES).find(key => window.KM_NEWTAGES[key].id === parseInt(pstageId));
     if (!apz.isNull(scrName)) {
+        apz.app.Kmbase.toggleSidebar();
         ApzCOB.launchSubScreen(scrName, `${kmbaseScr}KMLaunchCol`);
     }
 };
