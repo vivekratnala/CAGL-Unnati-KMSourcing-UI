@@ -673,7 +673,7 @@ apz.app.BusinessIncome.onSelectBussAddr = function(pthis) {
         $(this).find('input[type="radio"]').prop('checked', false);
     })
     $(`#${kmScrId+Index}_otherBussAddrRow`).addClass('sno');
-    if (pthis.id.includes(otherBuss)) {
+    if (pthis.id.includes("otherBuss")) {
         $(`#${kmScrId+Index}_otherBussAddrRow`).removeClass('sno');
     }
 }
