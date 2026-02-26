@@ -9700,173 +9700,37 @@ ApzCOB = {
         }, 1000);
     },
     // BRE CBService Callback
-    // BRECbServiceCB: function(params) {
-    //     window.CBBASE64 = "", window.CB_HIGHMARK_REPORT_LINK = "";
-    //     let errMsg = "";
-    //     if (!apz.isNull(params.resFull.appzillonBody.APZCBO__BRECBCheck_Res.apiResponse)) {
-    //         if (!apz.isNull(params.resFull.appzillonBody.APZCBO__BRECBCheck_Res.apiResponse.ResponseHeader.ResponseMessage)) {
-    //             errMsg = params.resFull.appzillonBody.APZCBO__BRECBCheck_Res.apiResponse.ResponseHeader.ResponseMessage;
-    //         }
-    //     } else {
-    //         errMsg = ApzCOB.getDescfromLitCode("LIT_LOAN_DETAILS_CB_CHECK_SERVICE_FAILED");
-    //     }
-    //     if (ApzCOB.handleServiceCallBacks(params)) {
-    //         if (!isRPCLogin) {
-    //             apz.stopLoader();
-    //         } else {
-    //             apz.startLoader();
-    //         }
-    //         let responseObj = JSON.parse(params.res.APZCBO__BRECBCheck_Res.apiResponse.ResponseBody.responseObj);
-    //         if (gApzCOB.currentApplicant > 1) {
-    //             gApzCOB.userDetails.coApplicantCbDtlsId = responseObj.responseObj.cbDtlId;
-    //         } else {
-    //             gApzCOB.userDetails.cbDtlsId = responseObj.responseObj.cbDtlId;
-    //         }
-    //         let cbResponseObj = JSON.parse(responseObj.responseObj.payloadColumn);
-    //         if (!apz.isNull(cbResponseObj.finalDecision)) {
-    //             let cbScore = 0;
-    //             if (!apz.isNull(cbResponseObj.cbScore) && parseInt(cbResponseObj.cbScore) != 0) {
-    //                 cbScore = parseInt(cbResponseObj.cbScore);
-    //             }
-    //             if (!cbResponseObj.finalDecision.toLowerCase().includes("approve")) {
-    //                 cbResponseObj.eligibleAmt = "0";
-    //             }
-    //             cibilDtls.overdueAmt = cbResponseObj.overdueAmt ?? "";
-    //             cibilDtls.bureauName = cbResponseObj.bureauName ?? "";
-    //             cibilDtls.cbScore = cbScore ?? "";
-    //             cibilDtls.totIndebtness = cbResponseObj.totIndebtness ?? "";
-    //             cibilDtls.maxDpdInLastMonths = cbResponseObj.caglDpdFlag ?? "";
-    //             cibilDtls.writtenOff = cibilDtls.writenoffAmt = cbResponseObj.writeOffAmt ?? "";
-    //             cibilDtls.finalDecision = cbResponseObj.finalDecision ?? "";
-    //             cibilDtls.eligibleAmt = !apz.isNull(cbResponseObj.eligibleAmt) ? ApzCOB.fn_FormatAmount(cbResponseObj.eligibleAmt) : "0";
-    //             cibilDtls.foir = cbResponseObj.foir ?? "";
-    //             cibilDtls.cgpDpd = cbResponseObj.caglDpdFlag ?? "";
-    //             cibilDtls.cbLoanId = window.CB_LOAN_ID = cbResponseObj.cbLoanId ?? ""; //"A0117168063485601902"
-    //             cibilDtls.appliedLoanCode = cbResponseObj.appliedLoanCode ?? ""; //"GL.GRM.UNNATI.LN"
-    //             cibilDtls.approvedLoanEMI = cbResponseObj.approvedLoanEMI ?? ""; //"3844.96"
-    //             cibilDtls.caglUnnatiFlag = cbResponseObj.caglUnnatiFlag ?? ""; //"Unnati DPD Flag : 0 | PASS"
-    //             cibilDtls.cbRetrigger = cbResponseObj.cbRetrigger ?? ""; //false
-    //             cibilDtls.eir = cbResponseObj.eir ?? ""; //"0%"
-    //             cibilDtls.eligibleEMI = cbResponseObj.eligibleEMI ?? ""; //"Eligible EMI : 20000"
-    //             cibilDtls.finalTenure = cbResponseObj.finalTenure ?? ""; //"36"
-    //             cibilDtls.flowResponse = cbResponseObj.flowResponse ?? ""; //"Approved with Preclosure"
-    //             cibilDtls.irisMessage = cbResponseObj.irisMessage ?? ""; //"success"
-    //             cibilDtls.kycId = cbResponseObj.kycId ?? ""; //"UFJ2416998"
-    //             cibilDtls.memberId = cbResponseObj.memberId ?? ""; //"587725"
-    //             cibilDtls.otsFlag = cbResponseObj.otsFlag ?? ""; //"No"
-    //             cibilDtls.writeoffSuitFiledFlag = cbResponseObj.writeoffSuitFiledFlag ?? ""; //"Applicant Writeoff_Suit filed Flag : NO"
-    //             cibilDtls.individualIndebtness = cbResponseObj.individualIndebtness ?? "";
-    //             cibilDtls.rejectionReason = cbResponseObj?.rejectionReason ?? "";
-    //             cibilDtls.retryAttempts = cbResponseObj?.retryAttempts ?? "";
-    //             cibilDtls.roi = cbResponseObj?.roi ?? '';
-    //             if (responseObj.hasOwnProperty("base64")) {
-    //                 if (!apz.isNull(responseObj.base64)) {
-    //                     window.CBBASE64 = responseObj.base64;
-    //                 }
-    //             }
-    //             window.IS_CB_CALLBACK = true;
-    //             window.retry_Attempts = cbResponseObj?.retryAttempts;
-    //             window.rejectRsn = cbResponseObj?.rejectionReason;
-    //             if (gApzCOB.currentApplicant <= 1 || (isRPCLogin && custType === 'Applicant')) {
-    //                 gApzCOB.userDetails.cbDtlsId = parseInt(responseObj.responseObj.cbDtlId);
-    //                 window.APPLICANT_CIBIL_STATUS = cbResponseObj.finalDecision.toLowerCase().includes("approve") ? true : false;
-    //             } else {
-    //                 gApzCOB.userDetails.coApplicantCbDtlsId = parseInt(responseObj.responseObj.cbDtlId);
-    //                 window.CO_APPLICANT_CIBIL_STATUS = cbResponseObj.finalDecision.toLowerCase().includes("approve") ? true : false;
-    //             }
-    //             if (!isRPCLogin) {
-    //                 apz.app.LoanDetails.paintCibilDetails();
-    //                 ["cibilCheckDetailsList", "sc_row_97_row", "sc_row_54"].show();
-    //                 ["otpDiv", "uploadConsentDiv", "timerDiv", "sc_row_90", "sc_row_69_row", "check_ul", "sendOtpBtn_ul", ].hide();
-    //                 $("#" + screenId + "el_btn_2_0").attr("disabled", false);
-    //                 apz.app.LoanDetails.continueBtn();
-    //             } else {
-    //                 let coAppIndex = inSessionStore.cibilDetailsWrapperList.findIndex(el => el.cibilDetails.custDtlId === ApzCOB.getCustDetailID('Co-App')) ?? -1;
-    //                 if (coAppIndex >= 0) {
-    //                     inSessionStore.cibilDetailsWrapperList[coAppIndex].cibilDetails.cbStatus = cbResponseObj.finalDecision?.toLowerCase()?.includes("approve") ? 'PASS' : 'FAIL';
-    //                     inSessionStore.cibilDetailsWrapperList[coAppIndex].cibilDetails.payload = cbResponseObj;
-    //                 }
-    //                 ApzCOB.RpcBRECallBack();
-    //                 if (RPC_CURRENT_STAGE === 'BusinessAddressProofRPC') {
-    //                     if ($(`#${bussAddrPrfScrId}addressSameAsInput_option_Present`).is(":checked")) {
-    //                         $('.rpcEditBtn').removeClass('sno');
-    //                         $(`#${bussAddrPrfScrId}editIconLbl_li`).removeClass('sno');
-    //                     }
-    //                 }
-    //             }    
-    //         } else {
-    //             apz.stopLoader();
-    //             if (!isRPCLogin) {
-    //                 ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_LOAN_DETAILS_CB_CHECK_SERVICE_FAILED"), "E");
-    //             } else {
-    //                 let CB_ERR_MESSAGE = 'BRE Service failed.Please try Again.!';
-    //                 ApzCOB.showRpcModals({
-    //                     text: CB_ERR_MESSAGE,
-    //                     Btn1: {
-    //                         text: "OK",
-    //                         onClick: "ApzCOB.BRECbService()"
-    //                     }
-    //                 }, "Error");
-    //             }
-    //         }
-    //     } else {
-    //         if (isRPCLogin && $(`#RPC__RpcStageScreen__conFormation_mdl`).is(':visible')) apz.app.RpcStageScreen.closeRPCConfirmarionMdl();
-    //         apz.stopLoader();
-    //         ApzCOB.fnDisplayMsg(errMsg, "E");
-    //     }
-    // },
-BRECbServiceCB: function (params) {
-
-    window.CBBASE64 = "";
-    window.CB_HIGHMARK_REPORT_LINK = "";
-
-    let errMsg = "";
-
-    if (!apz.isNull(params.resFull.appzillonBody.APZCBO__BRECBCheck_Res.apiResponse)) {
-        if (!apz.isNull(params.resFull.appzillonBody.APZCBO__BRECBCheck_Res.apiResponse.ResponseHeader.ResponseMessage)) {
-            errMsg = params.resFull.appzillonBody.APZCBO__BRECBCheck_Res.apiResponse.ResponseHeader.ResponseMessage;
-        }
-    } else {
-        errMsg = ApzCOB.getDescfromLitCode("LIT_LOAN_DETAILS_CB_CHECK_SERVICE_FAILED");
-    }
-
-    if (ApzCOB.handleServiceCallBacks(params)) {
-
-        if (!isRPCLogin) {
-            apz.stopLoader();
-        } else {
-            apz.startLoader();
-        }
-
-        let responseObj = JSON.parse(
-            params.res.APZCBO__BRECBCheck_Res.apiResponse.ResponseBody.responseObj
-        );
-
-        let cbResponseObj = JSON.parse(responseObj.responseObj.payloadColumn);
-
-        // Store cbDtlId
-        if (gApzCOB.currentApplicant > 1) {
-            gApzCOB.userDetails.coApplicantCbDtlsId =
-                responseObj.responseObj.cbDtlId;
-        } else {
-            gApzCOB.userDetails.cbDtlsId =
-                responseObj.responseObj.cbDtlId;
-        }
-
-        if (!apz.isNull(cbResponseObj.finalDecision)) {
-
-            let cbScore = 0;
-
-            if (!apz.isNull(cbResponseObj.cbScore) &&
-                parseInt(cbResponseObj.cbScore) !== 0) {
-                cbScore = parseInt(cbResponseObj.cbScore);
+    /*BRECbServiceCB: function(params) {
+        window.CBBASE64 = "", window.CB_HIGHMARK_REPORT_LINK = "";
+        let errMsg = "";
+        if (!apz.isNull(params.resFull.appzillonBody.APZCBO__BRECBCheck_Res.apiResponse)) {
+            if (!apz.isNull(params.resFull.appzillonBody.APZCBO__BRECBCheck_Res.apiResponse.ResponseHeader.ResponseMessage)) {
+                errMsg = params.resFull.appzillonBody.APZCBO__BRECBCheck_Res.apiResponse.ResponseHeader.ResponseMessage;
             }
-
-            if (!cbResponseObj.finalDecision
-                .toLowerCase()
-                .includes("approve")) {
-                cbResponseObj.eligibleAmt = "0";
+        } else {
+            errMsg = ApzCOB.getDescfromLitCode("LIT_LOAN_DETAILS_CB_CHECK_SERVICE_FAILED");
+        }
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            if (!isRPCLogin) {
+                apz.stopLoader();
+            } else {
+                apz.startLoader();
             }
+            let responseObj = JSON.parse(params.res.APZCBO__BRECBCheck_Res.apiResponse.ResponseBody.responseObj);
+            if (gApzCOB.currentApplicant > 1) {
+                gApzCOB.userDetails.coApplicantCbDtlsId = responseObj.responseObj.cbDtlId;
+            } else {
+                gApzCOB.userDetails.cbDtlsId = responseObj.responseObj.cbDtlId;
+            }
+            let cbResponseObj = JSON.parse(responseObj.responseObj.payloadColumn);
+            if (!apz.isNull(cbResponseObj.finalDecision)) {
+                let cbScore = 0;
+                if (!apz.isNull(cbResponseObj.cbScore) && parseInt(cbResponseObj.cbScore) != 0) {
+                    cbScore = parseInt(cbResponseObj.cbScore);
+                }
+                if (!cbResponseObj.finalDecision.toLowerCase().includes("approve")) {
+                    cbResponseObj.eligibleAmt = "0";
+                }
                 cibilDtls.overdueAmt = cbResponseObj.overdueAmt ?? "";
                 cibilDtls.bureauName = cbResponseObj.bureauName ?? "";
                 cibilDtls.cbScore = cbScore ?? "";
@@ -9900,11 +9764,9 @@ BRECbServiceCB: function (params) {
                         window.CBBASE64 = responseObj.base64;
                     }
                 }
-
-            window.IS_CB_CALLBACK = true;
-            window.retry_Attempts = cbResponseObj?.retryAttempts;
-            window.rejectRsn = cbResponseObj?.rejectionReason;
-
+                window.IS_CB_CALLBACK = true;
+                window.retry_Attempts = cbResponseObj?.retryAttempts;
+                window.rejectRsn = cbResponseObj?.rejectionReason;
                 if (gApzCOB.currentApplicant <= 1 || (isRPCLogin && custType === 'Applicant')) {
                     gApzCOB.userDetails.cbDtlsId = parseInt(responseObj.responseObj.cbDtlId);
                     window.APPLICANT_CIBIL_STATUS = cbResponseObj.finalDecision.toLowerCase().includes("approve") ? true : false;
@@ -9912,22 +9774,12 @@ BRECbServiceCB: function (params) {
                     gApzCOB.userDetails.coApplicantCbDtlsId = parseInt(responseObj.responseObj.cbDtlId);
                     window.CO_APPLICANT_CIBIL_STATUS = cbResponseObj.finalDecision.toLowerCase().includes("approve") ? true : false;
                 }
-
-            if (!isRPCLogin) {
-                if (screenId === window.CBcheckScr) {
-
-                apz.app.CBcheck.handleCBCheckScreenUI(
-                    cbResponseObj,
-                    responseObj
-                );
-
-            }else{
-                
+                if (!isRPCLogin) {
                     apz.app.LoanDetails.paintCibilDetails();
                     ["cibilCheckDetailsList", "sc_row_97_row", "sc_row_54"].show();
                     ["otpDiv", "uploadConsentDiv", "timerDiv", "sc_row_90", "sc_row_69_row", "check_ul", "sendOtpBtn_ul", ].hide();
                     $("#" + screenId + "el_btn_2_0").attr("disabled", false);
-                    apz.app.LoanDetails.continueBtn();}
+                    apz.app.LoanDetails.continueBtn();
                 } else {
                     let coAppIndex = inSessionStore.cibilDetailsWrapperList.findIndex(el => el.cibilDetails.custDtlId === ApzCOB.getCustDetailID('Co-App')) ?? -1;
                     if (coAppIndex >= 0) {
@@ -9962,7 +9814,130 @@ BRECbServiceCB: function (params) {
             apz.stopLoader();
             ApzCOB.fnDisplayMsg(errMsg, "E");
         }
-    },  
+    },*/
+    BRECbServiceCB: function(params) {
+        window.CBBASE64 = "";
+        window.CB_HIGHMARK_REPORT_LINK = "";
+        let errMsg = "";
+        if (!apz.isNull(params.resFull.appzillonBody.APZCBO__BRECBCheck_Res.apiResponse)) {
+            if (!apz.isNull(params.resFull.appzillonBody.APZCBO__BRECBCheck_Res.apiResponse.ResponseHeader.ResponseMessage)) {
+                errMsg = params.resFull.appzillonBody.APZCBO__BRECBCheck_Res.apiResponse.ResponseHeader.ResponseMessage;
+            }
+        } else {
+            errMsg = ApzCOB.getDescfromLitCode("LIT_LOAN_DETAILS_CB_CHECK_SERVICE_FAILED");
+        }
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            if (!isRPCLogin) {
+                apz.stopLoader();
+            } else {
+                apz.startLoader();
+            }
+            let responseObj = JSON.parse(params.res.APZCBO__BRECBCheck_Res.apiResponse.ResponseBody.responseObj);
+            let cbResponseObj = JSON.parse(responseObj.responseObj.payloadColumn);
+            // Store cbDtlId
+            if (gApzCOB.currentApplicant > 1) {
+                gApzCOB.userDetails.coApplicantCbDtlsId = responseObj.responseObj.cbDtlId;
+            } else {
+                gApzCOB.userDetails.cbDtlsId = responseObj.responseObj.cbDtlId;
+            }
+            if (!apz.isNull(cbResponseObj.finalDecision)) {
+                let cbScore = 0;
+                if (!apz.isNull(cbResponseObj.cbScore) && parseInt(cbResponseObj.cbScore) !== 0) {
+                    cbScore = parseInt(cbResponseObj.cbScore);
+                }
+                if (!cbResponseObj.finalDecision.toLowerCase().includes("approve")) {
+                    cbResponseObj.eligibleAmt = "0";
+                }
+                cibilDtls.overdueAmt = cbResponseObj.overdueAmt ?? "";
+                cibilDtls.bureauName = cbResponseObj.bureauName ?? "";
+                cibilDtls.cbScore = cbScore ?? "";
+                cibilDtls.totIndebtness = cbResponseObj.totIndebtness ?? "";
+                cibilDtls.maxDpdInLastMonths = cbResponseObj.caglDpdFlag ?? "";
+                cibilDtls.writtenOff = cibilDtls.writenoffAmt = cbResponseObj.writeOffAmt ?? "";
+                cibilDtls.finalDecision = cbResponseObj.finalDecision ?? "";
+                cibilDtls.eligibleAmt = !apz.isNull(cbResponseObj.eligibleAmt) ? ApzCOB.fn_FormatAmount(cbResponseObj.eligibleAmt) : "0";
+                cibilDtls.foir = cbResponseObj.foir ?? "";
+                cibilDtls.cgpDpd = cbResponseObj.caglDpdFlag ?? "";
+                cibilDtls.cbLoanId = window.CB_LOAN_ID = cbResponseObj.cbLoanId ?? ""; //"A0117168063485601902"
+                cibilDtls.appliedLoanCode = cbResponseObj.appliedLoanCode ?? ""; //"GL.GRM.UNNATI.LN"
+                cibilDtls.approvedLoanEMI = cbResponseObj.approvedLoanEMI ?? ""; //"3844.96"
+                cibilDtls.caglUnnatiFlag = cbResponseObj.caglUnnatiFlag ?? ""; //"Unnati DPD Flag : 0 | PASS"
+                cibilDtls.cbRetrigger = cbResponseObj.cbRetrigger ?? ""; //false
+                cibilDtls.eir = cbResponseObj.eir ?? ""; //"0%"
+                cibilDtls.eligibleEMI = cbResponseObj.eligibleEMI ?? ""; //"Eligible EMI : 20000"
+                cibilDtls.finalTenure = cbResponseObj.finalTenure ?? ""; //"36"
+                cibilDtls.flowResponse = cbResponseObj.flowResponse ?? ""; //"Approved with Preclosure"
+                cibilDtls.irisMessage = cbResponseObj.irisMessage ?? ""; //"success"
+                cibilDtls.kycId = cbResponseObj.kycId ?? ""; //"UFJ2416998"
+                cibilDtls.memberId = cbResponseObj.memberId ?? ""; //"587725"
+                cibilDtls.otsFlag = cbResponseObj.otsFlag ?? ""; //"No"
+                cibilDtls.writeoffSuitFiledFlag = cbResponseObj.writeoffSuitFiledFlag ?? ""; //"Applicant Writeoff_Suit filed Flag : NO"
+                cibilDtls.individualIndebtness = cbResponseObj.individualIndebtness ?? "";
+                cibilDtls.rejectionReason = cbResponseObj?.rejectionReason ?? "";
+                cibilDtls.retryAttempts = cbResponseObj?.retryAttempts ?? "";
+                cibilDtls.roi = cbResponseObj?.roi ?? '';
+                if (responseObj.hasOwnProperty("base64")) {
+                    if (!apz.isNull(responseObj.base64)) {
+                        window.CBBASE64 = responseObj.base64;
+                    }
+                }
+                window.IS_CB_CALLBACK = true;
+                window.retry_Attempts = cbResponseObj?.retryAttempts;
+                window.rejectRsn = cbResponseObj?.rejectionReason;
+                if (gApzCOB.currentApplicant <= 1 || (isRPCLogin && custType === 'Applicant')) {
+                    gApzCOB.userDetails.cbDtlsId = parseInt(responseObj.responseObj.cbDtlId);
+                    window.APPLICANT_CIBIL_STATUS = cbResponseObj.finalDecision.toLowerCase().includes("approve") ? true : false;
+                } else {
+                    gApzCOB.userDetails.coApplicantCbDtlsId = parseInt(responseObj.responseObj.cbDtlId);
+                    window.CO_APPLICANT_CIBIL_STATUS = cbResponseObj.finalDecision.toLowerCase().includes("approve") ? true : false;
+                }
+                if (!isRPCLogin) {
+                    if (screenId === window.CBcheckScr) {
+                        apz.app.CBcheck.handleCBCheckScreenUI(cbResponseObj, responseObj);
+                    } else {
+                        apz.app.LoanDetails.paintCibilDetails();
+                        ["cibilCheckDetailsList", "sc_row_97_row", "sc_row_54"].show();
+                        ["otpDiv", "uploadConsentDiv", "timerDiv", "sc_row_90", "sc_row_69_row", "check_ul", "sendOtpBtn_ul", ].hide();
+                        $("#" + screenId + "el_btn_2_0").attr("disabled", false);
+                        apz.app.LoanDetails.continueBtn();
+                    }
+                } else {
+                    let coAppIndex = inSessionStore.cibilDetailsWrapperList.findIndex(el => el.cibilDetails.custDtlId === ApzCOB.getCustDetailID(
+                        'Co-App')) ?? -1;
+                    if (coAppIndex >= 0) {
+                        inSessionStore.cibilDetailsWrapperList[coAppIndex].cibilDetails.cbStatus = cbResponseObj.finalDecision?.toLowerCase()
+                            ?.includes("approve") ? 'PASS' : 'FAIL';
+                        inSessionStore.cibilDetailsWrapperList[coAppIndex].cibilDetails.payload = cbResponseObj;
+                    }
+                    ApzCOB.RpcBRECallBack();
+                    if (RPC_CURRENT_STAGE === 'BusinessAddressProofRPC') {
+                        if ($(`#${bussAddrPrfScrId}addressSameAsInput_option_Present`).is(":checked")) {
+                            $('.rpcEditBtn').removeClass('sno');
+                            $(`#${bussAddrPrfScrId}editIconLbl_li`).removeClass('sno');
+                        }
+                    }
+                }
+            } else {
+                apz.stopLoader();
+                if (!isRPCLogin) {
+                    ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_LOAN_DETAILS_CB_CHECK_SERVICE_FAILED"), "E");
+                } else {
+                    let CB_ERR_MESSAGE = 'BRE Service failed.Please try Again.!';
+                    ApzCOB.showRpcModals({
+                        text: CB_ERR_MESSAGE,
+                        Btn1: {
+                            text: "OK",
+                            onClick: "ApzCOB.BRECbService()"
+                        }
+                    }, "Error");
+                }
+            }
+        } else {
+            if (isRPCLogin && $(`#RPC__RpcStageScreen__conFormation_mdl`).is(':visible')) apz.app.RpcStageScreen.closeRPCConfirmarionMdl();
+            apz.stopLoader();
+            ApzCOB.fnDisplayMsg(errMsg, "E");
+        }
+    },
     CBretriggermdl: function() {
         if (apz.isNull(retry_Attempts)) {
             retry_Attempts = 5; //hardcoded for now
