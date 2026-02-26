@@ -180,8 +180,8 @@ apz.app.Kmbase.paintLoanDetails = function() {
             var elem = {};
             elem.loanType = existingLoansList[i].loanType;
             elem.loanId = existingLoansList[i].loanId;
-            elem.loanAmt = apz.isNull(existingLoansList[i].loanAmt) ? "" : ApzCOB.fn_FormatAmount(existingLoansList[i].loanAmt);
-            elem.outstandingAmt = apz.isNull(existingLoansList[0].outstandingAmt) ? "" : ApzCOB.fn_FormatAmount(existingLoansList[i].outstandingAmt);
+            elem.loanAmt = apz.isNull(existingLoansList[i].loanAmt) ? "" : ApzCOB.fn_FormatAmount(existingLoansList[i].loanAmt ?? 0);
+            elem.outstandingAmt = apz.isNull(existingLoansList[i].outstandingAmt) ? "" : ApzCOB.fn_FormatAmount(existingLoansList[i].outstandingAmt ?? 0);
             existingLoanDtls.push(elem);
         }
     }
@@ -689,3 +689,4 @@ function paintClonedDoc(newId, baseName, index, doc, docType) {
     $row.attr('data-doc-type', docType);
     $row.removeClass('sno');
 }
+

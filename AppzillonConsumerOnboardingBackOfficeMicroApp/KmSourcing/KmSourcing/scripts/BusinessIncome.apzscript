@@ -23,6 +23,7 @@ cameracallbackres = {},
 cameracallbackres = {},
 WageAppCurIndex = 0,
 WageCoCurIndex = 0,
+imgNumber = '',
 addrFields = ['addressType', 'addressLine1', 'addressLine2', 'addressLine3', 'pinCode', 'city', 'district', 'area', 'landMark', 'state', 'country'],
 IncomeassEdit = {
     type: "",
@@ -449,6 +450,263 @@ apz.app.BusinessIncome.cameraCallback = function(params) {
     let fileName = params.path.split('/').pop();
     apz.app.BusinessIncome.saveDocument(fileName, params.encodedImage);
 };
+apz.app.BusinessIncome.saveDocument = function(fileName, base64) {
+    apz.startLoader();
+    let docLevel = "1";
+    let ActiveCustType = custTypeIncomeDtls === "Co-Applicant" ? "Co-App" : "Applicant";
+    docLevel = ApzCOB.getNextDocLevel(`${TempImageObject?.Type} Doc`, ApzCOB.getCustDetailID(ActiveCustType));
+    let req = {
+        apiRequest: {
+            "requestObj": {
+                "appId": gApzCOB.userDetails.appId,
+                "applicationId": gApzCOB.userDetails.applicationId,
+                "versionNum": 1,
+                "stageId": "UPLOADDOCS",
+                "requestType": "Edit",
+                "customerType": "Applicant",
+                "uploadDocumentRequestFields": {
+                    "versionNum": 1,
+                    "applicationId": gApzCOB.userDetails.applicationId,
+                    "appId": gApzCOB.userDetails.appId,
+                    "srcScreen": "UPLOADDOCS",
+                    "filePath": gApzCOB.userDetails.appId + /LOAN/ + gApzCOB.userDetails.applicationId,
+                    "fileName": fileName,
+                    "base64Value": base64,
+                    "productGroupCode": "LOAN",
+                    "isExistingCustomer": "N"
+                },
+                "applicationDocumentsWrapperList": [{
+                    "applicationDocumentsList": [{
+                        "appDocId": "",
+                        "applicationId": gApzCOB.userDetails.applicationId,
+                        "versionNum": 1,
+                        "appId": gApzCOB.userDetails.appId,
+                        "custDtlId": gApzCOB.userDetails.custDtlId,
+                        "documentId": "",
+                        "status": "A",
+                        "payload": {
+                            "docLevel": docLevel,
+                            "documentType": `${TempImageObject?.Type} Doc`,
+                            "documentDesc": "",
+                            "documentLoc": gApzCOB.userDetails.appId + /LOAN/ + gApzCOB.userDetails.applicationId,
+                            "screenId": "UploadDocuments",
+                            "issueDate": "",
+                            "expiryDate": "",
+                            "docStatus": "A",
+                            "docSide": "Front",
+                            "docSize": ApzCOB.getBase64FileSizeInBytes(base64),
+                            "documentFileName": fileName,
+                            "documentFormat": fileName,
+                            "isPushbackUpload": "N",
+                            "isAdiDoc": "N",
+                            "uploadedBy": "BM",
+                            "custType": custTypeIncomeDtls,
+                            "stage": "CreditAssessment",
+                            "docNo": docNoImageUpload,
+                            "incomeType": incomeTypeBulkDelete,
+                            "latitude": window.currentGeoCords?.latitude,
+                            "longitude": window.currentGeoCords?.longitude,
+                            "uploadedTs": new Date().toISOString(),
+                        }
+                    }]
+                }]
+            },
+            "userId": gApzCOB.LoggedInUserDetails.loginResponse.userDet.id,
+            "appId": gApzCOB.userDetails.appId,
+            "interfaceName": "UploadRPCLoanData"
+        }
+    }
+    if (custTypeIncomeDtls === "Co-Applicant") {
+        req.apiRequest.requestObj.applicationDocumentsWrapperList[0].applicationDocumentsList[0].custDtlId = ApzCOB.getCustDetailID('Co-App');
+    } else {
+        req.apiRequest.requestObj.applicationDocumentsWrapperList[0].applicationDocumentsList[0].custDtlId = ApzCOB.getCustDetailID("Applicant");
+    }
+    //apz.startLoader();
+    setTimeout(() => {
+        ApzCOB.serverBuildParam(gAppId, "UploadRPCLoanData", "N", "N", req, false, apz.app.BusinessIncome.saveDocumentCB);
+    }, 1000)
+}
+apz.app.BusinessIncome.saveDocumentCB = function(params) {
+    const docType = params.req.apiRequest.requestObj.applicationDocumentsWrapperList[0].applicationDocumentsList[0].payload.documentType;
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            apz.stopLoader();
+            ApzCOB.updateInsessionData(params);
+            apz.app.BusinessIncome.paintDocumentName(docType);
+        } else {
+            apz.stopLoader();
+        }
+    } catch {
+        apz.stopLoader();
+        ApzCOB.fnDisplayMsg("failed to save the data")
+    }
+}
+apz.app.BusinessIncome.paintDocumentName = function(docType) {
+    // if (!cameracallbackres.status) return;
+    if (!ImageObject[TempImageObject.Type]) {
+        ImageObject[TempImageObject.Type] = {};
+    }
+    if (!ImageObject[TempImageObject.Type][TempImageObject.index]) {
+        ImageObject[TempImageObject.Type][TempImageObject.index] = [];
+    }
+    let imageList = ImageObject[TempImageObject.Type][TempImageObject.index];
+    let Length = imageList.length + 1;
+    let obj = {
+        "ImageName": `Business ${TempImageObject.index} ${TempImageObject.Type} Image ${Length}`,
+        // "Base64": cameracallbackres.encodedImage
+    };
+    const incomeSourcePrefixMap = {
+        "Salary Doc": "Salary",
+        "Pension Doc": "Pension",
+        "Agriculture Doc": "Agriculture",
+        "Rentalincome_Agg Doc": "Rentalincome_Agg",
+        "Other Doc": "Other",
+        "Kirana Doc": "Kirana",
+        "Dairy Doc": "Dairy",
+        "Tailoring Doc": "Tailoring"
+    };
+    let prefix = "";
+    let count = 0;
+    if (docType === "Other Doc" || docType === "Kirana Doc" || docType === "Dairy Doc" || docType === "Tailoring Doc") {
+        obj = {
+            "ImageName": `Business ${TempImageObject.index} ${TempImageObject.Type} Image ${Length}`,
+            // "Base64": cameracallbackres.encodedImage
+        };
+        const prefixDocs = incomeSourcePrefixMap[docType];
+        if (prefixDocs && ["Other", "Kirana", "Dairy", "Tailoring"].includes(prefixDocs)) {
+            const currentIndex = parseInt(TempImageObject.index);
+            for (let i = 1; i <= currentIndex; i++) {
+                const cloneRow = document.getElementById(`KmSourc__BusinessIncome__CloneRow_${i}`);
+                if (cloneRow && !cloneRow.classList.contains('sno')) {
+                    const checkedRadio = document.querySelector(`#KmSourc__BusinessIncome__${i}_businessTypeOption input[type="radio"]:checked`);
+                    if (checkedRadio && checkedRadio.value === prefixDocs) {
+                        count++;
+                        // (`${prefixDocs}, ${count}`)
+                    }
+                }
+            }
+        }
+    } else {
+        const docTypePrefixMap = {
+            "Salary Doc": "Salary",
+            "Pension Doc": "Pension",
+            "Agriculture Doc": "Agriculture",
+            "Rentalincome_Agg Doc": "Rentalincome_Agg"
+        };
+        // Get prefix from the map, fallback to 'Other' if unknown
+        prefix = docTypePrefixMap[docType] || "Other";
+        obj = {
+            "ImageName": `${prefix} ${TempImageObject.index} ${TempImageObject.Type} Image ${Length}`,
+            // "Base64": cameracallbackres.encodedImage
+        };
+    }
+    imageList.push(obj);
+    let typeMap = {
+        "Agriculture": {
+            "Applicant": {
+                idPrefix: "KmSourc__BusinessIncome__Agriculture_App_UploadedImage",
+                ImageidPrefix: `KmSourc__BusinessIncome__${Length}_Agriculture_App_ImageName`,
+                parentSelector: `${kmScrId}Agriculture_App_ParentBusRow`
+            },
+            "Co-Applicant": {
+                idPrefix: "KmSourc__BusinessIncome__Agriculture_Co_UploadedImage",
+                ImageidPrefix: `KmSourc__BusinessIncome__${Length}_Agriculture_Co_ImageName`,
+                parentSelector: `${kmScrId}Agriculture_Co_ParentBusRow`
+            }
+        },
+        "Salary": {
+            "Applicant": {
+                idPrefix: "KmSourc__BusinessIncome__Salary_App_UploadedImage",
+                ImageidPrefix: `KmSourc__BusinessIncome__${Length}_Salary_App_ImageName`,
+                parentSelector: `${kmScrId}Salary_App_ParentBusRow`
+            },
+            "Co-Applicant": {
+                idPrefix: "KmSourc__BusinessIncome__Salary_Co_UploadedImage",
+                ImageidPrefix: `KmSourc__BusinessIncome__${Length}_Salary_Co_ImageName`,
+                parentSelector: `${kmScrId}Salary_Co_ParentBusRow`
+            }
+        },
+        "Pension": {
+            "Applicant": {
+                idPrefix: "KmSourc__BusinessIncome__Pension_App_UploadedImage",
+                ImageidPrefix: `KmSourc__BusinessIncome__${Length}_Pension_App_ImageName`,
+                parentSelector: `${kmScrId}Pension_App_ParentBusRow`
+            },
+            "Co-Applicant": {
+                idPrefix: "KmSourc__BusinessIncome__Pension_Co_UploadedImage",
+                ImageidPrefix: `KmSourc__BusinessIncome__${Length}_Pension_Co_ImageName`,
+                parentSelector: `${kmScrId}Pension_Co_ParentBusRow`
+            }
+        },
+        "Rentalincome": {
+            "Applicant": {
+                idPrefix: "KmSourc__BusinessIncome__Rentalincome_App_UploadedImage",
+                ImageidPrefix: `KmSourc__BusinessIncome__${Length}_Rentalincome_App_ImageName`,
+                parentSelector: `${kmScrId}Rentalincome_App_ParentBusRow`
+            },
+            "Co-Applicant": {
+                idPrefix: "KmSourc__BusinessIncome__Rentalincome_Co_UploadedImage",
+                ImageidPrefix: `KmSourc__BusinessIncome__${Length}_Rentalincome_Co_ImageName`,
+                parentSelector: `${kmScrId}Rentalincome_Co_ParentBusRow`
+            }
+        },
+        "Rentalincome_Agg": {
+            "Applicant": {
+                idPrefix: "KmSourc__BusinessIncome__Rentalincome_App_UploadedImage_Agg",
+                ImageidPrefix: `KmSourc__BusinessIncome__${Length}_Rentalincome_App_ImageName_Agg`,
+                parentSelector: `${kmScrId}Rentalincome_App_ParentBusRow_Agg`
+            },
+            "Co-Applicant": {
+                idPrefix: "KmSourc__BusinessIncome__Rentalincome_Co_UploadedImage_Agg",
+                ImageidPrefix: `KmSourc__BusinessIncome__${Length}_Rentalincome_Co_ImageName_Agg`,
+                parentSelector: `${kmScrId}Rentalincome_Co_ParentBusRow_Agg`
+            }
+        },
+        "Business": {
+            "default": {
+                idPrefix: `KmSourc__BusinessIncome__${TempImageObject.index}_BussnessUploadedImage`,
+                ImageidPrefix: `KmSourc__BusinessIncome__${Length}_${TempImageObject.index}_Bussiness_ImageName`,
+                parentSelector: `${kmScrId}${TempImageObject.index}_Business_ParentBusRow`
+            }
+        }
+    };
+    let typeConfig = typeMap[TempImageObject.Type] && typeMap[TempImageObject.Type][TempImageObject.index] ? typeMap[TempImageObject.Type][
+        TempImageObject.index
+    ] : typeMap["Business"]["default"];
+    const documentsArr = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList;
+    // && doc.payload.custType === custTypeIncomeDtls
+    if (documentsArr.length > 0) {
+        let incomeDetailsDoc;
+        if (docType === "Other Doc" || docType === "Kirana Doc" || docType === "Dairy Doc" || docType === "Tailoring Doc") {
+            incomeDetailsDoc = documentsArr.filter(doc => doc.payload.documentType === docType && doc.payload.docNo == count);
+        } else {
+            incomeDetailsDoc = documentsArr.filter(doc => doc.payload.documentType === docType && doc.payload.custType === TempImageObject.index);
+        }
+        // const incomeDetailsDoc = documentsArr.filter(doc => doc.payload.documentType === docType && parseInt(doc.custDtlId) === parseInt(gApzCOB
+        //     .userDetails.custDtlId));
+        if (incomeDetailsDoc.length > 0) {
+            let {
+                idPrefix,
+                ImageidPrefix,
+                parentSelector
+            } = typeConfig;
+            let Id = `${idPrefix}_${Length}`;
+            let cloneDiv = idPrefix;
+            let parentDiv = $(`#${parentSelector}`);
+            parentDiv.html('');
+            incomeDetailsDoc.forEach((doc, index) => {
+                let clonedId = apz.app.BusinessIncome.DeepcloneDivs(cloneDiv, parentDiv, index + 1);
+                $(`#${clonedId}`).attr('data-id', doc.appDocId);
+                // $(`#${clonedId} a.ett-hypl span`).text(doc.payload.documentFileName);
+                $(`#${clonedId} a.ett-hypl span`).text(`${incomeSourcePrefixMap[docType]}_${index + 1}.jpg`);
+                $(`#${clonedId}`).removeClass("sno");
+                //   $(`#${ImageidPrefix}`).text(obj.ImageName);
+            })
+        } else {
+            $(`#${typeConfig.idPrefix}_${imgNumber}`).addClass("sno");
+        }
+    }
+}
 apz.app.BusinessIncome.viewIncomeDoc = function(pthis) {
     let documentId = $(pthis).parents('.uploadimg').attr('data-id');
     let docDetails = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList.find(doc => parseInt(doc.appDocId) === parseInt(
@@ -476,6 +734,81 @@ apz.app.BusinessIncome.viewIncomeDocCB = function(params) {
         ApzCOB.toggleModal(`${kmScrId}viewUploadedModal`);
     } else {
         ApzCOB.fnDisplayMsg("Document is not available")
+    }
+}
+apz.app.BusinessIncome.deleteIncomeDoc = function(pthis) {
+    let fullId = pthis.id;
+    let parts = fullId.split("__")[2].split("_");
+    imgNumber = parts[0];
+    if (parts[1] === "1" || parts[1] === "2" || parts[1] === "3" || parts[1] === "4" || parts[1] === "5") {
+        TempImageObject.index = parts[1];
+    } else {
+        if (parts[2] === "Co") {
+            TempImageObject.index = "Co-Applicant"
+        } else {
+            TempImageObject.index = "Applicant";
+        }
+    }
+    let documentId = $(pthis).parents('.uploadimg').attr('data-id');
+    if (!apz.isNull(documentId)) {
+        let popUpObj = {};
+        popUpObj.text = "Do you want to delete this document?";
+        popUpObj.Btn1 = {
+            "text": "Yes",
+            "onClick": `apz.app.BusinessIncome.deleteDocumentCnfm(${documentId})`
+        }
+        popUpObj.Btn2 = {
+            "text": "No",
+            "onClick": "apz.app.Cabase.closeCnfmMdl()"
+        }
+        ApzCOB.showRpcModals(popUpObj, "confirmation");
+    }
+}
+apz.app.BusinessIncome.deleteDocumentCnfm = function(docId) {
+    let callBackFn = apz.app.BusinessIncome.deleteDocumentCnfmCB;
+    ApzCOB.deleteDocument('', '', '', docId, callBackFn)
+}
+apz.app.BusinessIncome.deleteDocumentCnfmCB = function(params) {
+    apz.stopLoader();
+    let docType;
+    try {
+        const isSuccess = ApzCOB.handleServiceCallBacks(params);
+        const modalOptions = {
+            text: isSuccess ? "Document Deleted.!" : "Document Delete Failed.!",
+            Btn1: {
+                text: "OK",
+                onClick: isSuccess ? "apz.app.Cabase.closeDeleteSuccModal()" : "apz.app.Cabase.closeDeleteErrModal()"
+            }
+        };
+        apz.app.Cabase.closeCnfmMdl();
+        if (isSuccess && params.res.APZCBO__DeleteDocument_Res.apiResponse.ResponseBody.responseObj === 'Success') {
+            let deletedDocId = params?.req?.apiRequest?.requestObj?.appDocId || "";
+            let documentArray = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList;
+            docType = documentArray.find(item => {
+                if (item.appDocId === deletedDocId) {
+                    return item.payload.documentType;
+                }
+            })
+            if (docType) {
+                custTypeIncomeDtls = docType.payload.custType;
+            }
+            if (!apz.isNull(deletedDocId) && documentArray.length > 0) {
+                let updatedDocs = documentArray.filter(item => Number(item.appDocId) !== Number(deletedDocId));
+                inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList = [];
+                inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList = structuredClone(updatedDocs);
+            }
+        }
+        TempImageObject.Type = docType.payload.documentType.split(" Doc")[0];
+        apz.app.BusinessIncome.paintDocumentName(docType.payload.documentType)
+        ApzCOB.showRpcModals(modalOptions, isSuccess ? "Success" : "Error");
+    } catch (e) {
+        ApzCOB.showRpcModals({
+            text: technicalErrMsg,
+            Btn1: {
+                text: "OK",
+                onClick: "apz.app.Cabase.closeDeleteErrModal()"
+            }
+        }, "Error");
     }
 }
 apz.app.BusinessIncome.addBusiness = function() {
@@ -506,33 +839,120 @@ apz.app.BusinessIncome.addBusiness = function() {
         $(`#${currBussId}_addBusiness_ul`).addClass("sno");
     }
 };
-apz.app.BusinessIncome.addBusiness = function() {
-    let currBussId = kmScrId + numberOfBusinessCount;
-    let currentBusinessId = `#${currBussId}_addBusinessDetails_ul`;
-    if ($(currentBusinessId).is(":visible")) {
-        ApzCOB.fnDisplayMsg("Please Add the Business Details before Proceed", "E");
-        return;
-    }
-    $(`#${currBussId}_addBusiness_ul`).addClass("sno");
-    numberOfBusinessCount++;
-    if (numberOfBusinessCount <= 12) {
-        let clonedRowId = `${kmScrId}CloneRow_${numberOfBusinessCount}`;
-        let existingDiv = $(`#${clonedRowId}`);
-        if (existingDiv.length > 0) {
-            existingDiv.removeClass("sno"); // If it exists, just show it
-            apz.app.BusinessIncome.resetBusiness(numberOfBusinessCount);
-        } else {
-            let clonedId = apz.app.BusinessIncome.DeepcloneDivs(elementId, businessParentDiv, numberOfBusinessCount);
-            $(`#${clonedId}`).removeClass("sno"); // Remove sno from the newly cloned element
+apz.app.BusinessIncome.DeleteBusiness = function(pthis, type) {
+    incomeTypeBulkDelete = '';
+    if (type !== 'Buss') {
+        //handle non business incomes
+    } else {
+        var DeleteCount = parseInt(pthis.id.split("_")[4]);
+        const checkboxes = document.querySelectorAll('#KmSourc__BusinessIncome__' + DeleteCount + '_businessTypeOption input[type="radio"]:checked');
+        if (!checkboxes.length) return;
+        var Type = checkboxes[0].id.split("_")[7].trim().toLowerCase();
+        var ownershipOptions = ["Applicant", "Co-Applicant", "Both"];
+        var selectedOwnership;
+        for (var i = 0; i < ownershipOptions.length; i++) {
+            var option = ownershipOptions[i];
+            var radioId = "KmSourc__BusinessIncome__" + DeleteCount + "_businessOwnedByOption_option_" + option;
+            if ($("#" + radioId).prop("checked")) {
+                selectedOwnership = option;
+                break;
+            }
+        }
+        let ownershipKey;
+        let typeKey;
+        if (Type === "kirana") {
+            ownershipKey = "kiranaType";
+            typeKey = "Kirana";
+        } else if (Type === "other") {
+            ownershipKey = "otherType";
+            typeKey = "Other";
+        } else if (Type === "tailoring") {
+            ownershipKey = "tailoringType";
+            typeKey = "Tailoring";
+        } else if (Type === "dairy") {
+            ownershipKey = "DairyType";
+            typeKey = "dairy";
+        }
+        let custTypeForImageDelete = selectedOwnership === "Co-Applicant" ? "Co-App" : selectedOwnership;
+        let documentType = Type === "kirana" ? "Kirana Doc" : Type === "other" ? "Other Doc" : Type === "tailoring" ? "Tailoring Doc" : Type === "dairy" ?
+            "Dairy Doc" : "";
+        const typeKeyLower = typeKey.toLowerCase();
+        const docNoImageDelete = Object.values(selectedBusinessTypesIncomeDtls).filter(val => val.toLowerCase() === typeKeyLower).length;
+        let deleted = false;
+        if (typeKey && FinalvaluesArr.hasOwnProperty(typeKey) && Array.isArray(FinalvaluesArr[typeKey])) {
+            const arr = FinalvaluesArr[typeKey];
+            for (let i = arr.length - 1; i >= 0; i--) {
+                const item = arr[i];
+                if (!item || typeof item !== "object" || Object.keys(item).length === 0) {
+                    arr.splice(i, 1);
+                    deleted = true;
+                    break;
+                }
+                if (item[ownershipKey] === selectedOwnership) {
+                    arr.splice(i, 1);
+                    deleted = true;
+                    break;
+                }
+            }
+            FinalvaluesArr[typeKey] = arr;
+        }
+        if (deleted) {
+            deletedBusinessIndexes[DeleteCount] = typeKey;
+            $("#KmSourc__BusinessIncome__CloneRow_" + DeleteCount).addClass("sno");
+            $("#KmSourc__BusinessIncome__CloneRow_" + DeleteCount).find("#KmSourc__BusinessIncome__" + DeleteCount + "_Business_ParentBusRow").find(
+                ".uploadimg.businessimg").addClass("sno");
+            if ($("#KmSourc__BusinessIncome__CloneRow_" + (DeleteCount - 1)).length > 0) {
+                $("#KmSourc__BusinessIncome__" + (DeleteCount - 1) + "_addBusiness_ul").removeClass("sno");
+            }
+            apz.app.BusinessIncome.BulkDeleteImages(documentType, custTypeForImageDelete, incomeTypeBulkDelete, docNoImageDelete, "Y");
+            apz.app.BusinessIncome.disableDeleteButtons();
+            apz.app.BusinessIncome.getSelectedBusinessTypes();
+        }
+        let allRowsHiddenOrMissing = true;
+        for (let index = 1; index <= 12; index++) {
+            let cloneRow = $("#" + kmScrId + "CloneRow_" + index);
+            if (cloneRow.length > 0 && !cloneRow.hasClass("sno")) {
+                allRowsHiddenOrMissing = false;
+                break;
+            }
+        }
+        if (allRowsHiddenOrMissing) {
+            $(`#KmSourc__BusinessIncome__businessTypeOption`).prop("checked", false)
         }
     }
-    $(`#${currBussId}_BusinessNoTxt`).text("Business " + numberOfBusinessCount);
-    $(`#${currBussId}_addBusinessDetails`).attr("disabled", true);
-    $(`#${currBussId}_addBusiness`).attr("disabled", true);
-    if (numberOfBusinessCount === 12) {
-        $(`#${currBussId}_addBusiness_ul`).addClass("sno");
-    }
 };
+apz.app.BusinessIncome.disableDeleteButtons = function() {
+    let validIndexes = [];
+    for (let i = 1; i <= 12; i++) {
+        let cloneRow = $("#KmSourc__BusinessIncome__CloneRow_" + i);
+        if (cloneRow.length > 0 && !cloneRow.hasClass("sno")) {
+            validIndexes.push(i);
+        }
+    }
+    if (validIndexes.length > 0) {
+        for (let j = 0; j < validIndexes.length - 1; j++) {
+            let deleteButton = $("#KmSourc__BusinessIncome__" + validIndexes[j] + "_DeleteIcon");
+            deleteButton.prop('disabled', true);
+        }
+        let lastValidIndex = validIndexes[validIndexes.length - 1];
+        let lastDeleteButton = $("#KmSourc__BusinessIncome__" + lastValidIndex + "_DeleteIcon");
+        lastDeleteButton.prop('disabled', false);
+        lastDeleteButton.removeClass('disabled-button');
+    }
+}
+apz.app.BusinessIncome.getSelectedBusinessTypes = function() {
+    selectedBusinessTypesIncomeDtls = {};
+    for (let i = 1; i <= 12; i++) {
+        const cloneRow = document.getElementById(`KmSourc__BusinessIncome__CloneRow_${i}`);
+        // Check if the row exists and doesn't have class 'sno'
+        if (cloneRow && !cloneRow.classList.contains('sno')) {
+            const checkedRadio = document.querySelector(`#KmSourc__BusinessIncome__${i}_businessTypeOption input[type="radio"]:checked`);
+            if (checkedRadio) {
+                selectedBusinessTypesIncomeDtls[i] = checkedRadio.value;
+            }
+        }
+    }
+}
 apz.app.BusinessIncome.expandBusiness = function(pthis) {
     let Index = pthis.id.split("_")[4];
     $(`#${kmScrId + Index}_expandRow, #${kmScrId + Index}_collapseArrow_ul`).removeClass('sno');
@@ -542,6 +962,14 @@ apz.app.BusinessIncome.collapseBusiness = function(pthis) {
     let Index = pthis.id.split("_")[4];
     $(`#${kmScrId + Index}_expandRow,#${kmScrId + Index}_collapseArrow_ul`).addClass('sno');
     $(`#${kmScrId + Index}_expandArrow_ul`).removeClass('sno');
+};
+apz.app.BusinessIncome.expandSrcOfIncome = function(pthis, incType) {
+    $(`#${kmScrId + incType}expandRow, #${kmScrId + incType}collapseArrow_ul`).removeClass('sno');
+    $(`#${kmScrId + incType}expandArrow_ul`).addClass('sno');
+};
+apz.app.BusinessIncome.collapseSrcOfIncome = function(pthis, incType) {
+    $(`#${kmScrId + incType}expandRow,#${kmScrId + incType}collapseArrow_ul`).addClass('sno');
+    $(`#${kmScrId + incType}expandArrow_ul`).removeClass('sno');
 };
 apz.app.BusinessIncome.launchCustomerSection = function(pthis) {
     incomeTypeBulkDelete = docNoImageDelete = documentType = custTypeForImageDelete = '';
@@ -553,7 +981,7 @@ apz.app.BusinessIncome.launchCustomerSection = function(pthis) {
     if (pthis?.id?.split(kmScrId)?.[1]?.includes('Wage')) {
         WageEarnedType = [];
     }
-    apz.app.CaIncomeDetails.hideSections(pthis);
+    apz.app.BusinessIncome.hideSections(pthis);
     let lastPart;
     let parentIdStr;
     let parentid = $("#" + pthis.id).closest(".crt-form");
@@ -578,35 +1006,35 @@ apz.app.BusinessIncome.launchCustomerSection = function(pthis) {
     var inputIds;
     switch (Type) {
         case 'Agriculture':
-            apz.app.CaIncomeDetails.Agriculture();
+            apz.app.BusinessIncome.Agriculture();
             inputIds = ['Ap_Crop', 'Ap_MaxperArc', 'Agri_MonthIncome', 'Co_Agri_Month_income', 'Co_MaxPerAcrc', 'Co_Crop',
                 'Agri_ConsideredIncome', 'Co_Agri_ConsideredIncome'
             ];
             incomeTypeBulkDelete = `${Type} Doc`;
-            apz.app.Cabase.BulkDeleteImages(documentType, custTypeForImageDelete, incomeTypeBulkDelete, docNoImageDelete, "Y");
+            apz.app.BusinessIncome.BulkDeleteImages(documentType, custTypeForImageDelete, incomeTypeBulkDelete, docNoImageDelete, "Y");
             break;
         case 'Salary':
-            apz.app.CaIncomeDetails.Salary();
+            apz.app.BusinessIncome.Salary();
             salaryFields.forEach(field => {
                 $(`#${kmScrId + field}ErrorDiv`).addClass('sno');
             })
             inputIds = ['Sal_App_Wor', 'NetSal', 'Sal_Co_Wor', 'NetSalCo'];
             incomeTypeBulkDelete = `${Type} Doc`;
-            apz.app.Cabase.BulkDeleteImages(documentType, custTypeForImageDelete, incomeTypeBulkDelete, docNoImageDelete, "Y");
+            apz.app.BusinessIncome.BulkDeleteImages(documentType, custTypeForImageDelete, incomeTypeBulkDelete, docNoImageDelete, "Y");
             break;
         case 'Pension':
             inputIds = ['App_PenIn', 'Co_PenIn'];
             incomeTypeBulkDelete = `${Type} Doc`;
-            apz.app.Cabase.BulkDeleteImages(documentType, custTypeForImageDelete, incomeTypeBulkDelete, docNoImageDelete, "Y");
+            apz.app.BusinessIncome.BulkDeleteImages(documentType, custTypeForImageDelete, incomeTypeBulkDelete, docNoImageDelete, "Y");
             break;
         case 'Rentalincome':
-            apz.app.CaIncomeDetails.Rentalincome();
+            apz.app.BusinessIncome.Rentalincome();
             rentalIncomeFields.forEach(field => {
                 $(`#${kmScrId + field}ErrorDiv`).addClass('sno');
             })
             inputIds = ['RentalIncomeMonth_App', 'RentalIncomeMonth_Co'];
             incomeTypeBulkDelete = "Rentalincome_Agg Doc";
-            apz.app.Cabase.BulkDeleteImages(documentType, custTypeForImageDelete, incomeTypeBulkDelete, docNoImageDelete, "Y");
+            apz.app.BusinessIncome.BulkDeleteImages(documentType, custTypeForImageDelete, incomeTypeBulkDelete, docNoImageDelete, "Y");
             break;
         case 'Wage':
             const wageOptionTypes = ['Farm_Worker', 'constructions', 'Contract_labour', 'Maid', 'Hotel_Worker', 'Other'];
@@ -648,6 +1076,158 @@ apz.app.BusinessIncome.launchCustomerSection = function(pthis) {
         }
     }
 }
+apz.app.BusinessIncome.BulkDeleteImages = function(docType, custType, incomeTypeBulkDelete, docNoImageDelete, bulkFlag) {
+    apz.startLoader();
+    let req = {
+        apiRequest: {
+            interfaceName: "",
+            requestObj: {
+                appDocId: "",
+                versionNum: gApzCOB.userDetails.versionNum,
+                applicationId: gApzCOB.userDetails.applicationId,
+                appId: gApzCOB.userDetails.appId,
+                bulkDelete: bulkFlag,
+                documentType: docType,
+                customerType: custType,
+                incomeType: incomeTypeBulkDelete,
+                docNo: docNoImageDelete,
+                filePath: "",
+                fileName: "",
+            },
+        },
+    };
+    let callBackFnc = req.apiRequest.requestObj.incomeType ? apz.app.BusinessIncome.BulkDeleteImagesNotBusinessCB : apz.app.BusinessIncome
+        .BulkDeleteImagesBusinessCB;
+    //apz.startLoader();
+    ApzCOB.serverBuildParam(gAppId, "DeleteDocument", "N", "N", req, false, callBackFnc);
+}
+apz.app.BusinessIncome.BulkDeleteImagesNotBusinessCB = function(params) {
+    apz.stopLoader();
+    try {
+        const isSuccess = ApzCOB.handleServiceCallBacks(params);
+        if (isSuccess && params.res.APZCBO__DeleteDocument_Res.apiResponse.ResponseHeader.ResponseCode === '0') {
+            let documentArray = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList;
+            let {
+                incomeType
+            } = params.req.apiRequest.requestObj;
+            let updatedDocs = documentArray.filter(item => (item.payload.incomeType !== incomeType));
+            if (updatedDocs.length > 0) {
+                inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList = [];
+                inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList = structuredClone(updatedDocs);
+            }
+            if (documentArray.length > updatedDocs.length) {
+                let docsToBeHidden = incomeType.split(' ')[0];
+                let roles = ['App', 'Co'];
+                if (docsToBeHidden === 'Rentalincome_Agg') {
+                    roles.forEach(role => {
+                        const baseId = `KmSourc__BusinessIncome__Rentalincome_${role}_UploadedImage_Agg_`;
+                        for (let i = 1; i < 5; i++) {
+                            const fullId = baseId + i;
+                            const elm = document.getElementById(fullId);
+                            if (elm) {
+                                elm.classList.add('sno');
+                            }
+                        }
+                    });
+                } else {
+                    roles.forEach(role => {
+                        const parentId = `KmSourc__BusinessIncome__${docsToBeHidden}_${role}_ParentBusRow`;
+                        const parentElement = document.getElementById(parentId);
+                        if (parentElement) {
+                            for (let i = 1; i < 5; i++) {
+                                const imgId = `KmSourc__BusinessIncome__${docsToBeHidden}_${role}_UploadedImage_${i}`;
+                                const imgElement = document.getElementById(imgId);
+                                if (imgElement) {
+                                    imgElement.classList.add('sno');
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+        }
+    } catch (e) {
+        ApzCOB.showCaModals({
+            text: "We are facing technical difficulties, Please try again.",
+            Btn1: {
+                text: "OK",
+                onClick: "apz.app.Cabase.closeDeleteErrModal()"
+            }
+        }, "Error");
+    }
+}
+apz.app.BusinessIncome.BulkDeleteImagesBusinessCB = function(params) {
+    apz.stopLoader();
+    try {
+        const isSuccess = ApzCOB.handleServiceCallBacks(params);
+        if (isSuccess && params.res.APZCBO__DeleteDocument_Res.apiResponse.ResponseHeader.ResponseCode === '0') {
+            let documentArray = inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList;
+            let {
+                customerType,
+                documentType,
+                docNo
+            } = params.req.apiRequest.requestObj;
+            let normalizedCustType = customerType === 'Co-App' ? 'Co-Applicant' : customerType;
+            let updatedDocs = documentArray.filter(item => !(item.payload.custType === normalizedCustType && item.payload.documentType ===
+                documentType && item.payload.docNo == docNo));
+            if (updatedDocs.length > 0) {
+                inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList = [];
+                inSessionStore.applicationDocumentsWrapperList[0].applicationDocumentsList = structuredClone(updatedDocs);
+            }
+        }
+    } catch (e) {
+        ApzCOB.showCaModals({
+            text: "We are facing technical difficulties, Please try again.",
+            Btn1: {
+                text: "OK",
+                onClick: "apz.app.Cabase.closeDeleteErrModal()"
+            }
+        }, "Error");
+    }
+}
+apz.app.BusinessIncome.Rentalincome = function() {
+    apz.app.Kmbase.populateDropdown(IncomeselectBuildingType, kmScrId + "BuildType_App");
+    apz.app.Kmbase.populateDropdown(IncomeselectBuildingType, kmScrId + "BuildType_Co");
+    document.getElementById(kmScrId + "App_IsReneAggAva_option_Yes").checked = true;
+    document.getElementById(kmScrId + "Co_IsReneAggAva_option_Yes").checked = true;
+    document.getElementById(kmScrId + "Rentalincome_Co_Img_Agg").textContent = "Click here to capture rental agreement";
+    document.getElementById(kmScrId + "Rentalincome_App_Img_Agg").textContent = "Click here to capture rental agreement";
+}
+apz.app.BusinessIncome.OnClikedCheckBoxRental = function(pthis, id) {
+    if (!pthis.id.includes("_option_No")) {
+        document.getElementById(kmScrId + id).textContent = "Click here to capture rental agreement";
+    } else {
+        document.getElementById(kmScrId + id).textContent =
+            "Click here to capture electricity bill/any other property documents of rented property";
+    }
+}
+apz.app.BusinessIncome.Agriculture = function() {
+    const updatedCropTypes = AgricultureCropType.slice(0, -1);
+    apz.app.Kmbase.populateDropdown(AgritypeOfAgricultureLand, kmScrId + "Co_TypeOfAgri");
+    apz.app.Kmbase.populateDropdown(AgritypeOfAgricultureLand, kmScrId + "Ap_TypeOfAgri");
+    apz.populateDropdown(document.getElementById(kmScrId + 'Ap_Land'), AgrilandInAcres);
+    apz.populateDropdown(document.getElementById(kmScrId + 'Co_Land'), AgrilandInAcres);
+    apz.populateDropdown(document.getElementById(kmScrId + 'Ap_CropType'), updatedCropTypes);
+    apz.populateDropdown(document.getElementById(kmScrId + 'Co_CropType'), updatedCropTypes);
+}
+apz.app.BusinessIncome.Salary = function() {
+    apz.app.Kmbase.populateDropdown(SalYears, kmScrId + "TenOfEmpAPPSal");
+    apz.app.Kmbase.populateDropdown(SalMonth, kmScrId + "MonthOfEmpAppSal");
+    apz.app.Kmbase.populateDropdown(SalNatureOfEmP, kmScrId + "NatureOfEmp_Sal");
+    apz.app.Kmbase.populateDropdown(SalModeOfsal, kmScrId + "ModeofSalApp");
+    apz.app.Kmbase.populateDropdown(SalYears, kmScrId + "TenOfEmpCoSal");
+    apz.app.Kmbase.populateDropdown(SalMonth, kmScrId + "MonthOfEmpCoSal");
+    apz.app.Kmbase.populateDropdown(SalNatureOfEmP, kmScrId + "NatureOfEmp_SalCo");
+    apz.app.Kmbase.populateDropdown(SalModeOfsal, kmScrId + "ModeOfSalCo");
+}
+apz.app.BusinessIncome.hideSections = function(pthis) {
+    let parentid = $("#" + pthis.id).closest(".crt-form");
+    if (parentid.length > 0) {
+        parentIdStr = parentid.attr("id");
+        $(`#${parentIdStr} #${kmScrId}Applicant`).addClass("sno");
+        $(`#${parentIdStr} #${kmScrId}Co-Applicant`).addClass("sno");
+    }
+}
 apz.app.BusinessIncome.validateZeroInput = function(input) {
     if (input.value.length >= 1 && input.value.startsWith('0')) {
         input.value = input.value.replace(/^0+/, '');
@@ -668,7 +1248,7 @@ apz.app.BusinessIncome.validateNetIncome = function(input) {
 };
 apz.app.BusinessIncome.onSelectBussAddr = function(pthis) {
     let Index = pthis.id.split("_")[4];
-    $(`#${kmScrId+Index}_captureBussAddr`).find('.etb-rdio').each(function(i, item) {
+    $(`#${kmScrId+Index}_addressList`).find('.etb-rdio').each(function(i, item) {
         if (this.id === pthis.id) return true;
         $(this).find('input[type="radio"]').prop('checked', false);
     })
