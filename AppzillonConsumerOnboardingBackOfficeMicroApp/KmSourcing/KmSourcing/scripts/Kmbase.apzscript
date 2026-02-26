@@ -27,6 +27,7 @@ apz.app.onLoad_Kmbase = function() {
     });
 };
 apz.app.onShown_Kmbase = function() {
+    apz.app.Kmbase.setMinMaxLength();
     $("#sidebar").addClass("sno");
     $(`#${kmbaseScr}CBcheck_hyp`).addClass("active");
     $('body').addClass('unati crdas LoginBase');
@@ -122,7 +123,12 @@ apz.app.Kmbase.back = function() {
         $('.btn-saveDraft, .btn-reject, .btn-back, .btn-next').show();
     }
     if (apz.childScr === "CBcheck") {
-        apz.app.Cabase.gotoHome();
+        if (gApzCOB.currentApplicant === 2) {
+            let tabs = $('.cbcheckSubMenu');
+            let applicantTab = tabs.eq(0);
+            apz.app.AadhaarDetails.handletabSwitch(applicantTab, 'Applicant');
+            return;
+        }
     }
 }
 apz.app.Kmbase.next = function() {
@@ -147,6 +153,22 @@ apz.app.Kmbase.next = function() {
             ApzCOB.launchSubScreen("CBCheckDetails", "KmSourc__Kmbase__KMLaunchCol", "");
         }
         $('.btn-saveDraft, .btn-reject, .btn-back, .btn-next').show();
+    }
+        if (apz.childScr === "CBcheck") {
+            if (!apz.app.CBcheck.validateForm()) {
+                return;
+            }
+            apz.app.CBcheck.createCBCheck();
+            return;
+            
+        // if (gApzCOB.currentApplicant === 1) {
+        //     let tabs = $('.cbcheckSubMenu');
+        //     if (tabs.length > 1) {
+        //         let coAppTab = tabs.eq(1);
+        //         apz.app.CBcheck.handletabSwitch(coAppTab, 'CoApplicant');
+        //     }
+        //     return;
+        // }
     }
 };
 apz.app.Kmbase.gotoHome = function() {
@@ -589,7 +611,9 @@ apz.app.otpMoveBackward = function(event, current, prevId) {
     }
 };
 apz.app.Kmbase.captureAadhaarClick = function(docType) {
-    apz.app.AadhaarDetails.saveCurrentForm();
+    if(apz.childScr==="AadhaarDetails"){
+        apz.app.AadhaarDetails.saveCurrentForm();
+    }
     $('.btn-saveDraft, .btn-reject').hide();
     $('.btn-back, .btn-next').show();
     apz.app.docType = docType;
