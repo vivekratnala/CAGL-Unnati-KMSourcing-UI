@@ -16,17 +16,13 @@ public class NativeService {
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.os.Build;
-import android.util.Log;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 
 import androidx.annotation.RequiresApi;
 
 import com.iexceed.plugins.suremdm.CustomActivity;
-
-import com.iexceed.plugins.ApzPluginUtil;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -37,7 +33,6 @@ public class NativeService {
     private static WebView mainWebView;
     private static String mCallback;
     private static String action;
-    private static Activity mact;
     public NativeService(Context c, Activity a, WebView w) {
         context = c;
         activity = a;
@@ -48,7 +43,6 @@ public class NativeService {
         //your code goes here
         JSONObject json = jsonText;
         String action;
-        mact = act;
         try {
             /* json = new JSONObject(jsonText); */
             action = json.getString("action");
@@ -79,45 +73,6 @@ public class NativeService {
                     });
                 }
 
-            } else if((action.equalsIgnoreCase("GET_IMAGE_QUALITY"))){
-                String imageFileBase64 = json.getString("imageFileBase64");
-                String docType = json.getString("docType");
-
-                try {
-                    Log.d("TAG", "Analysis Results: " + result.toString());
-                    String code = result.getError();
-                    String msg = result.getErrorMessage();
-                    JSONObject jsonObject = new JSONObject();
-                    if (code == null) {
-                        try {
-                            jsonObject.put("blurScore", result.getBlurScore());
-                            jsonObject.put("clearScore", result.getClearScore());
-                            ApzPluginUtil.sendSuccess(mCallback,jsonObject,false,act,wv,true);
-                        } catch (Resources.NotFoundException | JSONException e) {
-                            try {
-                                jsonObject.put("error", e.getMessage());
-                            } catch (JSONException ex) {
-                                throw new RuntimeException(ex);
-                            }
-                            ApzPluginUtil.sendError(mCallback,"error",jsonObject,act,wv,true);
-                        }
-                    } else {
-                        try {
-                            jsonObject.put("errorCode", code);
-                            jsonObject.put("errorMessage", msg);
-                        } catch (Resources.NotFoundException | JSONException e) {
-                            try {
-                                jsonObject.put("error", e.getMessage());
-                            } catch (JSONException ex) {
-                                throw new RuntimeException(ex);
-                            }
-                        }
-                        ApzPluginUtil.sendError(mCallback,"error",jsonObject,act,wv,true);
-                    }
-
-                }catch (Exception e) {
-                    e.printStackTrace();
-                }
             }
         } catch (JSONException e) {
             json.put("error", e.toString());
@@ -135,4 +90,5 @@ public class NativeService {
     } catch (Exception e) {
         e.printStackTrace();
     }}
+
 }

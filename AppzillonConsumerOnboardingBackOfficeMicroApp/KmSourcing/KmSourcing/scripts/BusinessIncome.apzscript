@@ -535,12 +535,14 @@ apz.app.BusinessIncome.addBusiness = function() {
 };
 apz.app.BusinessIncome.expandBusiness = function(pthis) {
     let Index = pthis.id.split("_")[4];
-    $(`${kmScrId + Index}_expandRow`).removeClass('sno');
-}
+    $(`#${kmScrId + Index}_expandRow, #${kmScrId + Index}_collapseArrow_ul`).removeClass('sno');
+    $(`#${kmScrId + Index}_expandArrow_ul`).addClass('sno');
+};
 apz.app.BusinessIncome.collapseBusiness = function(pthis) {
     let Index = pthis.id.split("_")[4];
-    $(`${kmScrId + Index}_expandRow`).addClass('sno');
-}
+    $(`#${kmScrId + Index}_expandRow,#${kmScrId + Index}_collapseArrow_ul`).addClass('sno');
+    $(`#${kmScrId + Index}_expandArrow_ul`).removeClass('sno');
+};
 apz.app.BusinessIncome.launchCustomerSection = function(pthis) {
     incomeTypeBulkDelete = docNoImageDelete = documentType = custTypeForImageDelete = '';
     FinalvaluesArr.salary = {};
@@ -670,6 +672,10 @@ apz.app.BusinessIncome.onSelectBussAddr = function(pthis) {
         if (this.id === pthis.id) return true;
         $(this).find('input[type="radio"]').prop('checked', false);
     })
+    $(`#${kmScrId+Index}_otherBussAddrRow`).addClass('sno');
+    if (pthis.id.includes("otherBuss")) {
+        $(`#${kmScrId+Index}_otherBussAddrRow`).removeClass('sno');
+    }
 }
 apz.app.BusinessIncome.OtherBusinessAddr = function(index) {
     addrFields = ['addressType', 'addressLine1', 'addressLine2', 'addressLine3', 'pinCode', 'city', 'district', 'area', 'landMark', 'state', 'country'];

@@ -91,7 +91,10 @@ apz.app.Kmbase.NavigateSidebar = function(pstageId, pthis) {
     $(`#${kmbaseScr}sidebarForm a`).removeClass('active');
     $(pthis).addClass('active');
     scrName = Object.keys(window.KM_NEWTAGES).find(key => window.KM_NEWTAGES[key].id === parseInt(pstageId));
-    ApzCOB.launchSubScreen(scrName, `${kmbaseScr}KMLaunchCol`);
+    if (!apz.isNull(scrName)) {
+        apz.app.Kmbase.toggleSidebar();
+        ApzCOB.launchSubScreen(scrName, `${kmbaseScr}KMLaunchCol`);
+    }
 };
 apz.app.Kmbase.addInprogressStatus = function(hypId) {
     apz.app.Kmbase.clearIcons(hypId);
