@@ -3,7 +3,7 @@ window.CBcheckScr = 'KmSourc__CBcheck__';
 var screenId = 'KmSourc__CBcheck__';
 var otpScreenId = 'KmSourc__Kmbase__';
 window.CB_LOAN_ID = null;
-IS_MOBILE_DEDUPE_REQ = true;
+ IS_MOBILE_DEDUPE_REQ = true;
 //  OTP GLOBAL STATE
 window.CB_OTP_TIMER = null;
 window.CB_OTP_TIME_LEFT = 150;
@@ -119,14 +119,8 @@ apz.app.onLoad_CBcheck = function() {
     if (apz.isNull(gApzCOB.requestNodes.customerDetailsList)) {
         gApzCOB.requestNodes.customerDetailsList = [];
     }
-    
-    let existingApplicant =
-        gApzCOB.requestNodes.customerDetailsList.find(c =>
-            c.customerType === "Applicant"
-        );
-    
+    let existingApplicant = gApzCOB.requestNodes.customerDetailsList.find(c => c.customerType === "Applicant");
     if (!existingApplicant && !apz.isNull(gApzCOB.userDetails?.custDtlId)) {
-    
         gApzCOB.requestNodes.customerDetailsList.push({
             custDtlId: gApzCOB.userDetails.custDtlId,
             customerType: "Applicant",
@@ -258,7 +252,7 @@ apz.app.CBcheck.handletabSwitch = function(pthis, CustType) {
     clearAllTabErrors();
     $('.cbcheckSubMenu').removeClass('active');
     $(pthis).addClass('active');
-        $('input[name="' + screenId + 'panVal_"][value="Y"]').prop('checked', true);
+    $('input[name="' + screenId + 'panVal_"][value="Y"]').prop('checked', true);
     apz.app.CBcheck.togglePanView();
     /* =========================================
        TAB SWITCH
@@ -281,7 +275,7 @@ apz.app.CBcheck.handletabSwitch = function(pthis, CustType) {
             let custList = gApzCOB.requestNodes.customerDetailsList;
             let existingCoApplicant = custList.find(c => c.customerType === "Co-App");
             if (!existingCoApplicant) {
-                    let newCustDtlId = Date.now();
+                let newCustDtlId = Date.now();
                 let newWrapper = {
                     custDtlId: newCustDtlId,
                     customerType: "Co-App",
@@ -303,10 +297,8 @@ apz.app.CBcheck.handletabSwitch = function(pthis, CustType) {
        CLEAR FORM BEFORE PAINT
     ========================================= */
     apz.app.CBcheck.clearForm();
-    
-//     apz.app.CBcheck.clearCbUI();
-// apz.app.CBcheck.resetApplicantStates();
-
+    //     apz.app.CBcheck.clearCbUI();
+    // apz.app.CBcheck.resetApplicantStates();
     /* =========================================
        PAINT DETAILS
     ========================================= */
@@ -319,9 +311,10 @@ apz.app.CBcheck.handletabSwitch = function(pthis, CustType) {
         let existing = inSessionStore.cibilDetailsWrapperList.find(el => parseInt(el.cibilDetails.custDtlId) === parseInt(custId));
         if (existing && existing.cibilDetails.payload) {
             cibilDtls = JSON.parse(JSON.stringify(existing.cibilDetails.payload));
-            apz.app.CBcheck.paintCbDetails(cibilDtls);
-            apz.app.CBcheck.applyCbDecisionUI();
-            apz.app.CBcheck.applyApiStatusUI();
+            apz.app.CBcheck.paintCibilDetails();
+            // apz.app.CBcheck.paintCbDetails(cibilDtls);
+            // apz.app.CBcheck.applyCbDecisionUI();
+            // apz.app.CBcheck.applyApiStatusUI();
             $('.cb-result-section').removeClass('sno');
         } else {
             apz.app.CBcheck.clearCbUI();
@@ -865,7 +858,6 @@ apz.app.CBcheck.clearForm = function() {
     $('#' + screenId + 'pincode').val("");
     $('input[name="' + screenId + 'panVal_"][value="Y"]').prop('checked', true);
     apz.app.CBcheck.togglePanView();
-
 };
 apz.app.CBcheck.resetApplicantStates = function() {
     let isApplicant = gApzCOB.currentApplicant <= 1;
@@ -921,18 +913,7 @@ apz.app.onShown_CBcheck = function() {
     apz.app.CBcheck.handletabSwitch(document.querySelector('.cbcheckSubMenu.active'), gApzCOB.currentApplicant === 1 ? 'Applicant' :
         'CoApplicant');
 };
-apz.app.CBcheck.restoreCbFromSession = function() {
-    if (apz.isNull(inSessionStore.cibilDetailsWrapperList)) return;
-    let custId = apz.app.CBcheck.getCurrentCustId();
-    if (apz.isNull(custId)) return;
-    let item = inSessionStore.cibilDetailsWrapperList.find(el => parseInt(el.cibilDetails.custDtlId) === parseInt(custId));
-    if (!item || !item.cibilDetails.payload) return;
-    cibilDtls = JSON.parse(JSON.stringify(item.cibilDetails.payload));
-    CB_LOAN_ID = item.cibilDetails.cbDtlId ?? null;
-    apz.app.CBcheck.paintCbDetails(cibilDtls);
-    apz.app.CBcheck.applyCbDecisionUI();
-    apz.app.CBcheck.applyApiStatusUI();
-};
+
 apz.app.CBcheck.initiateCreditCheck = function() {
     let isApplicant = gApzCOB.currentApplicant <= 1;
     if (isApplicant) {
@@ -971,68 +952,70 @@ apz.app.CBcheck.initiateCreditCheck = function() {
             payload: payload
         }
     }];
-            if (apz.isNull(gApzCOB.requestNodes.cibilDetailsWrapperList)) {
-            gApzCOB.requestNodes.cibilDetailsWrapperList = [];
+    if (apz.isNull(gApzCOB.requestNodes.cibilDetailsWrapperList)) {
+        gApzCOB.requestNodes.cibilDetailsWrapperList = [];
+    }
+    let list = gApzCOB.requestNodes.cibilDetailsWrapperList;
+    let index = list.findIndex(el => parseInt(el.cibilDetails.custDtlId) === parseInt(custId));
+    let wrapperObj = {
+        cibilDetails: {
+            cbDtlId: "",
+            requestId: "",
+            responseId: "",
+            custDtlId: custId,
+            cbDate: ApzCOB.dateformatter(new Date(), 'Y-m-d'),
+            cbStatus: "",
+            payload: payload
         }
-        
-        let list = gApzCOB.requestNodes.cibilDetailsWrapperList;
-        
-        let index = list.findIndex(el =>
-            parseInt(el.cibilDetails.custDtlId) === parseInt(custId)
-        );
-        
-        let wrapperObj = {
-            cibilDetails: {
-                cbDtlId: "",
-                requestId: "",
-                responseId: "",
-                custDtlId: custId,
-                cbDate: ApzCOB.dateformatter(new Date(), 'Y-m-d'),
-                cbStatus: "",
-                payload: payload
-            }
-        };
-        
-        if (index !== -1) {
-            list[index] = wrapperObj;
-        } else {
-            list.push(wrapperObj);
-        }
-        window.inSessionStore.cibilDetailsWrapperList =
-    JSON.parse(JSON.stringify(
-        gApzCOB.requestNodes.cibilDetailsWrapperList
-    ));
+    };
+    if (index !== -1) {
+        list[index] = wrapperObj;
+    } else {
+        list.push(wrapperObj);
+    }
+    window.inSessionStore.cibilDetailsWrapperList = JSON.parse(JSON.stringify(gApzCOB.requestNodes.cibilDetailsWrapperList));
     apz.startLoader();
     ApzCOB.callCBService();
 };
 apz.app.CBcheck.paintCbDetails = function(data) {
-    data = apz.app.CBcheck.normalizeCbData(data);
+    if (apz.isNull(data)) return;
+    let finalDecision = data.finalDecision?.toLowerCase() || '';
+    let isApproved = finalDecision.includes("approve") || finalDecision === "pass";
+    // if (gApzCOB.currentApplicant === 1) {
+    //     window.APPLICANT_CIBIL_STATUS = isApproved;
+    // } else {
+    //     window.CO_APPLICANT_CIBIL_STATUS = isApproved;
+    // }
+    // data = apz.app.CBcheck.normalizeCbData(data);
     console.log("=== PAINT CB DETAILS DATA ===");
     console.log(data);
     console.log("Keys:", Object.keys(data));
     if (!data) return;
     console.log("bureauName:", data.bureauName);
-    console.log("hitNohit:", data.hitNohit);
     console.log("cbScore:", data.cbScore);
     console.log("eligibleAmt:", data.eligibleAmt);
     console.log("overdueAmt:", data.overdueAmt);
     console.log("totIndebtness:", data.totIndebtness);
-    console.log("maxDpdInLastMonths:", data.caglDpdFlag);
+    console.log("CGPDPD:", data.cgpDpd);
+    console.log("CaglFlag:", data.caglDpdFlag);
     console.log("writeOffAmt:", data.writeOffAmt);
     console.log("finalDecision:", data.finalDecision);
+    console.log("NewfinalDecision:", finalDecision);
     console.log("ROI:", data.roi);
     console.log("finalTenure:", data.finalTenure);
     $('#' + screenId + 'bureauName').val(data.bureauName || "");
-    $('#' + screenId + 'hitNohit').val(data.hitNohit || "");
     $('#' + screenId + 'cbScore').val(data.cbScore || "");
     $('#' + screenId + 'totIndebtness').val(data.totIndebtness || "");
     $('#' + screenId + 'writeoffSuitFiledFlag').val(data.writeoffSuitFiledFlag || "");
     $('#' + screenId + 'overdueAmt').val(data.overdueAmt || "");
     $('#' + screenId + 'writeOffAmt').val(data.writeOffAmt || "");
     $('#' + screenId + 'cgp_dpd').val(data.caglDpdFlag || "");
-
-    $('#' + screenId + 'unnatiDec').val(data.finalDecision || "");
-    $('#' + screenId + 'roi').val(data.roi || "");
+    $('#' + screenId + 'unnatiDec').val(finalDecision || "");
+    $('#' + screenId + 'unnatiDecReason').val(data.rejectionReason || "");
+    // $('#' + screenId + 'unnatiDec').val(data.finalDecision || "");
+    // $('#' + screenId + 'unnatiDecReason').val(data.rejectionReason || "");
+    // $('#' + screenId + 'roi').val(data.roi || "");
+    $('#' + screenId + 'roi').val((data.roi || "") + "%");
     $('#' + screenId + 'finalTenure').val(data.finalTenure || "");
     // Enable CB report button if available
     if (data.cbReport) {
@@ -1040,39 +1023,7 @@ apz.app.CBcheck.paintCbDetails = function(data) {
     }
     $('.cb-result-section').removeClass('sno');
 };
-apz.app.CBcheck.applyCbDecisionUI = function() {
-    if (!cibilDtls) return;
-    let finalDecision = cibilDtls.finalDecision?.toLowerCase() || '';
-    let isApproved = finalDecision.includes("approve") || finalDecision === "pass";
-    if (gApzCOB.currentApplicant <= 1) {
-        window.APPLICANT_CIBIL_STATUS = isApproved;
-    } else {
-        window.CO_APPLICANT_CIBIL_STATUS = isApproved;
-    }
-    // SUCCESS
-    if (isApproved) {
-        $('#' + screenId + 'decisionText').text('CB check successful');
-        $('#' + screenId + 'cibilSuccessIcon').removeClass('sno');
-        $('#' + screenId + 'cibilFailureIcon').addClass('sno');
-        $('#' + screenId + 'retryBtn').addClass('sno');
-        // Lock edit fields
-        apz.app.CBcheck.disableEditFields();
-    } else {
-        // FAILURE
-        $('#' + screenId + 'decisionText').text('CB check failed');
-        $('#' + screenId + 'cibilSuccessIcon').addClass('sno');
-        $('#' + screenId + 'cibilFailureIcon').removeClass('sno');
-        $('#' + screenId + 'rejectReasonRow').removeClass('sno');
-        $('#' + screenId + 'rejectReasonText').text(cibilDtls.rejectionReason ?? '-');
-        // apz.app.CBcheck.handleRetryLogic();
-    }
-    // Eligible amount
-    $('#' + screenId + 'eligibleAmount').text("Eligible amount : " + (cibilDtls.eligibleAmt ?? "0"));
-    // ROI
-    $('#' + screenId + 'roiDisplay').text((cibilDtls.roi ?? "0") + '%');
-    // Bureau-based UI
-    apz.app.CBcheck.handleBureauSpecificUI();
-};
+
 apz.app.CBcheck.disableEditFields = function() {
     // Disable loan amount
     $('#' + screenId + 'loanAmount').prop('disabled', true);
@@ -1080,17 +1031,7 @@ apz.app.CBcheck.disableEditFields = function() {
     $('#' + screenId + 'subLoanPurpose').prop('disabled', true);
     $('#' + screenId + 'frequencyOfRepayment').prop('disabled', true);
 };
-apz.app.CBcheck.handleRetryLogic = function() {
-    let retryAttempts = cibilDtls.retryAttempts ?? 0;
-    if (!retryAttempts || retryAttempts === 0) {
-        $('#' + screenId + 'retryBtn').addClass('sno');
-        let rejectMsg = "CB retrigger limit exceeded. Please reject application.<br/>Reject reason: " + (cibilDtls.rejectionReason ?? '-');
-        $('#' + screenId + 'rejectLabel').html(rejectMsg);
-        ApzCOB.toggleModal(screenId + 'rejectModal');
-    } else {
-        $('#' + screenId + 'retryBtn').removeClass('sno').attr("disabled", false);
-    }
-};
+
 apz.app.CBcheck.handleBureauSpecificUI = function() {
     if (!cibilDtls?.bureauName) return;
     if (cibilDtls.bureauName === "BRE") {
@@ -1103,271 +1044,530 @@ apz.app.CBcheck.handleBureauSpecificUI = function() {
         $('.individualIndebtRow').addClass('sno');
     }
 };
-apz.app.CBcheck.applyApiStatusUI = function() {
-    if (!cibilDtls) return;
-    //  Step 1: Check API technical success
-    let isApiSuccess = cibilDtls.irisMessage === "success";
-    let today = new Date(cibilDtls.cbDate || new Date());
-    let formattedDate = String(today.getDate()).padStart(2, '0') + '/' + String(today.getMonth() + 1).padStart(2, '0') + '/' + today
-.getFullYear();
-    $('#' + screenId + 'lastDate').text(formattedDate);
-    if (!isApiSuccess) {
-        //  API FAILURE STATE
-        $('#' + screenId + 'initiateRow').addClass('sno');
-        $('#' + screenId + 'retryRow').removeClass('sno');
-        $('#' + screenId + 'cbStatus').text('Failure');
-        let reason = cibilDtls.rejectionReason || "Credit Bureau service failed.";
-        $('#' + screenId + 'rejectText').html('<span class="icon-Error"></span> ' + reason);
-        return;
-    }
-    //  API SUCCESS STATE
-    $('#' + screenId + 'retryRow').addClass('sno');
-    // $('#' + screenId + 'initiateRow').addClass('sno'); 
-    $('#' + screenId + 'cbText').addClass('sno');
-    $('#' + screenId + 'cbStatus').text('Success');
-};
-// apz.app.CBcheck.getCurrentCustId = function() {
-//     if (apz.isNull(gApzCOB.userDetails)) return null;
-//     let custId = gApzCOB.currentApplicant > 1 ? gApzCOB.userDetails.CoApplicantCustomerId : gApzCOB.userDetails.custDtlId;
-//     console.log("Resolved custId:", custId);
-//     return custId ?? null;
-// };
-apz.app.CBcheck.getCurrentCustId = function () {
-
-    if (apz.isNull(gApzCOB.requestNodes?.customerDetailsList))
-        return null;
-
+apz.app.CBcheck.getCurrentCustId = function() {
+    if (apz.isNull(gApzCOB.requestNodes?.customerDetailsList)) return null;
     let isApplicant = gApzCOB.currentApplicant === 1;
-
-    let wrapper = gApzCOB.requestNodes.customerDetailsList.find(c =>
-        isApplicant
-            ? c.customerType === "Applicant"
-            : c.customerType === "Co-App"
-    );
-
+    let wrapper = gApzCOB.requestNodes.customerDetailsList.find(c => isApplicant ? c.customerType === "Applicant" : c.customerType === "Co-App");
     return wrapper?.custDtlId ?? null;
 };
 apz.app.CBcheck.clearCbUI = function() {
-    cibilDtls = null;
+    cibilDtls = {};
     $('.cb-result-section').addClass('sno');
     $('#' + screenId + 'retryRow').addClass('sno');
     $('#' + screenId + 'rejectReasonRow').addClass('sno');
     $('#' + screenId + 'cbStatus').text('');
     $('#' + screenId + 'lastDate').text('');
 };
-
 apz.app.CBcheck.normalizeCbData = function(data) {
     if (!data) return data;
 
     function clean(val) {
-        if (val === null || val === undefined) return "";
-        if (val === "null") return "";
-        return val;
-    }
-
-    function splitColon(val) {
-        if (!val || val === "null") return "";
-        if (val.includes(":")) {
-            return val.split(":")[1]?.trim() ?? "";
+        if (val === null || val === undefined || val === "null" || val === "NULL") {
+            return "";
         }
         return val;
     }
 
+    function splitColon(val) {
+        val = clean(val);
+        if (!val) return "";
+        if (val.includes(":")) {
+            return val.split(":")[1]?.trim() ?? "";
+        }
+        if (val.includes("|")) {
+            return val.split("|")[0]?.trim() ?? "";
+        }
+        return val;
+    }
     data.totIndebtness = splitColon(data.totIndebtness);
     data.overdueAmt = splitColon(data.overdueAmt);
     data.writeOffAmt = splitColon(data.writeOffAmt);
-    data.writeoffSuitFiledFlag = splitColon(data.writeoffSuitFiledFlag);
-    // data.caglDpdFlag = splitColon(data.cgpDpd);
+    data.writeoffSuitFiledFlag = clean(data.writeoffSuitFiledFlag);
+    data.cgpDpd = splitColon(data.cgpDpd);
     data.caglDpdFlag = splitColon(data.caglDpdFlag);
-
-
     data.cbScore = clean(data.cbScore);
     data.eligibleAmt = clean(data.eligibleAmt);
     data.finalTenure = clean(data.finalTenure);
     data.roi = clean(data.roi);
     data.foir = clean(data.foir);
-
+    data.finalDecision = clean(data.finalDecision);
+    data.rejectionReason = clean(data.rejectionReason);
     return data;
 };
-
-apz.app.CBcheck.createRequest = function (iSave) {
-
-    /* =====================================================
-       VALIDATION GATE 
-    ===================================================== */
-
-    if (!apz.app.CBcheck.formValidator() && apz.isNull(iSave)) {
-        return [];
-    }
-
-    /* =====================================================
-       RESOLVE CURRENT CUSTOMER
-    ===================================================== */
-
-    let isApplicant = gApzCOB.currentApplicant === 1;
-
-    let custWrapper =
-        gApzCOB.requestNodes.customerDetailsList.find(c =>
-            isApplicant
-                ? c.customerType === "Applicant"
-                : c.customerType === "Co-App"
-        );
-
-    if (apz.isNull(custWrapper)) return [];
-
-    let custDtlId = custWrapper.custDtlId;
-
-    /* =====================================================
-       BUILD CUSTOMER OBJECT 
-    ===================================================== */
-
-    let customerObj = {
-        custDtlId: parseInt(custDtlId),
-        customerType: isApplicant ? "Applicant" : "Co-App",
-        customerName: isApplicant
-            ? $('#' + screenId + 'customerName').val()
-            : $('#' + screenId + 'coCustomerName').val(),
-        mobileNumber: $('#' + screenId + 'primaryMobile').val(),
-        payload: {
-            dob: isApplicant
-                ? $('#' + screenId + 'dob').val()
-                : $('#' + screenId + 'coDob').val(),
-
-            age: isApplicant
-                ? $('#' + screenId + 'age').val()
-                : $('#' + screenId + 'coAge').val(),
-
-            gender: isApplicant
-                ? $('#' + screenId + 'gender').val()
-                : $('#' + screenId + 'coGender').val(),
-
-            relationShipWithApplicant: isApplicant
-                ? ""
-                : $('#' + screenId + 'relationShipWithApplicant').val(),
-
-            namePerKyc: $('#' + screenId + 'nameAsPerVoter').val(),
-            primaryKycType: "VoterID",
-            primaryKycId: $('#' + screenId + 'voterId').val(),
-            alternateVoterId: $('#' + screenId + 'alternateVoterId').val(),
-            ckyc: $('#' + screenId + 'ckycNumber').val(),
-
-            panNumberValue: $('input[name="' + screenId + 'panVal_"]:checked').val(),
-            panNumber: $('#' + screenId + 'panNumber').val(),
-
-            secMobileNo: $('#' + screenId + 'sec_mobile').val()
+apz.app.CBcheck.downloadCbReport = function() {
+    // BRE Changes for Report download for WEB and ANDROID
+    if (CBCALLTYPEFLAG === 'IRE' && !apz.isNull(CB_HIGHMARK_REPORT_LINK)) {
+        if (apz.deviceType === "WEB") {
+            window.open(CB_HIGHMARK_REPORT_LINK, "_blank");
+        } else {
+            var json = {
+                "url": CB_HIGHMARK_REPORT_LINK
+            }
+            json.id = "BROWSERID";
+            json.callBack = apz.app.CBcheck.downloadCbReportCB;
+            apz.startLoader();
+            apz.ns.openUrl(json);
         }
+    } else if (CBCALLTYPEFLAG === 'BRE') {
+        if (!apz.isNull(CBBASE64) && !apz.isNull(CB_LOAN_ID)) {
+            ApzCOB.convertBase64ToPDF(CBBASE64, CB_LOAN_ID);
+        } else {
+            ApzCOB.downloadBRECbReport();
+        }
+    }
+}
+apz.app.CBcheck.downloadCbReportCB = function(params) {
+    apz.stopLoader();
+}
+apz.app.CBcheck.paintCibilDetails = function() {
+    /* =========================================
+       RESTORE FROM SESSION (LoanDetails Pattern)
+    ========================================= */
+    if (apz.isNull(cibilDtls)) {
+        let custId = apz.app.CBcheck.getCurrentCustId();
+        if (!apz.isNull(inSessionStore.cibilDetailsWrapperList)) {
+            let item = inSessionStore.cibilDetailsWrapperList.find(el => parseInt(el.cibilDetails.custDtlId) === parseInt(custId));
+            if (item && item.cibilDetails.payload) {
+                cibilDtls = JSON.parse(JSON.stringify(item.cibilDetails.payload));
+            }
+        }
+    }
+    if (apz.isNull(cibilDtls)) return;
+    cibilDtls = apz.app.CBcheck.normalizeCbData(cibilDtls);
+    let finalDecision = cibilDtls.finalDecision?.toLowerCase() || '';
+    let isApproved = finalDecision.includes("approve") || finalDecision === "pass";
+    /* =========================================
+       SET STATUS FLAGS
+    ========================================= */
+    if (gApzCOB.currentApplicant === 1) {
+        window.APPLICANT_CIBIL_STATUS = isApproved;
+    } else {
+        window.CO_APPLICANT_CIBIL_STATUS = isApproved;
+    }
+    /* =========================================
+       PAINT FIELD VALUES
+    ========================================= */
+    apz.app.CBcheck.paintCbDetails(cibilDtls);
+    /* =========================================
+       DECISION UI (LoanDetails Style)
+    ========================================= */
+    if (isApproved) {
+        $('#' + screenId + 'decisionText').text('CB check successful');
+        $('#' + screenId + 'cibilSuccessIcon').removeClass('sno');
+        $('#' + screenId + 'cibilFailureIcon').addClass('sno');
+        $('#' + screenId + 'retryRow').addClass('sno');
+        apz.app.CBcheck.disableEditFields();
+    } else {
+        $('#' + screenId + 'decisionText').text('CB check failed');
+        $('#' + screenId + 'cibilSuccessIcon').addClass('sno');
+        $('#' + screenId + 'cibilFailureIcon').removeClass('sno');
+        $('#' + screenId + 'rejectReasonRow').removeClass('sno');
+        $('#' + screenId + 'rejectReasonText').text(cibilDtls.rejectionReason ?? '-');
+        /* Retry Logic */
+        let retryAttempts = cibilDtls.retryAttempts ?? 0;
+        if (!retryAttempts || retryAttempts === 0) {
+            $('#' + screenId + 'retryRow').addClass('sno');
+        } else {
+            $('#' + screenId + 'retryRow').removeClass('sno');
+        }
+    }
+    /* =========================================
+       API STATUS (Technical Success)
+    ========================================= */
+    let isApiSuccess = cibilDtls.irisMessage === "success";
+    if (!isApiSuccess) {
+        $('#' + screenId + 'cbStatus').text('Failure');
+        $('#' + screenId + 'retryRow').removeClass('sno');
+    } else {
+        $('#' + screenId + 'cbStatus').text('Success');
+    }
+    /* =========================================
+       Eligible + ROI
+    ========================================= */
+    $('#' + screenId + 'eligibleAmount').text("Eligible amount : " + (cibilDtls.eligibleAmt ?? "0"));
+    $('#' + screenId + 'roiDisplay').text((cibilDtls.roi ?? "0") + '%');
+    /* =========================================
+       Bureau Specific UI
+    ========================================= */
+    if (cibilDtls.bureauName === "BRE") {
+        $('.hitNohitRow').addClass('sno');
+        $('.runningEMIRow').addClass('sno');
+        $('.individualIndebtRow').removeClass('sno');
+    } else {
+        $('.hitNohitRow').removeClass('sno');
+        $('.runningEMIRow').removeClass('sno');
+        $('.individualIndebtRow').addClass('sno');
+    }
+    $('.cb-result-section').removeClass('sno');
+};
+apz.app.CBcheck.handleCBCheckScreenUI = function(cbResponseObj, responseObj) {
+    let isApproved = cbResponseObj.finalDecision?.toLowerCase().includes("approve");
+    // Build lightweight CB payload 
+    let cbCheckPayload = {
+        finalDecision: cbResponseObj.finalDecision ?? "",
+        rejectionReason: cbResponseObj.rejectionReason ?? "",
+        eligibleAmt: cbResponseObj.eligibleAmt ?? "0",
+        cbLoanId: cbResponseObj.cbLoanId ?? "",
+        roi: cbResponseObj.roi ?? "",
+        cbScore: cbResponseObj.cbScore ?? "0",
+        bureauName: cbResponseObj.bureauName ?? "",
+        overdueAmt: cbResponseObj.overdueAmt ?? "",
+        totIndebtness: cbResponseObj.totIndebtness ?? "",
+        writeOffAmt: cbResponseObj.writeOffAmt ?? "",
+        caglDpdFlag: cbResponseObj.caglDpdFlag ?? "",
+        irisMessage: cbResponseObj.irisMessage ?? "",
+        retryAttempts: cbResponseObj.retryAttempts ?? ""
+    };
+    // Paint only CBcheck UI
+    if (apz.app.CBcheck) {
+        apz.app.CBcheck.paintCbDetails(cbCheckPayload);
+        // if (apz.app.CBcheck.applyCbDecisionUI) {
+        //     apz.app.CBcheck.applyCbDecisionUI();
+        // }
+        // if (apz.app.CBcheck.applyApiStatusUI) {
+        //     apz.app.CBcheck.applyApiStatusUI();
+        // }
+    }
+};
+
+apz.app.CBcheck.createRequest = function() {
+    /* -------------------------------------------------------
+       VALIDATION GATE
+    ------------------------------------------------------- */
+    if (!apz.app.CBcheck.validateForm()) {
+        return {};
+    }
+    /* -------------------------------------------------------
+       RESOLVE CURRENT CUSTOMER IDs
+    ------------------------------------------------------- */
+    let isApplicant = gApzCOB.currentApplicant === 1;
+    let custDtlId = isApplicant ? gApzCOB.userDetails.custDtlId : gApzCOB.userDetails.CoApplicantCustomerId;
+    let customerType = isApplicant ? "Applicant" : "Co-App";
+    let addressDtlsId = isApplicant ? gApzCOB.userDetails.addressDtlsId : gApzCOB.userDetails.CoApplicantAddressDtlsId;
+    /* -------------------------------------------------------
+       INITIALISE SESSION STORES (defensive, same as Aadhaar)
+    ------------------------------------------------------- */
+    if (!inSessionStore.customerDetailsList) {
+        inSessionStore.customerDetailsList = [];
+    }
+    if (!inSessionStore.addressDetailsWrapperList) {
+        inSessionStore.addressDetailsWrapperList = [{
+            addressDetailsList: []
+        }];
+    }
+    if (!inSessionStore.addressDetailsWrapperList[0].addressDetailsList) {
+        inSessionStore.addressDetailsWrapperList[0].addressDetailsList = [];
+    }
+    /* -------------------------------------------------------
+       BUILD CUSTOMER PAYLOAD
+       Fields: mobileNumber, secMobileNo, isMobVerified,
+               primaryKycType, primaryKycId, alternateVoterId,
+               namePerKyc, kycStatus, ckyc,
+               dob, age, gender,
+               panNumberValue, panNumber, panName,
+               primaryKycIdValStatus, relationShipWithApplicant
+    ------------------------------------------------------- */
+    let panNumberValue = $(`input[name="${screenId}panVal_"]:checked`).val() || "Y";
+    let custPayload = {
+        // Mobile
+        mobileNumber: $(`#${screenId}primaryMobile`).val() || "",
+        secMobileNo: $(`#${screenId}sec_mobile`).val() || "",
+        isMobVerified: isApplicant ? (CB_OTP_STATE.applicant.verified ? "Y" : "N") : (CB_OTP_STATE.coapplicant.verified ? "Y" : "N"),
+        // KYC
+        primaryKycType: "VoterID",
+        primaryKycId: $(`#${screenId}voterId`).val() || "",
+        alternateVoterId: $(`#${screenId}alternateVoterId`).val() || "",
+        namePerKyc: $(`#${screenId}nameAsPerVoter`).val() || "",
+        kycStatus: isApplicant ? (PRIMARY_KYC_VERIFICATION ? "verified" : "pending") : (CO_APPLICANT_PRIMARY_KYC_VERIFICATION ? "verified" :
+            "pending"),
+        primaryKycIdValStatus: isApplicant ? (PRIMARY_KYC_VERIFICATION ? "verified" : "pending") : (CO_APPLICANT_PRIMARY_KYC_VERIFICATION ?
+            "verified" : "pending"),
+        ckyc: $(`#${screenId}ckycNumber`).val() || "",
+        // Demographics
+        dob: isApplicant ? $(`#${screenId}dob`).val() : $(`#${screenId}coDob`).val(),
+        age: isApplicant ? $(`#${screenId}age`).val() : $(`#${screenId}coAge`).val(),
+        gender: isApplicant ? $(`#${screenId}gender`).val() : $(`#${screenId}coGender`).val(),
+        // PAN
+        panNumberValue: panNumberValue,
+        panNumber: panNumberValue === "Y" ? ($(`#${screenId}panNumber`).val() || "") : "",
+        panName: panNumberValue === "Y" ? ($(`#${screenId}panName`).val() || "") : "",
+        // Co-applicant specific
+        relationShipWithApplicant: isApplicant ? "" : ($(`#${screenId}relationShipWithApplicant`).val() || "")
     };
 
-    /* =====================================================
+    let existingCust = inSessionStore.customerDetailsList.find(c => String(c.custDtlId) === String(custDtlId));
+    let mergedPayload = Object.assign({}, existingCust?.payload || {}, custPayload);
+
+    let presentAddr = {
+        addressType: "Present",
+        addressLine1: $(`#${screenId}addressLine1`).val() || "",
+        addressLine2: $(`#${screenId}addressLine2`).val() || "",
+        addressLine3: $(`#${screenId}addressLine3`).val() || "",
+        pinCode: $(`#${screenId}pincode`).val() || "",
+        city: $(`#${screenId}addPreCity`).val() || "",
+        district: $(`#${screenId}addPreDistrict`).val() || "",
+        state: $(`#${screenId}addPreState`).val() || "",
+        country: $(`#${screenId}country`).val() || "INDIA",
+        area: $(`#${screenId}area`).val() || "",
+        landMark: $(`#${screenId}landmark`).val() || ""
+    };
+    let voterAddr = Object.assign({}, presentAddr, {
+        addressType: "Voter"
+    });
+    let addressList = [presentAddr, voterAddr];
+    /* -------------------------------------------------------
        UPDATE inSessionStore.customerDetailsList
-    ===================================================== */
-
-    if (apz.isNull(window.inSessionStore.customerDetailsList)) {
-        window.inSessionStore.customerDetailsList = [];
-    }
-
-    let custIndex =
-        window.inSessionStore.customerDetailsList.findIndex(c =>
-            parseInt(c.custDtlId) === parseInt(custDtlId)
-        );
-
-    if (custIndex !== -1) {
-        window.inSessionStore.customerDetailsList[custIndex] = customerObj;
+    ------------------------------------------------------- */
+    let custIndex = inSessionStore.customerDetailsList.findIndex(c => String(c.custDtlId) === String(custDtlId));
+    if (custIndex >= 0) {
+        inSessionStore.customerDetailsList[custIndex].payload = mergedPayload;
+        inSessionStore.customerDetailsList[custIndex].mobileNumber = $(`#${screenId}primaryMobile`).val() || "";
+        inSessionStore.customerDetailsList[custIndex].customerName = isApplicant ? ($(`#${screenId}customerName`).val() || "") : ($(
+            `#${screenId}coCustomerName`).val() || "");
     } else {
-        window.inSessionStore.customerDetailsList.push(customerObj);
+        inSessionStore.customerDetailsList.push({
+            custDtlId: custDtlId,
+            customerType: customerType,
+            customerName: isApplicant ? ($(`#${screenId}customerName`).val() || "") : ($(`#${screenId}coCustomerName`).val() || ""),
+            mobileNumber: $(`#${screenId}primaryMobile`).val() || "",
+            payload: mergedPayload
+        });
     }
-
-    /* =====================================================
-       BUILD ADDRESS WRAPPER (Identical Pattern)
-    ===================================================== */
-
-    let addressObj = {
-        addressDetailsList: [{
-            addressDtlsId: "",
+    /* -------------------------------------------------------
+       UPDATE inSessionStore.addressDetailsWrapperList
+    ------------------------------------------------------- */
+    let addrDetailsList = inSessionStore.addressDetailsWrapperList[0].addressDetailsList;
+    let addrIndex = addrDetailsList.findIndex(a => String(a.custDtlId) === String(custDtlId) && a.addressType === "Personal");
+    if (addrIndex >= 0) {
+        addrDetailsList[addrIndex].payload.addressList = addressList;
+    } else {
+        addrDetailsList.push({
+            addressDtlsId: addressDtlsId || "",
             custDtlId: parseInt(custDtlId),
             addressType: "Personal",
             payload: {
-                addressList: [{
-                    addressLine1: $('#' + screenId + 'addressLine1').val(),
-                    addressLine2: $('#' + screenId + 'addressLine2').val(),
-                    addressLine3: $('#' + screenId + 'addressLine3').val(),
-                    landmark: $('#' + screenId + 'landmark').val(),
-                    area: $('#' + screenId + 'area').val(),
-                    city: $('#' + screenId + 'addPreCity').val(),
-                    district: $('#' + screenId + 'addPreDistrict').val(),
-                    state: $('#' + screenId + 'addPreState').val(),
-                    country: $('#' + screenId + 'country').val(),
-                    pinCode: $('#' + screenId + 'pincode').val()
-                }]
+                addressList: addressList
             }
-        }]
-    };
-
-    if (apz.isNull(window.inSessionStore.addressDetailsWrapperList)) {
-        window.inSessionStore.addressDetailsWrapperList = [];
+        });
     }
-
-    let addrWrapper = window.inSessionStore.addressDetailsWrapperList[0];
-
-    if (apz.isNull(addrWrapper)) {
-        window.inSessionStore.addressDetailsWrapperList = [addressObj];
-    } else {
-
-        let addrIndex =
-            addrWrapper.addressDetailsList.findIndex(a =>
-                parseInt(a.custDtlId) === parseInt(custDtlId)
-            );
-
-        if (addrIndex !== -1) {
-            addrWrapper.addressDetailsList[addrIndex] =
-                addressObj.addressDetailsList[0];
-        } else {
-            addrWrapper.addressDetailsList.push(
-                addressObj.addressDetailsList[0]
-            );
-        }
-    }
-
-    /* =====================================================
-       BUILD LOAN DETAILS (Applicant Only)
-    ===================================================== */
-
+    /* -------------------------------------------------------
+       BUILD LOAN DETAILS (Applicant only)
+    ------------------------------------------------------- */
+    let loanDetails = null;
     if (isApplicant) {
+        let loanAmountValue = $(`#${screenId}loanAmount`).val() || "";
+        let cleanAmount = loanAmountValue.replace(/[\u20B9,]/g, "");
+        let rawAmount = ApzCOB.fn_unFormatAmount(cleanAmount);
+        loanDetails = {
+            // loanAmount:  ApzCOB.fn_unFormatAmount($(`#${screenId}loanAmount`).val().replace(/[\u20B9,]/g, "")),
+            loanAmount: rawAmount || "",
 
-        let loanObj = {
-            loanAmount: ApzCOB.fn_unFormatAmount(
-                $('#' + screenId + 'loanAmount').val()
-            ),
             payload: {
-                loanPurpose: $('#' + screenId + 'loanPurpose').val(),
-                subCategory: $('#' + screenId + 'subLoanPurpose').val(),
-                frequencyOfRepayment: $('#' + screenId + 'frequencyOfRepayment').val()
+                loanPurpose: $(`#${screenId}loanPurpose`).val() || "",
+                subCategory: $(`#${screenId}subLoanPurpose`).val() || "",
+                frequencyOfRepayment: $(`#${screenId}frequencyOfRepayment`).val() || ""
             }
         };
-
-        window.inSessionStore.loanDetails = loanObj;
-        gApzCOB.requestNodes.loanDetails = loanObj;
+        // Persist to session so later screens can read it
+        window.inSessionStore.loanDetails = loanDetails;
     }
-
-    /* =====================================================
-       ATTACH TO requestNodes
-    ===================================================== */
-
-    gApzCOB.requestNodes.customerDetailsList =
-        window.inSessionStore.customerDetailsList;
-
-    gApzCOB.requestNodes.addressDetailsWrapperList =
-        window.inSessionStore.addressDetailsWrapperList;
-
+    /* -------------------------------------------------------
+       BUILD REQUEST-LEVEL LISTS  (matches Aadhaar pattern)
+    ------------------------------------------------------- */
+    let customerDetailsList = [{
+        custDtlId: custDtlId,
+        applicationId: gApzCOB.userDetails.applicationId,
+        customerType: customerType,
+        customerName: isApplicant ? ($(`#${screenId}customerName`).val() || "") : ($(`#${screenId}coCustomerName`).val() || ""),
+        mobileNumber: $(`#${screenId}primaryMobile`).val() || "",
+        payload: mergedPayload
+    }];
+    let addressDetailsWrapperList = [{
+        addressDetailsList: [{
+            addressDtlsId: addressDtlsId || "",
+            custDtlId: parseInt(custDtlId),
+            addressType: "Personal",
+            payload: {
+                "addressList": addressList
+            }
+        }]
+    }];
+    /* -------------------------------------------------------
+       ASSEMBLE FINAL RESULT OBJECT
+    ------------------------------------------------------- */
+    let result = {
+        customerDetailsList,
+        addressDetailsWrapperList
+    };
+    if (loanDetails) {
+        result.loanDetails = loanDetails;
+    }
     if (!apz.isNull(window.inSessionStore.cibilDetailsWrapperList)) {
-        gApzCOB.requestNodes.cibilDetailsWrapperList =
-            window.inSessionStore.cibilDetailsWrapperList;
+        result.cibilDetailsWrapperList = window.inSessionStore.cibilDetailsWrapperList;
     }
-
-    /* =====================================================
-       RETURN FINAL OBJECT
-    ===================================================== */
-
-    return gApzCOB.requestNodes;
+    return result;
 };
+// ============================================================
+//  CB CHECK — createCBCheck 
+// ============================================================
+apz.app.CBcheck.createCBCheck = function() {
 
+    let req = {};
+    let intfName = "CreateLoan";
+    req.apiRequest = {};
+    req.apiRequest.requestObj = {};
+    // Clear workflow list
+    if (!apz.isNull(gApzCOB.requestNodes.applnWfDefinitionList) && gApzCOB.requestNodes.applnWfDefinitionList.length > 0) {
+        gApzCOB.requestNodes.applnWfDefinitionList = [];
+    }
+    // Product defaults
+    gApzCOB.product = "LOAN";
+    gApzCOB.mainProductGroupCode = "LOAN";
+    // Renewal override
+    if (gApzCOB?.selLeadDtls?.oldPid || inSessionStore?.renewalLeadDetails?.oldPid) {
+        gApzCOB.productCode = "1002";
+        gApzCOB.SelectedProductName = productCodeBasedName[gApzCOB.productCode];
+        ApplicationType = "RENEWAL";
+    }
+    /* -------------------------------------------------------
+       VALIDATE FORM
+    ------------------------------------------------------- */
+    if (!apz.app.CBcheck.validateForm()) return;
+    /* -------------------------------------------------------
+       UPDATE PRIMARY DETAILS FOR EXISTING APPLICATION
+    ------------------------------------------------------- */
+    if (!apz.isNull(gApzCOB.userDetails.applicationId)) {
+        apz.app.BaseScreens.updatePrimaryDetails();
+        if (!apz.app.BaseScreens.checkDtlIds()) {
+            ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_COMM_ERR_TXT_TECHNICAL"), "E");
+            return;
+        }
+    }
+    /* -------------------------------------------------------
+       BUILD PAYLOAD via createRequest
+    ------------------------------------------------------- */
+    let requestBody = apz.app.CBcheck.createRequest();
+    if (apz.isNull(requestBody) || Object.keys(requestBody).length === 0) return;
+    /* -------------------------------------------------------
+       SECONDARY KYC – read from session (same as createLoan)
+    ------------------------------------------------------- */
+    let secondaryKycType = "";
+    let secondaryKycId = "";
+    let alternateVoterId = "";
+    if (!apz.isNull(inSessionStore.customerDetailsList)) {
+        let applicantData = inSessionStore.customerDetailsList.find(c => c.customerType === "Applicant");
+        if (!apz.isNull(applicantData)) {
+            secondaryKycType = applicantData.payload.secondaryKycType || "";
+            secondaryKycId = applicantData.payload.secondaryKycId || "";
+            alternateVoterId = applicantData.payload.alternateVoterId || "";
+        }
+    }
+    /* -------------------------------------------------------
+       RESOLVE Co-App IDs
+    ------------------------------------------------------- */
+    let isCoApp = gApzCOB.currentApplicant > 1;
+    let custDtlId = isCoApp ? (gApzCOB.userDetails.CoApplicantCustomerId || "") : gApzCOB.userDetails.custDtlId;
+    let addressDtlsId = isCoApp ? (parseInt(gApzCOB.userDetails.CoApplicantAddressDtlsId) || "") : gApzCOB.userDetails.addressDtlsId;
+    /* -------------------------------------------------------
+       ASSEMBLE API REQUEST
+    ------------------------------------------------------- */
+    req.apiRequest.userId = gApzCOB.LoggedInUserDetails.loginResponse.userDet.id;
+    req.apiRequest.appId = gAppId;
+    req.apiRequest.interfaceName = intfName;
+    req.apiRequest.requestObj = {
+        isNewSourcing: "Y",
+        appId: gApzCOB.userDetails.appId,
+        applicationId: !apz.isNull(gApzCOB.relatedApplicationId) ? gApzCOB.relatedApplicationId : gApzCOB.userDetails.applicationId,
+        versionNum: window.versionNum,
+        isExistingCustomer: "",
+        /* ----- Core lists from createRequest ----- */
+        customerDetailsList: requestBody.customerDetailsList,
+        addressDetailsWrapperList: requestBody.addressDetailsWrapperList,
+        /* ----- Application master (same shape as createLoan) ----- */
+        applicationMaster: {
+            applicationType: "online",
+            createdBy: gApzCOB.LoggedInUserDetails.loginResponse.userDet.id,
+            currentScreenId: "CBcheck",
+            currentStageNo: 1,
+            custDtlId: custDtlId,
+            addressDtlsId: addressDtlsId,
+            customerId: gApzCOB.userDetails.customerId,
+            declarationFlag: gApzCOB.userDetails.declarationFlag,
+            mobileNumber: !apz.isNull(gApzCOB.userDetails.mobileNum) ? gApzCOB.userDetails.mobileNum : null,
+            productCode: apz.isNull(gApzCOB.productCode) ? "1009" : gApzCOB.productCode,
+            productGroupCode: gApzCOB.product,
+            searchCode1: gApzCOB.selLeadDtls.kendraId,
+            searchCode2: gApzCOB.selLeadDtls.customerId,
+            custDtlSlNum: gApzCOB.currentApplicant,
+            applicantsCount: gApzCOB.noOfApplicants,
+            mainProductGroupCode: gApzCOB.mainProductGroupCode,
+            kendraId: gApzCOB.selLeadDtls.kendraId,
+            kendraName: gApzCOB.selLeadDtls.kendraName,
+            branchId: gApzCOB.selLeadDtls.glBranchId,
+            branchName: gApzCOB.selLeadDtls.glBranchName,
+            memberId: gApzCOB.selLeadDtls.customerId,
+            primaryKycType: "Voter ID",
+            primaryKycId: gApzCOB.selLeadDtls.primaryKyc,
+            secondaryKycType: secondaryKycType,
+            secondaryKycId: secondaryKycId,
+            workitemNo: gApzCOB.selLeadDtls.pid,
+            alternateVoterId: alternateVoterId
+        },
+        /* ----- Workflow (simplified for CB stage) ----- */
+        workflow: {
+            currentRole: ""
+        }
+    };
+    /* ----- Optional lists ----- */
+    if (requestBody.loanDetails) {
+        req.apiRequest.requestObj.loanDetails = requestBody.loanDetails;
+    }
+    if (requestBody.cibilDetailsWrapperList) {
+        req.apiRequest.requestObj.cibilDetailsWrapperList = requestBody.cibilDetailsWrapperList;
+    }
+    /* -------------------------------------------------------
+       FIRE SERVICE CALL
+    ------------------------------------------------------- */
+    apz.startLoader();
+    setTimeout(() => {
+        ApzCOB.serverBuildParam(gAppId, intfName, "N", "N", req, false, apz.app.CBcheck.createCBCheckCB);
+    }, 1000);
+};
+// ============================================================
+//  CB CHECK — createCBCheckCB  (callback)
+// ============================================================
+apz.app.CBcheck.createCBCheckCB = function(params) {
+    apz.stopLoader();
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            let response = JSON.parse(params.res[params.apzIfaceName + "_Res"].apiResponse.ResponseBody.responseObj);
+            // Persist applicationId
+            if (response?.hasOwnProperty("applicationId")) {
+                gApzCOB.userDetails.applicationId = response.applicationId;
+            }
+            // Update global response nodes
+            ApzCOB.responseNodeUpdate(response);
+            // Handle CB-specific response (score, decision, etc.)
+            if (response?.cbResponse) {
+                apz.app.CBcheck.handleCBCheckScreenUI(response.cbResponse, response);
+            }
+            // Navigate: if applicant done, switch to co-applicant tab; else proceed
+            if (gApzCOB.currentApplicant === 1) {
+                let tabs = $('.cbcheckSubMenu');
+                if (tabs.length > 1) {
+                    let coAppTab = tabs.eq(1);
+                    apz.app.CBcheck.handletabSwitch(coAppTab, 'CoApplicant');
+                } else {
+                    ApzCOB.LaunchConfiguredScreens();
+                }
+            } else {
+                ApzCOB.LaunchConfiguredScreens();
+            }
+        } else {
+            ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_COMM_ERR_TXT_TECHNICAL"), "E");
+        }
+    } catch (e) {
+        apz.stopLoader();
+        ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_COMM_ERR_TXT_TECHNICAL"), "E");
+    }
+};
