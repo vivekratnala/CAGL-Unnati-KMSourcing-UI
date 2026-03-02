@@ -8209,7 +8209,7 @@ ApzCOB = {
                     apz.app.PersonalDetails.paint_pincode(pincode_Detls);
                 } else if (window.pincodetype === "emp") {
                     apz.app.EmploymentDetails.paint_pincode(pincode_Detls);
-                } else if (window.pincodetype === "addPre" || window.pincodetype === "addPerm") {
+                } else if (window.pincodetype === "addPre" || window.pincodetype === "addPerm" || window.pincodetype === "ocr") {
                     apz.app.Kmbase.paint_pincode(pincode_Detls, window.pincodetype);
                 }
             }
