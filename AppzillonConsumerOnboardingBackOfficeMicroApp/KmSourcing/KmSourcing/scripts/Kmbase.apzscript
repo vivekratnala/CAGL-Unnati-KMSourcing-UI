@@ -149,6 +149,10 @@ apz.app.Kmbase.back = function() {
             return;
         }
     }
+    if (apz.childScr === "KMReviewConfirm") {
+        ApzCOB.launchSubScreen("OtherInformation", "KmSourc__Kmbase__KMLaunchCol", "");
+        return;
+    }
 }
 apz.app.Kmbase.next = function() {
     if (apz.childScr === "AadhaarDetails") {
