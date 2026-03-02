@@ -35983,3 +35983,86 @@ span[for="EmpDet__EmploymentDetails__el_cbx_6"]::before {
 span[for="EmpDRE__EmploymentDetails__el_cbx_6"]::before {
     content: "Combination of two or more conditions (e.g., difficulty in walking and vision loss).";
 }
+/*Swaroop changes KM sourcing start*/
+/*Button changes*/
+.valnewcssrow .valnewcss-cagl {
+    height: 36px;
+    margin: 0rem 1rem 0.5rem 0rem;
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--primary-btn-linear-gradient);
+    font-size: 14px;
+    border-width: 2px;
+    border-radius: 6.75rem;
+    position: relative;
+    border: 1px solid var(--tablist-active-text-color);
+    line-height: 20px;
+    background: #004886;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.mt15 {
+    margin: 1.5rem 0rem 0rem 0rem;
+}
+.btnsucess-cagl {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #D1FADF !important;
+    color: #039855 !important;;
+    border: 1px solid #039855 !important;
+    padding: 6px 14px;
+    font-weight: 500;
+    cursor: default;
+    -webkit-text-fill-color: #039855 !important;
+    text-shadow: none;
+    line-height: 1;
+    white-space: nowrap;
+}    
+.btnfailure-cagl {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #FEE4E2 !important;
+    color: #D92D20 !important;
+    border: 1px solid #D92D20 !important;
+    padding: 6px 14px;
+    font-weight: 500;
+    cursor: default;
+    -webkit-text-fill-color: #D92D20 !important;
+    text-shadow: none;
+    line-height: 1;
+    white-space: nowrap;
+}
+/*List design*/
+.docList-cagl{
+    border: 1px solid;
+    border-color: #D4D4D4;
+    background-color: #FFFFFF;
+    border-radius: 0.75rem;
+    padding: 0.5rem 0.75rem !important;
+} 
+.docDetailsRow .ett-icon {
+    width: 42px;
+    height: 42px;
+}
+.docList-cagl .ett-icon {
+    width: 32px;
+    height: 32px;
+}
+.docList-cagl .ett-icon.icon-trash-cagl {
+    width: 20px;
+    height: 20px;
+}
+.docList-cagl > ul.pri > li {
+    border-bottom: 0px;
+}
+.appln-edit > li.eic .ett-labl .ett-icon {
+    width: 20px;
+    height: 20px;
+}
+.cal-field .ett-bttn .ett-icon {
+    width: 20px;
+    height: 20px;
+}
+/*Swaroop changes KM sourcing start*/
