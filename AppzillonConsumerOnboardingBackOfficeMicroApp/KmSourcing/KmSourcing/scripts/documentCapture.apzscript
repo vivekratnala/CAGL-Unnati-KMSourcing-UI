@@ -122,8 +122,7 @@ apz.app.onLoad_documentCapture = function() {
             apz.app.documentCapture.PanVerification();
         });
     }
-
-     apz.app.Kmbase.paintAllDocuments();
+    apz.app.Kmbase.paintAllDocuments();
 };
 apz.app.updateFieldLabel = function(screenPrefix, fieldName, newText) {
     if (!screenPrefix || !fieldName || !newText) return;
@@ -179,6 +178,12 @@ apz.app.documentCapture.validateForm = function() {
     }
     // copy edited values to document screen
     apz.app.documentCapture.copyOcrValuesFromModal();
+    if (apz.app.docType === "Voter ID") {
+
+        apz.app.documentCapture.mapOcrToCBFields();
+
+    }
+ 
     // Clear modal for reuse
     apz.app.documentCapture.clearModalFields();
     //close modal
@@ -707,5 +712,156 @@ apz.app.documentCapture.panVerificationCallback = function(params) {
         }
     } catch (e) {
         console.log("PAN CALLBACK ERROR:", e);
+    }
+};
+apz.app.documentCapture.mapOcrToCBFields = function() {
+    var src = docScrId; // KmSourc__documentCapture__
+    var tgt = CBcheckScr; // KmSourc__CBcheck__
+    // Identify which applicant was captured
+    var isApplicant = gApzCOB.currentApplicant === 1;
+    var custDtlId = isApplicant ? gApzCOB.userDetails.custDtlId : gApzCOB.userDetails.CoApplicantCustomerId;
+    var addressDtlsId = isApplicant ? gApzCOB.userDetails.addressDtlsId : gApzCOB.userDetails.CoApplicantAddressDtlsId;
+    // Field mapping: OCR source -> DOM target -> inSessionStore key (address fields)
+    var mapping = [{
+            from: "ocrAddr1",
+            to: "addressLine1",
+            key: "addressLine1"
+        }, {
+            from: "ocrAddr2",
+            to: "addressLine",
+            key: "addressLine2"
+        }, {
+            from: "ocrAddr3",
+            to: "addressLine3",
+            key: "addressLine3"
+        }, {
+            from: "ocr-pincode",
+            to: "pincode",
+            key: "pinCode"
+        }, {
+            from: "ocrCity",
+            to: "addPreCity",
+            key: "city"
+        }, {
+            from: "ocrDistrict",
+            to: "addPreDistrict",
+            key: "district"
+        }, {
+            from: "ocrState",
+            to: "addPreState",
+            key: "state"
+        }
+        // , {
+        //     from: "ocrCountry",
+        //     to: "aadCountry",
+        //     key: "country"
+        // }, {
+        //     from: "ocrArea",
+        //     to: "aadArea",
+        //     key: "area"
+        // }, {
+        //     from: "ocrLandmark",
+        //     to: "aadLandmark",
+        //     key: "landMark"
+        // }
+    ];
+    // Read name, aadhaar number and DOB from OCR fields
+    // These must be saved to session AND written to AadhaarDetails DOM
+    var ocrName = ($("#" + src + "ocrName").val() || "").trim();
+    var ocrAadhaarNum = ($("#" + src + "ocrAadhaarNumber").val() || "").trim();
+    var ocrDob = ($("#" + src + "ocr-dob").val() || "").trim();
+    // Build SecondaryKyc object from OCR address values
+    var secondaryKyc = {
+        addressType: "Voter"
+    };
+    mapping.forEach(function(pair) {
+        secondaryKyc[pair.key] = ($("#" + src + pair.from).val() || "").trim();
+    });
+    // -- 1a. Write address to inSessionStore (SecondaryKyc) ----------------------
+    // Ensures paintAddressTable() always has data for both tabs regardless of
+    // which tab is currently active.
+    if (!inSessionStore.addressDetailsWrapperList) {
+        inSessionStore.addressDetailsWrapperList = [{
+            addressDetailsList: []
+        }];
+    }
+    if (!inSessionStore.addressDetailsWrapperList[0].addressDetailsList) {
+        inSessionStore.addressDetailsWrapperList[0].addressDetailsList = [];
+    }
+    var addrDetailsList = inSessionStore.addressDetailsWrapperList[0].addressDetailsList;
+    var personalWrapper = addrDetailsList.find(function(w) {
+        return w.addressType === "Personal" && String(w.custDtlId) === String(custDtlId);
+    });
+    if (!personalWrapper) {
+        personalWrapper = {
+            addressDtlsId: addressDtlsId || "",
+            custDtlId: parseInt(custDtlId),
+            addressType: "Personal",
+            payload: {
+                addressList: []
+            }
+        };
+        addrDetailsList.push(personalWrapper);
+    }
+    var addrList = personalWrapper.payload.addressList;
+    var secKycIndex = addrList.findIndex(function(a) {
+        return a.addressType === "Voter";
+    });
+    if (secKycIndex >= 0) {
+        addrList[secKycIndex] = secondaryKyc;
+    } else {
+        addrList.push(secondaryKyc);
+    }
+    // -- 1b. Write name + aadhaar number to inSessionStore (customerDetailsList) --
+    // paintFromFresh() reads secondaryKycName + secondaryKycId from here to
+    // populate aadharname / aadharnum on AadhaarDetails screen.
+    // Also preserved so restoreOcrFieldsFromSession() can repopulate docScrId
+    // fields when the user returns to documentCapture screen.
+    if (!inSessionStore.customerDetailsList) inSessionStore.customerDetailsList = [];
+    var custList = inSessionStore.customerDetailsList;
+    var custIdx = custList.findIndex(function(c) {
+        return String(c.custDtlId) === String(custDtlId);
+    });
+    var existingPayload = custIdx >= 0 ? (custList[custIdx].payload || {}) : {};
+    var updatedPayload = Object.assign({}, existingPayload, {
+        secondaryKycName: ocrName,
+        secondaryKycId: ocrAadhaarNum,
+        dob: ocrDob || existingPayload.dob || ""
+    });
+    if (custIdx >= 0) {
+        custList[custIdx].payload = updatedPayload;
+        custList[custIdx].customerName = custList[custIdx].customerName || ocrName;
+    } else {
+        custList.push({
+            custDtlId: custDtlId,
+            customerType: isApplicant ? "Applicant" : "Co-App",
+            customerName: ocrName,
+            mobileNumber: "",
+            payload: updatedPayload
+        });
+    }
+    // -- 2. Write to live AadhaarDetails DOM -- ONLY if active tab matches --------
+    // If tabs don't match (e.g. captured Co-App while Applicant tab active),
+    // skip DOM write; session write above is enough. paintFromSession() will
+    // populate when the user switches to that tab.
+    var activeTabMatchesCaptured = (isApplicant && gApzCOB.currentApplicant === 1) || (!isApplicant && gApzCOB.currentApplicant === 2);
+    if (activeTabMatchesCaptured) {
+        // Aadhaar address fields (addline1 .. aadLandmark)
+        mapping.forEach(function(pair) {
+            var $field = $("#" + tgt + pair.to);
+            if ($field.length) {
+                $field.val(secondaryKyc[pair.key]).trigger("change");
+            }
+        });
+        // Name and Aadhaar number fields -- these are the two that were missing
+        if (ocrName) $("#" + tgt + "aadharname").val(ocrName);
+        if (ocrAadhaarNum) $("#" + tgt + "aadharnum").val(ocrAadhaarNum);
+        if (ocrDob) $("#" + tgt + "aadhardob").val(ocrDob);
+    }
+    // -- 3. Refresh address table -------------------------------------------------
+    // Row 3 (Applicant Aadhaar) or Row 4 (Co-App Aadhaar) now shows the address;
+    // the corresponding radio becomes enabled.
+    if (typeof apz.app.AadhaarDetails.paintAddressTable === "function") {
+        apz.app.AadhaarDetails.paintAddressTable();
     }
 };
