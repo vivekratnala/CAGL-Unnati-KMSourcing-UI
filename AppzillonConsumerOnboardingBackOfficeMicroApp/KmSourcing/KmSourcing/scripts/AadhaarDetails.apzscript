@@ -189,6 +189,7 @@ apz.app.AadhaarDetails.addrEqual = function(a, b) {
         .state || "") === (b.state || "");
 };
 apz.app.onLoad_AadhaarDetails = function() {
+    // INITIAL SETUP 
     apz.app.AadhaarDetails.commoncodeConfTypesLst();
     apz.populateDropdown(document.getElementById(AadhaarScrId + 'mrtsts'), ApzCOB.formatDropDownforArray(maritalStatus));
     apz.populateDropdown(document.getElementById(AadhaarScrId + 'religion'), ApzCOB.formatDropDownforArray(religion));
@@ -197,9 +198,13 @@ apz.app.onLoad_AadhaarDetails = function() {
     apz.populateDropdown(document.getElementById(`${AadhaarScrId}A_residence_stabilit_present_city`), ApzCOB.formatDropDownforArray(resYr));
     apz.populateDropdown(document.getElementById(`${AadhaarScrId}A_residence_stability`), ApzCOB.formatDropDownforArray(resYr));
     apz.populateDropdown(document.getElementById(AadhaarScrId + 'relationshipProof'), relatArr);
-    addrProfArr.unshift(ApzCOB.getDescfromLitCode("LIT_COMM_MSG_PLEASE_SELECT"));
+    // Guard: only unshift "Please Select" once
+    if (addrProfArr.length === 0 || addrProfArr[0]?.val !== PleaseSelect) {
+        addrProfArr.unshift(ApzCOB.getDescfromLitCode("LIT_COMM_MSG_PLEASE_SELECT"));
+    }
     apz.populateDropdown(document.getElementById(AadhaarScrId + 'addressProof'), addrProfArr);
     apz.populateDropdown(document.getElementById(AadhaarScrId + 'permanentAddressProof'), addrProfArr);
+    // UI DEFAULT SETUP
     window.AADHAAR_INIT_DONE = true;
     apz.app.otherAddressState.present = false;
     apz.app.otherAddressState.permanent = false;
@@ -207,55 +212,49 @@ apz.app.onLoad_AadhaarDetails = function() {
     const permanentSection = document.querySelector('.other-permanent-details');
     if (presentSection) presentSection.style.display = 'none';
     if (permanentSection) permanentSection.style.display = 'none';
-    if (!window.CAPTURE_FROM_APPLICANT) {
-        gApzCOB.currentApplicant = 1;
-        var applicantBtn = document.querySelector('.aadhaarSubMenu');
-        if (applicantBtn) {
-            apz.app.AadhaarDetails.handletabSwitch(applicantBtn, 'Applicant');
-        }
-    }
-    $("#scr__" + AadhaarScrId + "main").on("mousedown", "input, select", function() {
+    // Guard: bind error clearing only once
+    let $screen = $("#scr__" + AadhaarScrId + "main");
+    $screen.off("mousedown.aadhaar").on("mousedown.aadhaar", "input, select", function() {
         clearFieldError(this.id);
     });
-    $("#scr__" + AadhaarScrId + "main").on("change", "input[type=radio]", function() {
+    $screen.off("change.aadhaar").on("change.aadhaar", "input[type=radio]", function() {
         clearFieldError(this.id);
     });
+    // Min/Max setup
     ApzCOB.setMinMaxLength([{
-        'fieldName': 'MaritalStatus',
-        'fieldId': AadhaarScrId + 'mrtsts'
+        fieldName: 'MaritalStatus',
+        fieldId: AadhaarScrId + 'mrtsts'
     }, {
-        'fieldName': 'Name',
-        'fieldId': AadhaarScrId + 'fathersName'
+        fieldName: 'Name',
+        fieldId: AadhaarScrId + 'fathersName'
     }, {
-        'fieldName': 'Name',
-        'fieldId': AadhaarScrId + 'spouseName'
+        fieldName: 'Name',
+        fieldId: AadhaarScrId + 'spouseName'
     }, {
-        'fieldName': 'AddressLine1',
-        'fieldId': AadhaarScrId + 'presentAddrLine1'
+        fieldName: 'AddressLine1',
+        fieldId: AadhaarScrId + 'presentAddrLine1'
     }, {
-        'fieldName': 'AddressLine2',
-        'fieldId': AadhaarScrId + 'presentAddrLine2'
+        fieldName: 'AddressLine2',
+        fieldId: AadhaarScrId + 'presentAddrLine2'
     }, {
-        'fieldName': 'AddressLine3',
-        'fieldId': AadhaarScrId + 'presentAddrLine3'
+        fieldName: 'AddressLine3',
+        fieldId: AadhaarScrId + 'presentAddrLine3'
     }, {
-        'fieldName': 'Pincode',
-        'fieldId': AadhaarScrId + 'presentPincode'
+        fieldName: 'Pincode',
+        fieldId: AadhaarScrId + 'presentPincode'
     }, {
-        'fieldName': 'Pincode',
-        'fieldId': AadhaarScrId + 'permanentPincode'
+        fieldName: 'Pincode',
+        fieldId: AadhaarScrId + 'permanentPincode'
     }, {
-        'fieldName': 'AddressLine1',
-        'fieldId': AadhaarScrId + 'permanentAddrLine1'
+        fieldName: 'AddressLine1',
+        fieldId: AadhaarScrId + 'permanentAddrLine1'
     }, {
-        'fieldName': 'AddressLine2',
-        'fieldId': AadhaarScrId + 'permanentAddrLine2'
+        fieldName: 'AddressLine2',
+        fieldId: AadhaarScrId + 'permanentAddrLine2'
     }, {
-        'fieldName': 'AddressLine3',
-        'fieldId': AadhaarScrId + 'permanentAddrLine3'
+        fieldName: 'AddressLine3',
+        fieldId: AadhaarScrId + 'permanentAddrLine3'
     }]);
-    // On-load paint data
-    apz.app.AadhaarDetails.paintAddressTable();
     // Default residential status radio to "Own"
     var resGroup = document.getElementById(AadhaarScrId + 'residentialStatus');
     if (resGroup) {
@@ -265,16 +264,16 @@ apz.app.onLoad_AadhaarDetails = function() {
             apz.app.handleAddressType(ownRadio);
         }
     }
+    // Always default to Applicant unless a tab switch is pending
+    if (!window.AADHAAR_TAB_SWITCH_TARGET) {
+        gApzCOB.currentApplicant = 1;
+    }
+    // Data paint
+    apz.app.AadhaarDetails.paintAddressTable();
     apz.app.AadhaarDetails.prePopulateAll();
     apz.app.AadhaarDetails.rebuildAddressTable();
     apz.app.Kmbase.paintAllDocuments();
-    // Check Aadhaar doc capture flag
-    if (window.AADHAAR_DOC_CAPTURE_SUCCESS) {
-        $("#" + AadhaarScrId + "aadharDetails").removeClass('sno');
-        $("#" + AadhaarScrId + "captureAadhaar").removeClass('btm-seperator');
-    } else {
-        $('.aadharDetails').addClass('sno');
-    }
+    // Tab switch — must be LAST after all paints are done
     if (window.AADHAAR_TAB_SWITCH_TARGET) {
         let target = window.AADHAAR_TAB_SWITCH_TARGET;
         window.AADHAAR_TAB_SWITCH_TARGET = null;
@@ -284,6 +283,24 @@ apz.app.onLoad_AadhaarDetails = function() {
         } else {
             apz.app.AadhaarDetails.handletabSwitch(tabs.eq(0), 'Applicant');
         }
+    }
+};
+apz.app.onShow_AadhaarDetails = function() {
+    // SIDEBAR ACTIVE STATE — parent always active
+    $(`#${kmbaseScr}sidebarForm a`).removeClass('active');
+    $(`#${kmbaseScr}AadhaarDetails_hyp`).addClass('active');
+    // Child active based on target
+    if (window.AADHAAR_TAB_SWITCH_TARGET === 'CoApplicant') {
+        $(`#${kmbaseScr}CoAppAadhaarDetails_hyp`).addClass('active');
+    } else {
+        $(`#${kmbaseScr}AppAadhaarDetails_hyp`).addClass('active');
+    }
+    // Aadhaar doc capture UI
+    if (window.AADHAAR_DOC_CAPTURE_SUCCESS) {
+        $("#" + AadhaarScrId + "aadharDetails").removeClass('sno');
+        $("#" + AadhaarScrId + "captureAadhaar").removeClass('btm-seperator');
+    } else {
+        $('.aadharDetails').addClass('sno');
     }
 };
 apz.app.handleColumnRadio = function(pthis) {
@@ -378,16 +395,18 @@ apz.app.AadhaarDetails.handletabSwitch = function(pthis, CustType) {
         gApzCOB.currentApplicant = 1;
         $('.src-coapp').addClass('sno');
         $('.src-app').removeClass('sno');
-        // Sidebar active state
+        // Sidebar active state — parent + child
         $(`#${kmbaseScr}sidebarForm a`).removeClass('active');
-        $(`#${kmbaseScr}Applicant_Hyp`).closest('a').addClass('active');
+        $(`#${kmbaseScr}AadhaarDetails_hyp`).addClass('active');
+        $(`#${kmbaseScr}AppAadhaarDetails_hyp`).addClass('active');
     } else {
         gApzCOB.currentApplicant = 2;
         $('.src-app').addClass('sno');
         $('.src-coapp').removeClass('sno');
-        // Sidebar active state 
+        // Sidebar active state — parent + child
         $(`#${kmbaseScr}sidebarForm a`).removeClass('active');
-        $(`#${kmbaseScr}CoApplicant_Hyp`).closest('a').addClass('active');
+        $(`#${kmbaseScr}AadhaarDetails_hyp`).addClass('active');
+        $(`#${kmbaseScr}CoAppAadhaarDetails_hyp`).addClass('active');
     }
     apz.app.AadhaarDetails.clearScreenFields();
     apz.app.AadhaarDetails.prePopulateAll();

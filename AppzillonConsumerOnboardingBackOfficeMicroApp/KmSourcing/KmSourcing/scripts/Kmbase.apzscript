@@ -99,13 +99,11 @@ apz.app.Kmbase.back = function() {
         }
         return;
     }
-
     if (apz.childScr === "KMReviewConfirm") {
         ApzCOB.launchSubScreen("OtherInformation", "KmSourc__Kmbase__KMLaunchCol", "");
         return;
     }
 };
-
 apz.app.Kmbase.next = function() {
     window.isVerified = "Y";
     // AADHAAR DETAILS
@@ -696,38 +694,35 @@ function paintClonedDoc(newId, baseName, index, doc, docType) {
     $row.removeClass('sno');
 }
 apz.app.Kmbase.NavigateSidebar = function(pstageId, pthis) {
+    console.log("NavigateSidebar triggered:", pstageId);
     $(`#${kmbaseScr}sidebarForm a`).removeClass('active');
     $(pthis).addClass('active');
-    let clickedId = $(pthis).attr('id') || $(pthis).find('[id]').attr('id') || "";
-
-    if (clickedId.includes("CoApplicant_Hyp")) {
+    let stage = parseInt(pstageId);
+    if (stage === 21 || stage === 22) {
+        // Remove active from all
+        $(`#${kmbaseScr}sidebarForm a`).removeClass('active');
+        // Activate Parent Aadhaar Section
+        $(`[id*='AadhaarDetails_hyp']`).addClass('active');
+        // Activate Child (Applicant / CoApp)
+        $(pthis).addClass('active');
+        window.AADHAAR_TAB_SWITCH_TARGET = (stage === 21) ? 'Applicant' : 'CoApplicant';
+        apz.app.Kmbase.toggleSidebar();
         if (apz.childScr !== "AadhaarDetails") {
-            window.AADHAAR_TAB_SWITCH_TARGET = 'CoApplicant';
             ApzCOB.launchSubScreen("AadhaarDetails", `${kmbaseScr}KMLaunchCol`);
         } else {
-            window.AADHAAR_TAB_SWITCH_TARGET = 'CoApplicant';
-            apz.app.AadhaarDetails.saveAadhaarDetails(true);
+            if (apz.app.AadhaarDetails && typeof apz.app.AadhaarDetails.saveAadhaarDetails === "function") {
+                apz.app.AadhaarDetails.saveAadhaarDetails(true);
+            }
         }
         return;
     }
-
-    if (clickedId.includes("Applicant_Hyp") && !clickedId.includes("CB_")) {
-        if (apz.childScr !== "AadhaarDetails") {
-            window.AADHAAR_TAB_SWITCH_TARGET = 'Applicant';
-            ApzCOB.launchSubScreen("AadhaarDetails", `${kmbaseScr}KMLaunchCol`);
-        } else {
-            window.AADHAAR_TAB_SWITCH_TARGET = 'Applicant';
-            apz.app.AadhaarDetails.saveAadhaarDetails(true);
-        }
-        return;
-    }
-
-    let scrName = Object.keys(window.KM_NEWTAGES).find(key => window.KM_NEWTAGES[key].id === parseInt(pstageId));
+    let scrName = Object.keys(window.KM_NEWTAGES || {}).find(key => window.KM_NEWTAGES[key].id === stage);
     if (!apz.isNull(scrName)) {
         apz.app.Kmbase.toggleSidebar();
-        ApzCOB.launchSubScreen(scrName, `${kmbaseScr}KMLaunchCol`);
         if (scrName === "AadhaarDetails") {
+            gApzCOB.currentApplicant = 1; 
             window.AADHAAR_TAB_SWITCH_TARGET = 'Applicant';
         }
+        ApzCOB.launchSubScreen(scrName, `${kmbaseScr}KMLaunchCol`);
     }
 };
