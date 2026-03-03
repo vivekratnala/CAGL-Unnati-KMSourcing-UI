@@ -179,7 +179,6 @@ apz.app.Kmbase.next = function() {
             if (!apz.app.CBcheck.validateForm()) {
                 return;
             }
-            window.CB_SAVE_AND_NAVIGATE = true; // navigate mode
             apz.app.CBcheck.createCBCheck();
             return;
             

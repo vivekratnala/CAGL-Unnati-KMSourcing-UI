@@ -4,7 +4,6 @@ var screenId = 'KmSourc__CBcheck__';
 var otpScreenId = 'KmSourc__Kmbase__';
 window.CB_LOAN_ID = null;
 //  IS_MOBILE_DEDUPE_REQ = true;
-window.CB_SAVE_AND_NAVIGATE = false;
 //  OTP GLOBAL STATE
 window.CB_OTP_TIMER = null;
 window.CB_OTP_TIME_LEFT = 150;
@@ -423,6 +422,8 @@ apz.app.CBcheck.otpVerifiedSuccess = function() {
         CB_OTP_STATE.applicant.mobile = currentMobile;
         CB_OTP_UI_UNLOCK.applicant = true;
         CB_VERIFIED_MOBILES.applicant.add(currentMobile);
+        window.isVerified = "N";
+        apz.app.CBcheck.createCBCheck();
     } else {
         CB_OTP_STATE.coapplicant.verified = true;
         CB_OTP_STATE.coapplicant.mobile = currentMobile;
@@ -1037,7 +1038,7 @@ apz.app.CBcheck.createRequest = function() {
     /* -------------------------------------------------------
     //   VALIDATION GATE
     ------------------------------------------------------- */
-    if (!apz.app.CBcheck.validateForm()) {
+    if (isVerified !== "N" && !apz.app.CBcheck.validateForm()) {
         return {};
     }
     /* -------------------------------------------------------
@@ -1274,7 +1275,7 @@ apz.app.CBcheck.createCBCheck = function() {
     /* -------------------------------------------------------
        VALIDATE FORM
     ------------------------------------------------------- */
-    if (!apz.app.CBcheck.validateForm()) return;
+    if (isVerified !== "N" && !apz.app.CBcheck.validateForm()) return;
     /* -------------------------------------------------------
        UPDATE PRIMARY DETAILS FOR EXISTING APPLICATION
     ------------------------------------------------------- */
@@ -1438,8 +1439,7 @@ apz.app.CBcheck.createCBCheckCB = function(params) {
             /* =====================================================
                BRANCH: Navigate OR trigger BRE
             ===================================================== */
-            if (window.CB_SAVE_AND_NAVIGATE) {
-                window.CB_SAVE_AND_NAVIGATE = false; // reset flag
+            if (isVerified === "Y") {
                 // Navigate: if applicant done and co-app tab exists → switch to co-app
                 // else proceed to next screen
                 if (gApzCOB.currentApplicant === 1) {
@@ -1453,10 +1453,6 @@ apz.app.CBcheck.createCBCheckCB = function(params) {
                 } else {
                     ApzCOB.LaunchConfiguredScreens();
                 }
-            } else {
-                // BRE mode — trigger BRE service
-                apz.startLoader();
-                apz.app.CBcheck.triggerBREService();
             }
             //             apz.startLoader();
             // apz.app.CBcheck.triggerBREService();
@@ -1506,9 +1502,10 @@ apz.app.CBcheck.initiateCreditCheck = function() {
         CB_API_TRIGGERED.coapplicant = true;
     }
     apz.app.CBcheck.toggleInitiateRow();
-    window.CB_SAVE_AND_NAVIGATE = false;
     // Save + Trigger API
+    isVerified = null;
     apz.app.CBcheck.createCBCheck();
+    apz.app.CBcheck.triggerBREService();
 };
 apz.app.CBcheck.triggerBREService = function() {
     window.CBCALLTYPEFLAG = 'BRE';
