@@ -55,6 +55,7 @@ apz.app.onLoad_documentCapture = function() {
         $('.doc-upload-title').text('Upload front & back side of Aadhaar card');
         apz.app.updateFieldLabel(docScrId, 'ocrNameSection', 'Name as per Aadhaar');
         apz.app.updateFieldLabel(kmbaseScr, 'ocrNameSection', 'Name as per Aadhaar');
+        $('.ocrAadhaarSection').show();
         $('.ocr-verify-btn, .pan-row, .voter-row, .dummy-ocrrow ,.ocrVoterSection, .ocrPanSection').hide();
         $('.dob-row, .ocrAadhaar, .ocrAddressLine1, .ocrAddressLine2, .ocrAddressLine3, .ocrDob, .ocrPincode').show();
         apz.app.documentCapture.onAadhaarSuccess();
@@ -69,6 +70,7 @@ apz.app.onLoad_documentCapture = function() {
         $(`#${docScrId}verifyBtn`).off('click').on('click', function() {
             apz.app.documentCapture.primaryKycVerification();
         });
+        let voterTag = docScrId + "ocrVoterNumber";
     } else if (apz.app.docType === 'PAN card') {
         $("#nxtBtn").prop("disabled", true);
         let $btn = $("#" + docScrId + "verifyBtn");
@@ -83,19 +85,25 @@ apz.app.onLoad_documentCapture = function() {
         $(`#${panNumberTag}`).off("input").on("input", function() {
             let newVal = $(this).val().toUpperCase().trim();
             $(this).val(newVal);
+            // Clear error UI completely
             $(this).removeClass("err");
             clearFieldError(panNumberTag);
+            // Enable field if previously disabled
             ApzCOB.AddOrRemoveDisableFields([panNumberTag], false);
+            // Reset verification state
             window.VERIFIED_PAN_VALUE = null;
             if (gApzCOB.currentApplicant > 1) {
                 window.coapplicant_pancheck = false;
             } else {
                 window.applicant_pancheck = false;
             }
+            // Reset Verify button
             let $btn = $("#" + docScrId + "verifyBtn");
             $btn.removeClass("pan-verified-btn").html("Verify").prop("disabled", false);
+            // Disable Next button again
             $("#nxtBtn").prop("disabled", true);
         });
+        // VERIFY BUTTON
         $(`#${docScrId}verifyBtn`).off('click').on('click', function() {
             apz.app.documentCapture.PanVerification();
         });
@@ -255,7 +263,6 @@ apz.app.documentCapture.validateForm = function() {
     ApzCOB.toggleModal('KmSourc__Kmbase__Edit_OCR_Modal');
     return true;
 };
-
 apz.app.documentCapture.mapOcrToAadhaarFields = function() {
     var src = docScrId; // KmSourc__documentCapture__
     var tgt = AadhaarScrId; // KmSourc__AadhaarDetails__
@@ -397,6 +404,12 @@ apz.app.documentCapture.mapOcrToAadhaarFields = function() {
     if (typeof apz.app.AadhaarDetails.paintAddressTable === "function") {
         apz.app.AadhaarDetails.paintAddressTable();
     }
+    if (typeof apz.app.AadhaarDetails.toggleAddressRadios === "function") {
+        apz.app.AadhaarDetails.toggleAddressRadios();
+    }
+    window.AADHAAR_DOC_CAPTURE_SUCCESS = true;
+    $("#" + AadhaarScrId + "aadharDetails").removeClass('sno');
+    $("#" + AadhaarScrId + "captureAadhaar").removeClass('btm-seperator');
 };
 
 function clearFieldError(fieldId) {
@@ -919,11 +932,9 @@ apz.app.documentCapture.mapOcrToCBFields = function() {
         //     key: "landMark"
         // }
     ];
-    // Read name, aadhaar number and DOB from OCR fields
-    // These must be saved to session AND written to AadhaarDetails DOM
+    // These must be saved to session AND written to CBDetails DOM
     var ocrName = ($("#" + src + "ocrName").val() || "").trim();
-    var ocrAadhaarNum = ($("#" + src + "ocrAadhaarNumber").val() || "").trim();
-    var ocrDob = ($("#" + src + "ocr-dob").val() || "").trim();
+    var ocrVoterNumber = ($("#" + src + "ocrVoterNumber").val() || "").trim();
     // Build SecondaryKyc object from OCR address values
     var secondaryKyc = {
         addressType: "Voter"
@@ -966,11 +977,6 @@ apz.app.documentCapture.mapOcrToCBFields = function() {
     } else {
         addrList.push(secondaryKyc);
     }
-    // -- 1b. Write name + aadhaar number to inSessionStore (customerDetailsList) --
-    // paintFromFresh() reads secondaryKycName + secondaryKycId from here to
-    // populate aadharname / aadharnum on AadhaarDetails screen.
-    // Also preserved so restoreOcrFieldsFromSession() can repopulate docScrId
-    // fields when the user returns to documentCapture screen.
     if (!inSessionStore.customerDetailsList) inSessionStore.customerDetailsList = [];
     var custList = inSessionStore.customerDetailsList;
     var custIdx = custList.findIndex(function(c) {
@@ -978,26 +984,20 @@ apz.app.documentCapture.mapOcrToCBFields = function() {
     });
     var existingPayload = custIdx >= 0 ? (custList[custIdx].payload || {}) : {};
     var updatedPayload = Object.assign({}, existingPayload, {
-        secondaryKycName: ocrName,
-        secondaryKycId: ocrAadhaarNum,
-        dob: ocrDob || existingPayload.dob || ""
+        namePerKyc: ocrName,
+        primaryKycId: ocrVoterNumber,
     });
     if (custIdx >= 0) {
         custList[custIdx].payload = updatedPayload;
-        custList[custIdx].customerName = custList[custIdx].customerName || ocrName;
+        custList[custIdx].customerName = custList[custIdx].customerName;
+        custList[custIdx].mobileNumber = custList[custIdx].mobileNumber;
     } else {
         custList.push({
             custDtlId: custDtlId,
             customerType: isApplicant ? "Applicant" : "Co-App",
-            customerName: ocrName,
-            mobileNumber: "",
             payload: updatedPayload
         });
     }
-    // -- 2. Write to live AadhaarDetails DOM -- ONLY if active tab matches --------
-    // If tabs don't match (e.g. captured Co-App while Applicant tab active),
-    // skip DOM write; session write above is enough. paintFromSession() will
-    // populate when the user switches to that tab.
     var activeTabMatchesCaptured = (isApplicant && gApzCOB.currentApplicant === 1) || (!isApplicant && gApzCOB.currentApplicant === 2);
     if (activeTabMatchesCaptured) {
         // Aadhaar address fields (addline1 .. aadLandmark)
@@ -1007,15 +1007,35 @@ apz.app.documentCapture.mapOcrToCBFields = function() {
                 $field.val(secondaryKyc[pair.key]).trigger("change");
             }
         });
-        // Name and Aadhaar number fields -- these are the two that were missing
-        if (ocrName) $("#" + tgt + "aadharname").val(ocrName);
-        if (ocrAadhaarNum) $("#" + tgt + "aadharnum").val(ocrAadhaarNum);
-        if (ocrDob) $("#" + tgt + "aadhardob").val(ocrDob);
-    }
-    // -- 3. Refresh address table -------------------------------------------------
-    // Row 3 (Applicant Aadhaar) or Row 4 (Co-App Aadhaar) now shows the address;
-    // the corresponding radio becomes enabled.
-    if (typeof apz.app.AadhaarDetails.paintAddressTable === "function") {
-        apz.app.AadhaarDetails.paintAddressTable();
     }
 };
+apz.app.documentCapture.mapPanToSession = function() {
+    var src = docScrId;
+    var isApplicant = gApzCOB.currentApplicant === 1;
+    var custDtlId = isApplicant ? gApzCOB.userDetails.custDtlId : gApzCOB.userDetails.CoApplicantCustomerId;
+    var panNumber = ($("#" + src + "ocrPanNumber").val() || "").toUpperCase().trim();
+    var panName = ($("#" + src + "ocrName").val() || "").trim();
+    var panStatus = (window.VERIFIED_PAN_VALUE && window.VERIFIED_PAN_VALUE === panNumber) ? "Verified" : "Pending";
+    if (!inSessionStore.customerDetailsList) inSessionStore.customerDetailsList = [];
+    var custList = inSessionStore.customerDetailsList;
+    var custIndex = custList.findIndex(function(c) {
+        return String(c.custDtlId) === String(custDtlId);
+    });
+    var existingPayload = custIndex >= 0 ? (custList[custIndex].payload || {}) : {};
+    var updatedPayload = Object.assign({}, existingPayload, {
+        panNumber: panNumber,
+        namePerPan: panName,
+        panNumberStatus: panStatus
+    });
+    if (custIndex >= 0) {
+        custList[custIndex].payload = updatedPayload;
+    } else {
+        custList.push({
+            custDtlId: custDtlId,
+            customerType: isApplicant ? "Applicant" : "Co-App",
+            payload: updatedPayload
+        });
+    }
+    console.log("PAN stored in session:", updatedPayload);
+};
+
