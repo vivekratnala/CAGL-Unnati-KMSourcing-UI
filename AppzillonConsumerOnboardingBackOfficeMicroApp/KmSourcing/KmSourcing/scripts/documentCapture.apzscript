@@ -70,6 +70,31 @@ apz.app.onLoad_documentCapture = function() {
             apz.app.documentCapture.primaryKycVerification();
             // }
         });
+        let voterTag = docScrId + "ocrVoterNumber";
+        // $(`#${voterTag}`).off("input").on("input", function () {
+        //     let newVal = $(this).val().toUpperCase().trim();
+        //     $(this).val(newVal);
+        //     // Clear UI errors
+        //     $(this).removeClass("err");
+        //     clearFieldError(voterTag);
+        //     // Enable field (if previously disablved)
+        //     ApzCOB.AddOrRemoveDisableFields([voterTag], false);
+        //     // Reset verification state
+        //     window.VERIFIED_VOTER_VALUE = null;
+        //     if (gApzCOB.currentApplicant > 1) {
+        //         window.CO_APPLICANT_PRIMARY_KYC_VERIFICATION = false;
+        //     } else {
+        //         window.PRIMARY_KYC_VERIFICATION = false;
+        //     }
+        //     // Reset Verify button UI
+        //     let $btn = $("#" + docScrId + "verifyBtn");
+        //     $btn.removeClass("pan-verified-btn")
+        //         .html("Verify")
+        //         .prop("disabled", false);
+        //     // Disable NEXT again
+        //     $("#nxtBtn").prop("disabled", true);
+        //     console.log("Voter changed. Verification reset.");
+        // });
     } else if (apz.app.docType === 'PAN card') {
         //         window.applicant_pancheck =false;
         // window.coapplicant_pancheck = false;
@@ -179,11 +204,10 @@ apz.app.documentCapture.validateForm = function() {
     // copy edited values to document screen
     apz.app.documentCapture.copyOcrValuesFromModal();
     if (apz.app.docType === "Voter ID") {
-
         apz.app.documentCapture.mapOcrToCBFields();
-
+    } else if (apz.app.docType === "PAN card") {
+        apz.app.documentCapture.mapPanToSession();
     }
- 
     // Clear modal for reuse
     apz.app.documentCapture.clearModalFields();
     //close modal
@@ -495,7 +519,8 @@ apz.app.documentCapture.primaryKycVerification = function() {
         } else {
             IS_APPLICANT_PRIMARY_DEDUPE = true;
         }
-        ApzCOB.KycDedupeCheck(kycObj.kycId);
+        // ApzCOB.KycDedupeCheck(kycObj.kycId);
+        ApzCOB.KycDedupeCheck(kycObj.kycId, apz.app.documentCapture.voterVerificationCallback);
     }
 }
 apz.app.PersonalDetails.altVoterIdVerification = function() {
@@ -607,55 +632,6 @@ apz.app.PersonalDetails.kycValidationCheck = function() {
     }
     return isValid;
 }
-// apz.app.documentCapture.panVerificationCallback = function(params) {
-//     console.log("PAN CALLBACK RECEIVED:", params);
-//     ApzCOB.hideLoader();
-//     try {
-//         if (ApzCOB.handleServiceCallBacks(params)) {
-//             let responseObj = JSON.parse(params.res.APZCBO__ValidateVoterID_Res.apiResponse.ResponseBody.responseObj);
-//             console.log("Parsed PAN response:", responseObj);
-//             let $btn = $("#" + docScrId + "verifyBtn");
-//             if (responseObj.result_code === 101) {
-//                     // let verifiedPan = $('#' + panNumberTag).val().toUpperCase().trim();
-//                     let verifiedPan = (responseObj.client_ref_num || "").toUpperCase().trim();
-//     window.VERIFIED_PAN_VALUE = verifiedPan;
-//                 console.log("PAN VERIFICATION SUCCESS");
-//                 // Remove error if any
-//                 $("#" + panNumberTag).removeClass("err");
-//                 clearFieldError(panNumberTag);
-//                 // Change button to Verified pill
-//                 $btn.removeClass("btn-primary btn-danger pan-verified-btn").addClass("pan-verified-btn").html(`
-//     <span>Verified</span>
-//     <span class="verified-circle">&#10003;</span>
-// `).prop("disabled", true);
-//                 apz.app.documentCapture.paintpanDetails({
-//                     payload: {
-//                         panNumberStatus: "Verified",
-//                         panNumber: $('#' + panNumberTag).val()
-//                     }
-//                 });
-//             } else {
-//                 console.log("PAN VERIFICATION FAILED");
-//                 // Make editable
-//                 ApzCOB.AddOrRemoveDisableFields([panNumberTag], false);
-//                 // Add error border + message
-//                 $("#" + panNumberTag).addClass("err");
-//                 showFieldError(panNumberTag, "PAN verification failed. Please enter a valid PAN.");
-//                 // Reset button
-//                 $btn.removeClass("pan-verified-btn").html("Verify").prop("disabled", false);
-//                 if (gApzCOB.currentApplicant > 1) {
-//                     window.coapplicant_pancheck = false;
-//                 } else {
-//                     window.applicant_pancheck = false;
-//                 }
-//             }
-//         } else {
-//             console.log("Service callback validation failed");
-//         }
-//     } catch (e) {
-//         console.log("PAN CALLBACK ERROR:", e);
-//     }
-// };
 apz.app.documentCapture.panVerificationCallback = function(params) {
     console.log("PAN CALLBACK RECEIVED:", params);
     ApzCOB.hideLoader();
@@ -685,10 +661,14 @@ apz.app.documentCapture.panVerificationCallback = function(params) {
             // Enable NEXT button
             $nextBtn.prop("disabled", false);
             // Update Verify Button UI
-            $verifyBtn.removeClass().addClass("pan-verified-btn").html(`
-                    <span>Verified</span>
-                    <span class="verified-circle">&#10003;</span>
-                `).prop("disabled", true);
+            // $verifyBtn.removeClass().addClass("pan-verified-btn").html(`
+            //         <span>Verified</span>
+            //         <span class="verified-circle">&#10003;</span>
+            //     `).prop("disabled", true);
+            $verifyBtn.addClass("pan-verified-btn").html(`
+        <span>Verified</span>
+        <span class="verified-circle">&#10003;</span>
+    `).prop("disabled", true);
             // Set flags
             if (gApzCOB.currentApplicant > 1) {
                 window.coapplicant_pancheck = true;
@@ -765,11 +745,9 @@ apz.app.documentCapture.mapOcrToCBFields = function() {
         //     key: "landMark"
         // }
     ];
-    // Read name, aadhaar number and DOB from OCR fields
-    // These must be saved to session AND written to AadhaarDetails DOM
+    // These must be saved to session AND written to CBDetails DOM
     var ocrName = ($("#" + src + "ocrName").val() || "").trim();
-    var ocrAadhaarNum = ($("#" + src + "ocrAadhaarNumber").val() || "").trim();
-    var ocrDob = ($("#" + src + "ocr-dob").val() || "").trim();
+    var ocrVoterNumber = ($("#" + src + "ocrVoterNumber").val() || "").trim();
     // Build SecondaryKyc object from OCR address values
     var secondaryKyc = {
         addressType: "Voter"
@@ -824,19 +802,19 @@ apz.app.documentCapture.mapOcrToCBFields = function() {
     });
     var existingPayload = custIdx >= 0 ? (custList[custIdx].payload || {}) : {};
     var updatedPayload = Object.assign({}, existingPayload, {
-        secondaryKycName: ocrName,
-        secondaryKycId: ocrAadhaarNum,
-        dob: ocrDob || existingPayload.dob || ""
+        namePerKyc: ocrName,
+        primaryKycId: ocrVoterNumber,
     });
     if (custIdx >= 0) {
         custList[custIdx].payload = updatedPayload;
-        custList[custIdx].customerName = custList[custIdx].customerName || ocrName;
+        custList[custIdx].customerName = custList[custIdx].customerName;
+        custList[custIdx].mobileNumber = custList[custIdx].mobileNumber;
     } else {
         custList.push({
             custDtlId: custDtlId,
             customerType: isApplicant ? "Applicant" : "Co-App",
-            customerName: ocrName,
-            mobileNumber: "",
+            // customerName: ocrName,
+            // mobileNumber: "",
             payload: updatedPayload
         });
     }
@@ -854,14 +832,108 @@ apz.app.documentCapture.mapOcrToCBFields = function() {
             }
         });
         // Name and Aadhaar number fields -- these are the two that were missing
-        if (ocrName) $("#" + tgt + "aadharname").val(ocrName);
-        if (ocrAadhaarNum) $("#" + tgt + "aadharnum").val(ocrAadhaarNum);
-        if (ocrDob) $("#" + tgt + "aadhardob").val(ocrDob);
+        // if (ocrName) $("#" + tgt + "aadharname").val(ocrName);
+        // if (ocrAadhaarNum) $("#" + tgt + "aadharnum").val(ocrAadhaarNum);
+        // if (ocrDob) $("#" + tgt + "aadhardob").val(ocrDob);
     }
     // -- 3. Refresh address table -------------------------------------------------
     // Row 3 (Applicant Aadhaar) or Row 4 (Co-App Aadhaar) now shows the address;
     // the corresponding radio becomes enabled.
-    if (typeof apz.app.AadhaarDetails.paintAddressTable === "function") {
-        apz.app.AadhaarDetails.paintAddressTable();
+    // if (typeof apz.app.AadhaarDetails.paintAddressTable === "function") {
+    //     apz.app.AadhaarDetails.paintAddressTable();
+    // }
+};
+apz.app.documentCapture.mapPanToSession = function() {
+    var src = docScrId;
+    var isApplicant = gApzCOB.currentApplicant === 1;
+    var custDtlId = isApplicant ? gApzCOB.userDetails.custDtlId : gApzCOB.userDetails.CoApplicantCustomerId;
+    var panNumber = ($("#" + src + "ocrPanNumber").val() || "").toUpperCase().trim();
+    var panName = ($("#" + src + "ocrName").val() || "").trim();
+    var panStatus = (window.VERIFIED_PAN_VALUE && window.VERIFIED_PAN_VALUE === panNumber) ? "Verified" : "Pending";
+    if (!inSessionStore.customerDetailsList) inSessionStore.customerDetailsList = [];
+    var custList = inSessionStore.customerDetailsList;
+    var custIndex = custList.findIndex(function(c) {
+        return String(c.custDtlId) === String(custDtlId);
+    });
+    var existingPayload = custIndex >= 0 ? (custList[custIndex].payload || {}) : {};
+    var updatedPayload = Object.assign({}, existingPayload, {
+        panNumber: panNumber,
+        namePerPan: panName,
+        panNumberStatus: panStatus
+    });
+    if (custIndex >= 0) {
+        custList[custIndex].payload = updatedPayload;
+    } else {
+        custList.push({
+            custDtlId: custDtlId,
+            customerType: isApplicant ? "Applicant" : "Co-App",
+            payload: updatedPayload
+        });
+    }
+    console.log("PAN stored in session:", updatedPayload);
+};
+apz.app.documentCapture.voterVerificationCallback = function(params) {
+    console.log("VOTER CALLBACK RECEIVED:", params);
+    ApzCOB.hideLoader();
+    try {
+        if (!ApzCOB.handleServiceCallBacks(params)) return;
+        // Correct interface path
+        let rawResponse = params.res.APZCBO__DedupeVoterID_Res?.apiResponse?.ResponseBody?.responseObj;
+        if (!rawResponse) {
+            console.log("No responseObj found");
+            return;
+        }
+        //  First parse
+        let level1 = JSON.parse(rawResponse);
+        if (level1.errorCode !== "0") {
+            console.log("Service error:", level1.errorMessage);
+            return;
+        }
+        // Second parse (nested responseObj)
+        let level2 = JSON.parse(level1.responseObj);
+        console.log("Parsed Dedupe Response:", level2);
+        let voterTag = docScrId + "ocrVoterNumber";
+        let $verifyBtn = $("#" + docScrId + "verifyBtn");
+        let $nextBtn = $("#nxtBtn");
+        /**
+         * DEDUPE LOGIC:
+         * status = "1"  → Success
+         * msg = "No records available" → SAFE (No duplicate)
+         */
+        if (level2.status === "1" && level2.msg === "No records available") {
+            console.log("VOTER DEDUPE SUCCESS (No duplicate)");
+            window.VERIFIED_VOTER_VALUE = $("#" + voterTag).val().toUpperCase().trim();
+            $("#" + voterTag).removeClass("err");
+            clearFieldError(voterTag);
+            ApzCOB.AddOrRemoveDisableFields([voterTag], true);
+            $nextBtn.prop("disabled", false);
+            // $verifyBtn.removeClass().addClass("pan-verified-btn").html(`
+            //         <span>Verified</span>
+            //         <span class="verified-circle">&#10003;</span>
+            //     `).prop("disabled", true);
+            $verifyBtn.addClass("pan-verified-btn").html(`
+        <span>Verified</span>
+        <span class="verified-circle">&#10003;</span>
+    `).prop("disabled", true);
+            if (gApzCOB.currentApplicant > 1) {
+                window.CO_APPLICANT_PRIMARY_KYC_VERIFICATION = true;
+            } else {
+                window.PRIMARY_KYC_VERIFICATION = true;
+            }
+        } else {
+            console.log("DUPLICATE VOTER FOUND");
+            window.VERIFIED_VOTER_VALUE = null;
+            $nextBtn.prop("disabled", true);
+            $verifyBtn.removeClass("pan-verified-btn").html("Verify").prop("disabled", false);
+            $("#" + voterTag).addClass("err");
+            showFieldError(voterTag, "Duplicate Voter ID found in system.");
+            if (gApzCOB.currentApplicant > 1) {
+                window.CO_APPLICANT_PRIMARY_KYC_VERIFICATION = false;
+            } else {
+                window.PRIMARY_KYC_VERIFICATION = false;
+            }
+        }
+    } catch (e) {
+        console.log("VOTER CALLBACK ERROR:", e);
     }
 };
