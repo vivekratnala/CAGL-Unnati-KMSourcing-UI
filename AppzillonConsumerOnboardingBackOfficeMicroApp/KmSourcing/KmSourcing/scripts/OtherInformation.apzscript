@@ -48,10 +48,10 @@ apz.app.onLoad_OtherInformation = function () {
         "accountTypeBankDetials",
         "bankName",
         "branchName",
-        "sumAssured",
-        "sumAssuredInput", 
+        "sumAssuredInput",
         "nameOfInsurerInput",
         "insurancePremiumInput",
+        "appNomineeForIns",
         "appGender",
         "appDob",
         "appAgeOfNominee",
@@ -133,32 +133,40 @@ apz.app.OtherInformation.buildDDValues = function (items) {
             desc: desc,
         });
     });
-    params.unshift({
-        val: "",
-        desc: "Please Select"
-    });
+    if (!items.includes("Please Select")) {
+        params.unshift({
+            val: "",
+            desc: "Please Select"
+        });
+    }
+
     return params;
 };
 apz.app.OtherInformation.fnLoadAMLQuestions = function () {
-    // let amlQuestionFilePath = apz.getDataFilesPath() + "/amlQuestionaire.json"
-    // let amlQuesDataSet = apz.getFile(amlQuestionFilePath)
-    // apz.data.scrdata.KmSourc__loadAMLQuestions_Req = {};
-    // apz.data.scrdata.KmSourc__loadAMLQuestions_Req.amlQuestions = []
-    // apz.data.scrdata.KmSourc__loadAMLQuestions_Req.amlQuestions = JSON.parse(amlQuesDataSet)
-    // let amlQuestions = apz.data.scrdata.KmSourc__loadAMLQuestions_Req.amlQuestions;
-    // apz.data.loadData("loadAMLQuestions", "KmSourc")
-    // for (let i = 0; i < amlQuestions.length; i++) {
-    //     $("#KmSourc__loadAMLQuestions__i__amlQuestions__question_" + i).empty();
-    //     $("#KmSourc__loadAMLQuestions__i__amlQuestions__question_" + i).append(`${amlQuestions[i].question}`);
-    //     var $li = $('#KmSourc__BankDetails__ct_lst_1_row_' + i);
-    //     var onclickCode = $li.attr('onclick');
-    //     if (onclickCode) {
-    //         onclickCode = onclickCode
-    //             .replace('apz.data.selectRow(this, event);', '')
-    //             .replace('apz.data.rowClicked(this,event);', '');
-    //         $li.attr('onclick', onclickCode);
-    //     }
-    // }
+    apz.data.scrdata.KmSourc__loadAMLQuestions_Req = {};
+    apz.data.scrdata.KmSourc__loadAMLQuestions_Req.amlQuestions = []
+    ApzCOB.FetchDBKITMasterData("KMSOURCING")
+    if (apz.isNull(DBKIT_MASTERDATA)) {
+        let amlQuestionFilePath = apz.getDataFilesPath() + "/amlQuestionaire.json"
+        let amlQuesDataSet = apz.getFile(amlQuestionFilePath)
+        apz.data.scrdata.KmSourc__loadAMLQuestions_Req.amlQuestions = JSON.parse(amlQuesDataSet)
+    } else {
+        apz.data.scrdata.KmSourc__loadAMLQuestions_Req.amlQuestions = JSON.parse(DBKIT_MASTERDATA[0].queries)
+    }
+    let amlQuestions = apz.data.scrdata.KmSourc__loadAMLQuestions_Req.amlQuestions;
+    apz.data.loadData("loadAMLQuestions", "KmSourc")
+    for (let i = 0; i < amlQuestions.length; i++) {
+        $("#KmSourc__loadAMLQuestions__i__amlQuestions__question_" + i).empty();
+        $("#KmSourc__loadAMLQuestions__i__amlQuestions__question_" + i).append(`${amlQuestions[i].question}`);
+        var $li = $('#' + kmScrId + 'amlQuestionList_row_' + i);
+        var onclickCode = $li.attr('onclick');
+        if (onclickCode) {
+            onclickCode = onclickCode
+                .replace('apz.data.selectRow(this, event);', '')
+                .replace('apz.data.rowClicked(this,event);', '');
+            $li.attr('onclick', onclickCode);
+        }
+    }
 }
 apz.app.OtherInformation.insNotOptDropDownValue = function () {
     let selectedReasons = $("#" + kmScrId + "insuranceNotOptingReasons").val();
@@ -170,20 +178,25 @@ apz.app.OtherInformation.insNotOptDropDownValue = function () {
 };
 apz.app.OtherInformation.validateENach = function () {
     let bankName = $("#" + kmScrId + "bankNameInput").val().trim().toUpperCase();
-    const bankExists = ALL_eNACH_BANKS.some(bank =>
-        bank.bank_name.toUpperCase() === bankName
-    );
-    if (bankExists) {
-        $("#" + kmScrId + "validateENachbtn").addClass("sno");
-        $("#" + kmScrId + "eNachValidatedbtn").removeClass("sno");
-        $("#" + kmScrId + "pennyChackbtn").removeClass("sno");
-        //$("#"+kmScrId + "changeBankRadioBtn_option_yes").attr("disabled", true)
-    } else {
-        $("#" + kmScrId + "validateENachbtn").addClass("sno");
-        $("#" + kmScrId + "eNachInvalidbtn").removeClass("sno");
-        $("#" + kmScrId + "changeBankRadioBtn_option_no").attr("disabled", true)
-        $("#" + kmScrId + "changeBankRadioBtn_option_yes").attr("checked", true)
-        apz.app.OtherInformation.fnChangeAccountDetailsOnChange();
+    if (ALL_eNACH_BANKS.length > 0) {
+        const bankExists = ALL_eNACH_BANKS.some(bank =>
+            bank.bank_name.toUpperCase() === bankName
+        );
+        if (bankExists) {
+            $("#" + kmScrId + "validateENachbtn").addClass("sno");
+            $("#" + kmScrId + "eNachValidatedbtn").removeClass("sno");
+            $("#" + kmScrId + "pennyChackbtn").removeClass("sno");
+            //$("#"+kmScrId + "changeBankRadioBtn_option_yes").attr("disabled", true)
+        } else {
+            $("#" + kmScrId + "validateENachbtn").addClass("sno");
+            $("#" + kmScrId + "eNachInvalidbtn").removeClass("sno");
+            $("#" + kmScrId + "changeBankRadioBtn_option_no").attr("disabled", true)
+            $("#" + kmScrId + "changeBankRadioBtn_option_yes").attr("checked", true)
+            apz.app.OtherInformation.fnChangeAccountDetailsOnChange();
+        }
+    }
+    else {
+        ApzCOB.fnDisplayMsg("Please try again later", "E");
     }
 };
 apz.app.OtherInformation.validateENachOnChangeBank = function () {
@@ -253,7 +266,21 @@ apz.app.OtherInformation.fnOnFocusIFSCCode = function () {
     $("#" + kmScrId + "changeBankeNachValidatedbtn").addClass("sno");
     $("#" + kmScrId + "changeBankeNachInvalid").addClass("sno");
     $("#" + kmScrId + "changeBankValidateENachbtn").removeClass("sno");
-}
+    if ($("#" + kmScrId + "changeBankIFSCCode").next(".err").length > 0) {
+        $("#" + kmScrId + "changeBankBankName").val('')
+        $("#" + kmScrId + "changeBankBranchName").val('')
+    }
+};
+apz.app.OtherInformation.onChangeBankNameSecondary = function () {
+    let bankNamelenght = $("#" + kmScrId + "changeBankBankName").val().length;
+    if (bankNamelenght > 0) {
+        $("#" + kmScrId + "changeBankValidateENachbtn").removeClass("sno");
+    } else {
+        $("#" + kmScrId + "changeBankeNachValidatedbtn").addClass("sno");
+        $("#" + kmScrId + "changeBankeNachInvalid").addClass("sno");
+        $("#" + kmScrId + "changeBankValidateENachbtn").addClass("sno");
+    }
+};
 apz.app.OtherInformation.editNomineeDetails = function (pthis) {
     ApzCOB.toggleModal(kmScrId + "editNomineeModel");
 };
@@ -530,7 +557,7 @@ apz.app.OtherInformation.validatePennyCheck = function () {
     window.applicationData = [];
     let custDetailID = ApzCOB.getCustDetailID("Applicant");
     applicationData = inSessionStore['customerDetailsList']?.filter(cust => cust.custDtlId === custDetailID) || [];
-    var Mob = '9876543210'; //applicationData[0].mobileNumber;
+    var Mob = applicationData[0].mobileNumber;
     let beneficiaryAccount = $("#" + kmScrId + "accountNumberInput").val();
     let beneficiaryIFSC = $("#" + kmScrId + "ifscCodeInput").val();
     let beneficiaryName = $("#" + kmScrId + "accountHolderNameInput").val();
@@ -568,15 +595,15 @@ apz.app.OtherInformation.ValidatePennyCheckCB = function (params) {
                     errMsg = parsedCustomerDetails.hasOwnProperty('errorMessage') ? parsedCustomerDetails.errorMessage : params.res
                         .APZCBO__SignzyPennylessCheck_Res?.apiResponse?.ResponseHeader?.ResponseMessage;
                 }
-                ApzCOB.showCommonErrRPCModal(errMsg);
+                ApzCOB.fnDisplayMsg(errMsg, "E");
             }
         } else {
             inSessionStore.bankDetailsWrapperList[currIndex].bankDetails.payload.pennyCheckStatus = '';
-            ApzCOB.showCommonErrRPCModal(serviceFailErrMsg);
+            ApzCOB.fnDisplayMsg(serviceFailErrMsg, "E");
         }
     } catch (e) {
         inSessionStore.bankDetailsWrapperList[currIndex].bankDetails.payload.pennyCheckStatus = '';
-        ApzCOB.showCommonErrRPCModal(); //serviceFailErrMsg
+        ApzCOB.fnDisplayMsg(); //serviceFailErrMsg
     }
 };
 apz.app.OtherInformation.handlePennyCheckPass = function (paintData) {
