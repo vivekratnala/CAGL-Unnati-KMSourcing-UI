@@ -8209,7 +8209,7 @@ ApzCOB = {
                     apz.app.PersonalDetails.paint_pincode(pincode_Detls);
                 } else if (window.pincodetype === "emp") {
                     apz.app.EmploymentDetails.paint_pincode(pincode_Detls);
-                } else if (window.pincodetype === "addPre" || window.pincodetype === "addPerm") {
+                } else if (window.pincodetype === "addPre" || window.pincodetype === "addPerm" || window.pincodetype === "ocr") {
                     apz.app.Kmbase.paint_pincode(pincode_Detls, window.pincodetype);
                 }
             }
@@ -10693,7 +10693,13 @@ ApzCOB = {
                 }
             }
         } else {
-            let primaryMobile = $("#" + paintKYCId + "mobNum").val().trim();
+            let primaryMobile;
+            if (typeof CBcheckScr !== 'undefined' && PerDetScrId === CBcheckScr) {
+                primaryMobile = $("#" + CBcheckScr + "primaryMobile").val().trim();
+            } else {
+                primaryMobile = $("#" + paintKYCId + "mobNum").val().trim();
+            }
+
             if (!apz.isNull(mobileNo)) {
                 if (mobileNo === primaryMobile) {
                     isValid = false;
