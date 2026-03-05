@@ -99,7 +99,8 @@ apz.app.Kmbase.back = function() {
         }
     }
     if (apz.childScr === "KMReviewConfirm") {
-        ApzCOB.launchSubScreen("OtherInformation", "KmSourc__Kmbase__KMLaunchCol", "");
+        //ApzCOB.launchSubScreen("OtherInformation", "KmSourc__Kmbase__KMLaunchCol", "");
+        apz.app.Kmbase.NavigateSidebar(4, this)
         return;
     }
 };
