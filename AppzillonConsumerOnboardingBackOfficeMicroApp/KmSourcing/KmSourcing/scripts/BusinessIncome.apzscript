@@ -6,6 +6,7 @@ selectedBusinessTypesIncomeDtls = {},
 numberOfBusinessCount = 1,
 deletedBusinessIndexes = {},
 businessParentDiv = $(`#${kmScrId}MainFormToRepet`),
+AllValues = {},
 FinalvaluesArr = {
     dairy : [],
     Tailoring : [],
@@ -1186,8 +1187,8 @@ apz.app.BusinessIncome.BulkDeleteImagesBusinessCB = function(params) {
     }
 }
 apz.app.BusinessIncome.Rentalincome = function() {
-    apz.app.Kmbase.populateDropdown(IncomeselectBuildingType, kmScrId + "BuildType_App");
-    apz.app.Kmbase.populateDropdown(IncomeselectBuildingType, kmScrId + "BuildType_Co");
+    /*apz.app.Kmbase.populateDropdown(IncomeselectBuildingType, kmScrId + "BuildType_App");
+    apz.app.Kmbase.populateDropdown(IncomeselectBuildingType, kmScrId + "BuildType_Co");*/
     document.getElementById(kmScrId + "App_IsReneAggAva_option_Yes").checked = true;
     document.getElementById(kmScrId + "Co_IsReneAggAva_option_Yes").checked = true;
     document.getElementById(kmScrId + "Rentalincome_Co_Img_Agg").textContent = "Click here to capture rental agreement";
@@ -1202,23 +1203,23 @@ apz.app.BusinessIncome.OnClikedCheckBoxRental = function(pthis, id) {
     }
 }
 apz.app.BusinessIncome.Agriculture = function() {
-    const updatedCropTypes = AgricultureCropType.slice(0, -1);
+    /*const updatedCropTypes = AgricultureCropType.slice(0, -1);
     apz.app.Kmbase.populateDropdown(AgritypeOfAgricultureLand, kmScrId + "Co_TypeOfAgri");
     apz.app.Kmbase.populateDropdown(AgritypeOfAgricultureLand, kmScrId + "Ap_TypeOfAgri");
     apz.populateDropdown(document.getElementById(kmScrId + 'Ap_Land'), AgrilandInAcres);
     apz.populateDropdown(document.getElementById(kmScrId + 'Co_Land'), AgrilandInAcres);
     apz.populateDropdown(document.getElementById(kmScrId + 'Ap_CropType'), updatedCropTypes);
-    apz.populateDropdown(document.getElementById(kmScrId + 'Co_CropType'), updatedCropTypes);
+    apz.populateDropdown(document.getElementById(kmScrId + 'Co_CropType'), updatedCropTypes);*/
 }
 apz.app.BusinessIncome.Salary = function() {
-    apz.app.Kmbase.populateDropdown(SalYears, kmScrId + "TenOfEmpAPPSal");
+    /*apz.app.Kmbase.populateDropdown(SalYears, kmScrId + "TenOfEmpAPPSal");
     apz.app.Kmbase.populateDropdown(SalMonth, kmScrId + "MonthOfEmpAppSal");
     apz.app.Kmbase.populateDropdown(SalNatureOfEmP, kmScrId + "NatureOfEmp_Sal");
     apz.app.Kmbase.populateDropdown(SalModeOfsal, kmScrId + "ModeofSalApp");
     apz.app.Kmbase.populateDropdown(SalYears, kmScrId + "TenOfEmpCoSal");
     apz.app.Kmbase.populateDropdown(SalMonth, kmScrId + "MonthOfEmpCoSal");
     apz.app.Kmbase.populateDropdown(SalNatureOfEmP, kmScrId + "NatureOfEmp_SalCo");
-    apz.app.Kmbase.populateDropdown(SalModeOfsal, kmScrId + "ModeOfSalCo");
+    apz.app.Kmbase.populateDropdown(SalModeOfsal, kmScrId + "ModeOfSalCo");*/
 }
 apz.app.BusinessIncome.rentalService = function(pthis) {
     var typeOfBuilding, rentalIncome;
@@ -1674,4 +1675,10 @@ apz.app.BusinessIncome.paintNetIncome = function() {
     const dateObj = FinalvaluesArr.fieldAssessedIncomeDate?.date;
     const formattedDate = dateObj ? `${String(dateObj.day).padStart(2, '0')}-${String(dateObj.month).padStart(2, '0')}-${dateObj.year}` : '';
     $(`#${kmScrId}income_ass_date`).text(formattedDate);
+};
+apz.app.BusinessIncome.paintAddressOptions = function(pIndex) {
+    $(`#${kmScrId+pIndex}_AppVoterAddr_txtcnt`).text("");
+    $(`#${kmScrId+pIndex}_coAppVoterAddr_txtcnt`).text("");
+    $(`#${kmScrId+pIndex}_AppAadhaarAddr_txtcnt`).text("");
+    $(`#${kmScrId+pIndex}_coAppAadhaarAddr_txtcnt`).text("");
 };
