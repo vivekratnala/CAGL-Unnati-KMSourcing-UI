@@ -306,6 +306,7 @@ apz.app.Kmbase.next = function() {
         //     return;
         // }
     }
+};
 apz.app.Kmbase.captureDocumentClick = function(docType) {
     window.CAPTURE_FROM_APPLICANT = gApzCOB.currentApplicant;
     apz.app.Kmbase.saveDraft();
