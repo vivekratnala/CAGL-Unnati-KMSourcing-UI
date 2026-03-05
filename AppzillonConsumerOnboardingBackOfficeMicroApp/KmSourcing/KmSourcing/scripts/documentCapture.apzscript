@@ -678,10 +678,11 @@ apz.app.documentCapture.paintpanDetails = function(params) {
         console.log("PAN mismatch. Not applying verified UI.");
         return;
     }
-    ApzCOB.AddOrRemoveDisableFields([panNumberTag], true);
-    $("#" + docScrId + "el_hpl_3_ul").addClass("sno");
-    $("#" + docScrId + "el_txt_141_ul").removeClass("sno");
-    $("#" + docScrId + "el_txt_142_ul").addClass("sno");
+    // Keep field disabled
+    // ApzCOB.AddOrRemoveDisableFields([panNumberTag], true);
+    // $("#" + docScrId + "el_hpl_3_ul").addClass("sno");
+    // $("#" + docScrId + "el_txt_141_ul").removeClass("sno");
+    // $("#" + docScrId + "el_txt_142_ul").addClass("sno");
     if (gApzCOB.currentApplicant > 1) {
         window.coapplicant_pancheck = true;
     } else {
@@ -1070,31 +1071,16 @@ apz.app.documentCapture.voterVerificationCallback = function(params) {
         let voterTag = docScrId + "ocrVoterNumber";
         let $verifyBtn = $("#" + docScrId + "verifyBtn");
         let $nextBtn = $("#nxtBtn");
-        /**
-         * DEDUPE LOGIC:
-         * status = "1"  → Success
-         * msg = "No records available" → SAFE (No duplicate)
-         */
         if (level2.status === "1" && level2.msg === "No records available") {
             console.log("VOTER DEDUPE SUCCESS (No duplicate)");
-            window.VERIFIED_VOTER_VALUE = $("#" + voterTag).val().toUpperCase().trim();
             $("#" + voterTag).removeClass("err");
             clearFieldError(voterTag);
-            ApzCOB.AddOrRemoveDisableFields([voterTag], true);
-            $nextBtn.prop("disabled", false);
-            // $verifyBtn.removeClass().addClass("pan-verified-btn").html(`
-            //         <span>Verified</span>
-            //         <span class="verified-circle">&#10003;</span>
-            //     `).prop("disabled", true);
-            $verifyBtn.addClass("pan-verified-btn").html(`
-        <span>Verified</span>
-        <span class="verified-circle">&#10003;</span>
-    `).prop("disabled", true);
-            if (gApzCOB.currentApplicant > 1) {
-                window.CO_APPLICANT_PRIMARY_KYC_VERIFICATION = true;
-            } else {
-                window.PRIMARY_KYC_VERIFICATION = true;
-            }
+            // Call validation API
+            let kycObj = {
+                kycType: "voter",
+                kycId: $("#" + voterTag).val().trim()
+            };
+            ApzCOB.kycVerificationCheck(kycObj, apz.app.documentCapture.voterValidateCallback);
         } else {
             console.log("DUPLICATE VOTER FOUND");
             window.VERIFIED_VOTER_VALUE = null;
@@ -1113,4 +1099,34 @@ apz.app.documentCapture.voterVerificationCallback = function(params) {
     }
     console.log("PAN stored in session:", updatedPayload);
 };
-
+apz.app.documentCapture.voterValidateCallback = function(params) {
+    ApzCOB.hideLoader();
+    try {
+        if (!ApzCOB.handleServiceCallBacks(params)) return;
+        let responseObj = JSON.parse(params.res.APZCBO__ValidateVoterID_Res.apiResponse.ResponseBody.responseObj);
+        let voterTag = docScrId + "ocrVoterNumber";
+        let $verifyBtn = $("#" + docScrId + "verifyBtn");
+        let $nextBtn = $("#nxtBtn");
+        if (responseObj.result_code === 101) {
+            console.log("VOTER VERIFIED SUCCESS");
+            window.VERIFIED_VOTER_VALUE = $("#" + voterTag).val().toUpperCase().trim();
+            $("#" + voterTag).removeClass("err");
+            clearFieldError(voterTag);
+            ApzCOB.AddOrRemoveDisableFields([voterTag], true);
+            $verifyBtn.addClass("pan-verified-btn").html(`
+        <span>Verified</span>
+        <span class="verified-circle">&#10003;</span>
+    `).prop("disabled", true);
+            $nextBtn.prop("disabled", false);
+            if (gApzCOB.currentApplicant > 1) {
+                window.CO_APPLICANT_PRIMARY_KYC_VERIFICATION = true;
+            } else {
+                window.PRIMARY_KYC_VERIFICATION = true;
+            }
+        } else {
+            showFieldError(voterTag, "Invalid Voter ID");
+        }
+    } catch (e) {
+        console.log("VOTER VALIDATION ERROR", e);
+    }
+};
