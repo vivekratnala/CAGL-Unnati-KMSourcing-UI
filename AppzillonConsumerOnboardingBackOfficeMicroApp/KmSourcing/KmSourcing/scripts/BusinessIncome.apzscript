@@ -6,6 +6,7 @@ selectedBusinessTypesIncomeDtls = {},
 numberOfBusinessCount = 1,
 deletedBusinessIndexes = {},
 businessParentDiv = $(`#${kmScrId}MainFormToRepet`),
+AllValues = {},
 FinalvaluesArr = {
     dairy : [],
     Tailoring : [],
@@ -1186,8 +1187,8 @@ apz.app.BusinessIncome.BulkDeleteImagesBusinessCB = function(params) {
     }
 }
 apz.app.BusinessIncome.Rentalincome = function() {
-    apz.app.Kmbase.populateDropdown(IncomeselectBuildingType, kmScrId + "BuildType_App");
-    apz.app.Kmbase.populateDropdown(IncomeselectBuildingType, kmScrId + "BuildType_Co");
+    /*apz.app.Kmbase.populateDropdown(IncomeselectBuildingType, kmScrId + "BuildType_App");
+    apz.app.Kmbase.populateDropdown(IncomeselectBuildingType, kmScrId + "BuildType_Co");*/
     document.getElementById(kmScrId + "App_IsReneAggAva_option_Yes").checked = true;
     document.getElementById(kmScrId + "Co_IsReneAggAva_option_Yes").checked = true;
     document.getElementById(kmScrId + "Rentalincome_Co_Img_Agg").textContent = "Click here to capture rental agreement";
@@ -1202,23 +1203,60 @@ apz.app.BusinessIncome.OnClikedCheckBoxRental = function(pthis, id) {
     }
 }
 apz.app.BusinessIncome.Agriculture = function() {
-    const updatedCropTypes = AgricultureCropType.slice(0, -1);
+    /*const updatedCropTypes = AgricultureCropType.slice(0, -1);
     apz.app.Kmbase.populateDropdown(AgritypeOfAgricultureLand, kmScrId + "Co_TypeOfAgri");
     apz.app.Kmbase.populateDropdown(AgritypeOfAgricultureLand, kmScrId + "Ap_TypeOfAgri");
     apz.populateDropdown(document.getElementById(kmScrId + 'Ap_Land'), AgrilandInAcres);
     apz.populateDropdown(document.getElementById(kmScrId + 'Co_Land'), AgrilandInAcres);
     apz.populateDropdown(document.getElementById(kmScrId + 'Ap_CropType'), updatedCropTypes);
-    apz.populateDropdown(document.getElementById(kmScrId + 'Co_CropType'), updatedCropTypes);
+    apz.populateDropdown(document.getElementById(kmScrId + 'Co_CropType'), updatedCropTypes);*/
 }
 apz.app.BusinessIncome.Salary = function() {
-    apz.app.Kmbase.populateDropdown(SalYears, kmScrId + "TenOfEmpAPPSal");
+    /*apz.app.Kmbase.populateDropdown(SalYears, kmScrId + "TenOfEmpAPPSal");
     apz.app.Kmbase.populateDropdown(SalMonth, kmScrId + "MonthOfEmpAppSal");
     apz.app.Kmbase.populateDropdown(SalNatureOfEmP, kmScrId + "NatureOfEmp_Sal");
     apz.app.Kmbase.populateDropdown(SalModeOfsal, kmScrId + "ModeofSalApp");
     apz.app.Kmbase.populateDropdown(SalYears, kmScrId + "TenOfEmpCoSal");
     apz.app.Kmbase.populateDropdown(SalMonth, kmScrId + "MonthOfEmpCoSal");
     apz.app.Kmbase.populateDropdown(SalNatureOfEmP, kmScrId + "NatureOfEmp_SalCo");
-    apz.app.Kmbase.populateDropdown(SalModeOfsal, kmScrId + "ModeOfSalCo");
+    apz.app.Kmbase.populateDropdown(SalModeOfsal, kmScrId + "ModeOfSalCo");*/
+}
+apz.app.BusinessIncome.rentalService = function(pthis) {
+    var typeOfBuilding, rentalIncome;
+    let appisChecked = $(`#KmSourc__BusinessIncome__RentalincomeOwn_Owned_option_Applicant`).is(":checked")
+    if (appisChecked && $('#KmSourc__BusinessIncome__BuildType_App').val() == 'Please Select') {
+        return;
+    }
+    if (pthis.value) {
+        if (pthis.id.includes("Ap")) {
+            rentalApplicant = true;
+            rentalCoApplicant = false
+            typeOfBuilding = $(`#${kmScrId}BuildType_App`).val();
+            rentalIncome = (($(`#${kmScrId}RentalIncomeMonth_App`).val()).split('.')[0]).replace(/[.,]/g, '');
+            window.consideredMonthlyIncomeApp = '';
+            $("#KmSourc__BusinessIncome__ConsideredRentalIncome_App").val('');
+        } else if (pthis.id.includes("Co")) {
+            rentalApplicant = false;
+            rentalCoApplicant = true;
+            typeOfBuilding = $(`#${kmScrId}BuildType_Co`).val();
+            rentalIncome = (($(`#${kmScrId}RentalIncomeMonth_Co`).val()).split('.')[0]).replace(/[.,]/g, '');
+            window.consideredMonthlyIncomeCoApp = '';
+            $("#KmSourc__BusinessIncome__ConsideredRentalIncome_CoApp").val('');
+        } else {
+            //
+        }
+        const rentalObject = {
+            "state": (inSessionStore.leadDetails?.permState || inSessionStore.renewalLeadDetails?.permState),
+            "typeOfBuilding": typeOfBuilding,
+            "rentalIncome": rentalIncome
+        };
+        apz.app.BusinessIncome.IncomeAssessmentCheck("Rental", rentalObject);
+    }
+}
+apz.app.BusinessIncome.validatePensionData = function(pthis) {
+    if (parseInt(pthis.value) === 0) {
+        ApzCOB.fnDisplayMsg("please enter valid amount");
+    }
 }
 apz.app.BusinessIncome.hideSections = function(pthis) {
     let parentid = $("#" + pthis.id).closest(".crt-form");
@@ -1300,3 +1338,347 @@ apz.app.BusinessIncome.pincodeCB = function(params) {
         })
     }
 }
+apz.app.BusinessIncome.OnchangeOtherLineBusinessDropDown = function(pthis) {
+    let Index = pthis.id.split("_")[4];
+    if (pthis.value == "Others") {
+        $(`#${kmScrId+Index}_O_OthLineOfBus`).val("");
+        $(`#${kmScrId+Index}_OtherLineBusReasonRow`).removeClass('sno');
+    } else if (pthis.value == "Please Select") {
+        $(`#${kmScrId+Index}_O_OthLineOfBus`).val("");
+        $(`#${kmScrId+Index}_OtherLineBusReasonRow`).addClass('sno');
+    } else {
+        $(`#${kmScrId+Index}_O_OthLineOfBus`).val(pthis.value);
+        $(`#${kmScrId+Index}_OtherLineBusReasonRow`).addClass('sno');
+    }
+};
+apz.app.BusinessIncome.viewIncomeSummary = function() {
+    ApzCOB.toggleModal('KmSourc__BusinessIncome__incomeSummaryMdl');
+};
+apz.app.BusinessIncome.parseIncome = function(value) {
+    return parseFloat(value.replace(/,/g, ""));
+}
+apz.app.BusinessIncome.IncomeAssessmentCheck = function(Type, ObjectData) {
+    let req;
+    if (Type === "Dairy") {
+        const cowsList = [];
+        const buffaloesList = [];
+        const inputObject = Object.assign({}, ...AllValues.dairy);
+        Object.keys(inputObject).forEach(key => {
+            const match = key.match(/^cowBreed(\d+)$/);
+            if (match) {
+                const index = match[1];
+                const breed = inputObject[key];
+                const count = inputObject[`noOfCowBreed${index}`] || "0";
+                if (breed !== undefined) {
+                    cowsList.push({
+                        breedOfCows: breed,
+                        noOfCows: count
+                    });
+                }
+            }
+        });
+        Object.keys(inputObject).forEach(key => {
+            const match = key.match(/^buffaloBreed(\d+)$/);
+            if (match) {
+                const index = match[1];
+                const breed = inputObject[key];
+                const count = inputObject[`noOfBuffaloBreed${index}`] || "0";
+                if (breed !== undefined) {
+                    buffaloesList.push({
+                        breedOfBuffaloes: breed,
+                        noOfBuffaloes: count
+                    });
+                }
+            }
+        });
+        req = {
+            "apiRequest": {
+                "interfaceName": "IncomeAssessmentCheck",
+                "incomeType": "Dairy",
+                "requestObj": {
+                    "dairyRequestFields": {
+                        "businessLocation": inputObject.dairyLocation,
+                        "cowsList": cowsList,
+                        "buffaloesList": buffaloesList,
+                        "dairyState": inSessionStore.leadDetails?.glBranchState || inSessionStore.renewalLeadDetails?.glBranchState
+                    }
+                }
+            }
+        }
+    } else if (Type === "Kirana") {
+        let kiranaData = Object.assign({}, ...AllValues.Kirana);
+        req = {
+            "apiRequest": {
+                "interfaceName": "IncomeAssessmentCheck",
+                "incomeType": "Kirana",
+                "requestObj": {
+                    "kiranaRequestFields": {
+                        "businessLocation": kiranaData["kiranaBusinessLocation"],
+                        // "typeOfShop": "Bakery",
+                        "typeOfShop": kiranaData["kiranaShopType"],
+                        "marketClassification": kiranaData["kiranaMarketClassification"],
+                        "areaOfTheShop": `${kiranaData["areaofshop"]} | ${kiranaData["kiranaUnit"]}`,
+                        "areaOfTheGodown": `${kiranaData["areaOfGodown"]} | ${kiranaData["kiranaGodownUnit"]}`,
+                        "occupancyLevelOfShopAndGodown": kiranaData["kiranaOccupancyLevel"],
+                        "monthlyNetBusinessIncome": apz.app.BusinessIncome.parseIncome(kiranaData["netMonthlyIncome"])
+                    }
+                }
+            }
+        }
+    } else if (Type === "Tailoring") {
+        let tailoringData = Object.assign({}, ...AllValues.Tailoring);
+        const stitchTypes = Object.keys(tailoringData).filter(key => !isNaN(key)).map(key => tailoringData[key]); // Get values
+        req = {
+            "apiRequest": {
+                "interfaceName": "IncomeAssessmentCheck",
+                "incomeType": "Tailoring",
+                "requestObj": {
+                    /*"tailoringRequestFields": {
+                        "businessLocation": tailoringData["tailoringBusinessLocation"],
+                        "businessPremise": tailoringData["tailoringPremise"],
+                        "typeOfMachine": tailoringData["tailoringMachineType"],
+                        "numOfTailorsWorking": parseInt(tailoringData["numOfTailors"], 10),
+                        "numOfTailoringMachine": parseInt(tailoringData["numOfTailoringMachines"], 10),
+                        "workTime": tailoringData["tailoringWorkType"],
+                        "stitchType": tailoringData['tailorShopItems'],
+                        "monthlyNetBusinessIncome": apz.app.BusinessIncome.parseIncome(tailoringData["netMonthlyIncome"])
+                    }*/
+                    "tailoringRequestFields": {
+                        "businessLocation": tailoringData["tailoringBusinessLocation"],
+                        "businessPremise": tailoringData["tailoringPremise"],
+                        "numOfPowerTailoringMachine": parseInt(tailoringData["numOfPowerTailoringMachine"] ?? ''),
+                        "numOfManualTailoringMachine": parseInt(tailoringData["numOfManualTailoringMachine"] ?? ''),
+                        "isApplicantATailor": tailoringData["isApplicantATailor"],
+                        "isCoApplicantPartOfTailorBusiness": tailoringData["isCoApplicantPartOfTailorBusiness"],
+                        "numOfSalariedTailors": parseInt(tailoringData["numOfSalariedTailors"] ?? ''),
+                        "workType": tailoringData["tailoringWorkType"],
+                        "stitchingFor": tailoringData["stitchingFor"]
+                    }
+                }
+            }
+        }
+    } else if (Type === "Wage") {
+        req = {
+            "apiRequest": {
+                "interfaceName": "IncomeAssessmentCheck",
+                "incomeType": "Wage",
+                "requestObj": {
+                    "wageRequestFields": {
+                        "branchId": ObjectData.branchId,
+                        "gender": ObjectData.gender,
+                        "workingDays": ObjectData.workingDays,
+                        "Id": ObjectData.Index
+                    }
+                }
+            }
+        }
+    } else if (Type === "Agriculture") {
+        req = {
+            "apiRequest": {
+                "interfaceName": "IncomeAssessmentCheck",
+                "incomeType": "AGRICULTURE",
+                "requestObj": {
+                    "agricultureRequestFields": {
+                        "state": ObjectData.state,
+                        "cropType": ObjectData.cropType,
+                        "maxProductionPerAcre": ObjectData.maxProductionPerAcre,
+                        "totalAcres": ObjectData.totalAcres,
+                        "crop": ""
+                    }
+                }
+            }
+        }
+    } else if (Type === "Rental") {
+        req = {
+            "apiRequest": {
+                "interfaceName": "IncomeAssessmentCheck",
+                "incomeType": "RENTALINCOME",
+                "requestObj": {
+                    "rentalIncomeRequestFields": {
+                        "state": ObjectData.state,
+                        "typeOfBuilding": ObjectData.typeOfBuilding,
+                        "rentalIncome": ObjectData.rentalIncome
+                    }
+                }
+            }
+        }
+    }
+    apz.startLoader();
+    ApzCOB.serverBuildParam(gAppId, "IncomeAssessmentCheck", "N", "N", req, false, apz.app.BusinessIncome.IncomeAssessmentCheckCB);
+};
+apz.app.BusinessIncome.IncomeAssessmentCheckCB = function(params) {
+    try {
+        if (ApzCOB.handleServiceCallBacks(params)) {
+            apz.stopLoader();
+            let JsonPayload = JSON.parse(params.res.APZCBO__IncomeAssessmentCheck_Res.apiResponse.ResponseBody.responseObj);
+            switch (params.req.apiRequest.incomeType) {
+                case 'Dairy':
+                    $(".CalDet").removeClass("sno");
+                    apz.app.BusinessIncome.onSuccessIncomeAssessmentCheckDairy(JsonPayload, "Dairy");
+                    break;
+                case 'Kirana':
+                    $(".K-CalDet").removeClass("sno");
+                    apz.app.BusinessIncome.onSuccessIncomeAssessmentCheckKirana(JsonPayload, "Kirana");
+                    break;
+                case 'Tailoring':
+                    $(".T-CalDet").removeClass("sno");
+                    apz.app.BusinessIncome.onSuccessIncomeAssessmentCheckTailoring(JsonPayload, "Tailoring");
+                    break;
+                case 'Wage':
+                    // var id = Object.keys(wageObject).find(k => wageObject[k] === params.req.apiRequest.requestObj.wageRequestFields.gender);
+                    // id = id === 'Applicant' ? 'App' : 'Co'
+                    let id = WageObject.earndTyp === "Co-App" ? "Co" : "App"
+                    $("#" + kmScrId + 'ToTalWagePerMonth_' + id + params.req.apiRequest.requestObj.wageRequestFields.Id).val(
+                        JsonPayload.map.totalWagePerMonth);
+                    $("#" + kmScrId + 'WageEarnedPerDay_' + id + params.req.apiRequest.requestObj.wageRequestFields.Id).val(
+                        JsonPayload.map.wageEarnedPerDay);
+                    break;
+                case 'AGRICULTURE':
+                    if (agriApplicant) {
+                        $("#KmSourc__BusinessIncome__Agri_MonthIncome").val(JsonPayload.map.totalAgriIncome);
+                        $("#KmSourc__BusinessIncome__Agri_ConsideredIncome").val(JsonPayload.map.consideredAgriIncome);
+                    } else {
+                        $("#KmSourc__BusinessIncome__Co_Agri_Month_income").val(JsonPayload.map.totalAgriIncome);
+                        $("#KmSourc__BusinessIncome__Co_Agri_ConsideredIncome").val(JsonPayload.map.consideredAgriIncome);
+                    }
+                    break;
+                case 'RENTALINCOME':
+                    if (rentalApplicant) {
+                        window.consideredMonthlyIncomeApp = JsonPayload.map.consideredMonthlyIncome;
+                        $("#KmSourc__BusinessIncome__ConsideredRentalIncome_App").val(JsonPayload.map.consideredMonthlyIncome);
+                    } else if (rentalCoApplicant) {
+                        window.consideredMonthlyIncomeCoApp = JsonPayload.map.consideredMonthlyIncome;
+                        $("#KmSourc__BusinessIncome__ConsideredRentalIncome_CoApp").val(JsonPayload.map.consideredMonthlyIncome);
+                    }
+                    break;
+                default:
+                    break;
+            }
+            const closeButtonIds = [kmScrId + "Dairy_close", kmScrId + "Tailoring_close",
+                kmScrId + "Kirana_close"
+            ];
+            closeButtonIds.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.addEventListener("click", function() {
+                        IncomeassEdit = {
+                            type: "",
+                            Flag: false
+                        };
+                    });
+                }
+            });
+        } else {
+            apz.stopLoader();
+            ApzCOB.ServiceFailureMsg();
+            //}
+        }
+    } catch {
+        ApzCOB.ServiceFailureMsg();
+        apz.stopLoader();
+    }
+};
+apz.app.BusinessIncome.paintIncomeOwnershipDetails = function() {
+    const ownership = apz.app.BusinessIncome.getIncomeSourceOwnership();
+    const formatOwnership = (value) => {
+        if (Array.isArray(value)) return value.join(', ');
+        return value || "None";
+    };
+    $(`#${kmScrId}OtherInc1_ownedBy`).text(ownership.agriculture);
+    $(`#${kmScrId}OtherInc2_ownedBy`).text(ownership.salary);
+    $(`#${kmScrId}OtherInc4_ownedBy`).text(ownership.pension);
+    $(`#${kmScrId}OtherInc5_ownedBy`).text(ownership.rentalIncome);
+    $(`#${kmScrId}OtherInc3_ownedBy`).text(ownership.wage);
+    $(`#${kmScrId}business3_ownedBy`).text(formatOwnership(ownership.tailoring) || 'None');
+    $(`#${kmScrId}business2_ownedBy`).text(formatOwnership(ownership.kirana) || 'None');
+    $(`#${kmScrId}business4_ownedBy`).text(formatOwnership(ownership.otherBusiness) || 'None');
+    $(`#${kmScrId}business1_ownedBy`).text(formatOwnership(ownership.dairy)?.replace(/^,\s*/, '')  || 'None');
+};
+apz.app.BusinessIncome.getIncomeSourceOwnership = function() {
+    const result = {};
+    const checkPresence = (app, coApp) => {
+        const hasApplicant = !!app && Object.keys(app).length > 0;
+        const hasCoApplicant = !!coApp && Object.keys(coApp).length > 0;
+        if (hasApplicant && hasCoApplicant) return "Both";
+        if (hasApplicant) return "Applicant";
+        if (hasCoApplicant) return "Co-Applicant";
+        return "None";
+    };
+    result.agriculture = checkPresence(FinalvaluesArr.agriculture?.applicant, FinalvaluesArr.agriculture?.coApplicant);
+    result.salary = checkPresence(FinalvaluesArr.salary?.applicant, FinalvaluesArr.salary?.coApplicant);
+    result.pension = checkPresence(FinalvaluesArr.pension?.applicant, FinalvaluesArr.pension?.coApplicant);
+    result.rentalIncome = checkPresence(FinalvaluesArr.rentalIncome?.applicant, FinalvaluesArr.rentalIncome?.coApplicant);
+    result.wage = checkPresence(FinalvaluesArr.wage?.applicant, FinalvaluesArr.wage?.coApplicant);
+    result.tailoring = (FinalvaluesArr.business?.Tailoring || []).map(item => item.tailoringType);
+    result.kirana = (FinalvaluesArr.business?.Kirana || []).map(item => item.kiranaType);
+    result.otherBusiness = (FinalvaluesArr.business?.Other || []).map(item => item.otherType);
+    result.dairy = (FinalvaluesArr.business?.dairy || []).map(item => item.DairyType);
+    const homeMaker = FinalvaluesArr.homeMaker;
+    result.homeMaker = homeMaker === "Applicant" || homeMaker === "Co-Applicant" ? homeMaker : "None";
+    return result;
+};
+apz.app.BusinessIncome.paintNetIncome = function() {
+    const safeGet = (obj, path) => path.split('.').reduce((o, k) => (o && o[k] !== undefined ? o[k] : undefined), obj);
+    const sumFields = (objA, keyA, objB, keyB) => {
+        const a = Number(safeGet(objA, keyA)) || 0;
+        const b = Number(safeGet(objB, keyB)) || 0;
+        return a + b;
+    };
+    const textOrBlank = val => val > 0 ? `₹ ${val}` : "";
+    const agriIncome = sumFields(FinalvaluesArr.agriculture?.applicant, "consideredIncome", FinalvaluesArr.agriculture?.coApplicant, "consideredIncome");
+    $(`#${kmScrId}OtherInc1_income`).text(ApzCOB.formatIndianRupees(agriIncome));
+    const salaryIncome = sumFields(FinalvaluesArr.salary?.applicant, "netSalary", FinalvaluesArr.salary?.coApplicant, "netSalary");
+    $(`#${kmScrId}OtherInc2_income`).text(ApzCOB.formatamountVal(textOrBlank(salaryIncome)));
+    const pensionIncome = sumFields(FinalvaluesArr.pension?.applicant, "applicantPensionIncome", FinalvaluesArr.pension?.coApplicant,
+        "coApplicantPensionIncome");
+    $(`#${kmScrId}OtherInc4_income`).text(ApzCOB.formatIndianRupees(pensionIncome));
+    const sumWageIncome = (wageData = {}) => {
+        const categories = ["farmWorker", "contractLabour", "constructions", "maid", "hotelWorker", "other"];
+        return categories.reduce((sum, cat) => {
+            const val = Number(safeGet(wageData, `${cat}.totalWagePerMonth`)) || 0;
+            return sum + val;
+        }, 0);
+    };
+    const wageIncome = sumWageIncome(FinalvaluesArr.wage?.applicant) + sumWageIncome(FinalvaluesArr.wage?.coApplicant);
+    $(`#${kmScrId}OtherInc3_income`).text(ApzCOB.formatIndianRupees(wageIncome));
+    const rentIncome = sumFields(FinalvaluesArr.rentalIncome?.applicant, "consideredMonthlyIncome", FinalvaluesArr.rentalIncome?.coApplicant, "consideredMonthlyIncome");
+    $(`#${kmScrId}OtherInc5_income`).text(ApzCOB.formatIndianRupees(rentIncome));
+    const businessData = FinalvaluesArr.business || {};
+    const getBusinessIncomeSumByType = (arrayKey, typeKey, incomeField = "netBusinessIncome") => {
+        const list = businessData[arrayKey] || [];
+        return list.reduce((sum, item) => {
+            const type = item?.[typeKey];
+            const income = Number(item?.[incomeField]) || 0;
+            if (type === "Applicant" || type === "Co-Applicant" || type === "Both") {
+                return sum + income;
+            }
+            return sum;
+        }, 0);
+    };
+    const tailoringIncome = getBusinessIncomeSumByType("Tailoring", "tailoringType", "netBusinessIncome");
+    $(`#${kmScrId}business3_income`).text(ApzCOB.formatIndianRupees(tailoringIncome));
+    const kiranaIncome = getBusinessIncomeSumByType("Kirana", "kiranaType", "finalNetIncome");
+    $(`#${kmScrId}business2_income`).text(ApzCOB.formatIndianRupees(kiranaIncome));
+    const otherIncome = getBusinessIncomeSumByType("Other", "otherType", "netBusinessIncome");
+    $(`#${kmScrId}business4_income`).text(ApzCOB.formatIndianRupees(otherIncome));
+    const dairyIncome = getBusinessIncomeSumByType("dairy", "DairyType", "IncomeAssessmentChecknetBusinessIncome");
+    $(`#${kmScrId}business1_income`).text(ApzCOB.formatIndianRupees(dairyIncome));
+    $(`#${kmScrId}OtherInc10_income`).text("₹ 0");
+    const totalIncome = agriIncome + salaryIncome + pensionIncome + wageIncome + rentIncome + tailoringIncome + kiranaIncome + otherIncome + dairyIncome;
+    $(`#${kmScrId}totalHousehldIncValue`).text(`₹ ${ApzCOB.formatamountVal(totalIncome)}`);
+    $(`#${kmScrId}totalDeclaredIncValue`).text(`₹ ${ApzCOB.formatamountVal(parseInt(JSON.parse(inSessionStore?.bcmpiIncomeDetails?.payload || "{}")?.totalDeclaredIncome) || 0)}`);
+    $(`#${kmScrId}tot_income_app`).text(`₹ ${ApzCOB.formatamountVal(FinalvaluesArr.applicantTotalIncome)}`);
+    $(`#${kmScrId}tot_income_coapp`).text(`₹ ` + FinalvaluesArr.coApplicantTotalIncome);
+    $(`#${kmScrId}tot_income_appCoapp`).text(`₹ ` + (FinalvaluesArr.otherIncome));
+    $(`#${kmScrId}tot_income_family`).text(`₹ ` + FinalvaluesArr.otherFamilyIncome);
+    $(`#${kmScrId}tot_income_assessment`).text(`₹ ` + FinalvaluesArr.fieldAssessedIncome);
+    const dateObj = FinalvaluesArr.fieldAssessedIncomeDate?.date;
+    const formattedDate = dateObj ? `${String(dateObj.day).padStart(2, '0')}-${String(dateObj.month).padStart(2, '0')}-${dateObj.year}` : '';
+    $(`#${kmScrId}income_ass_date`).text(formattedDate);
+};
+apz.app.BusinessIncome.paintAddressOptions = function(pIndex) {
+    $(`#${kmScrId+pIndex}_AppVoterAddr_txtcnt`).text("");
+    $(`#${kmScrId+pIndex}_coAppVoterAddr_txtcnt`).text("");
+    $(`#${kmScrId+pIndex}_AppAadhaarAddr_txtcnt`).text("");
+    $(`#${kmScrId+pIndex}_coAppAadhaarAddr_txtcnt`).text("");
+};

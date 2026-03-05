@@ -1,7 +1,13 @@
 var kmScrId = 'KmSourc__KMReviewConfirm__',
 KM_CURR_STAGE_NAME = 'KMReviewConfirm',
 KM_CURR_STAGE_NO = 5;
-apz.app.onLoad_KMReviewConfirm = function() {};
+apz.app.onLoad_KMReviewConfirm = function() {
+    let hidefooterElements = ['nxtBtn', 'SaveDraft'];
+    hidefooterElements.forEach(id => {
+        $(`#${kmbaseScr}${id}`).addClass('sno');
+    });
+    $(`#${kmbaseScr}confirmBtn`).removeClass('sno');
+};
 apz.app.onShown_KMReviewConfirm = function() {};
 apz.app.KMReviewConfirm.paintData = function() {};
 apz.app.KMReviewConfirm.createRequest = function() {};
