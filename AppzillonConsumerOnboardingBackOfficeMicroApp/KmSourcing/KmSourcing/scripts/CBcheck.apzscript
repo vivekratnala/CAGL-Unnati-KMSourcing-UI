@@ -773,6 +773,14 @@ apz.app.CBcheck.paintDetails = function() {
     $('#' + screenId + 'alternateVoterId').val(payload.alternateVoterId || "");
     $('#' + screenId + 'ckycNumber').val(payload.ckyc || "");
     /* =========================================
+    //   PAN
+    ========================================= */
+    $('#' + screenId + 'panName').val(payload.namePerPan || "");
+    $('#' + screenId + 'panNum').val(payload.panNumber || "");
+    let panVal = payload.panNumberValue || "Y";
+    $(`input[name="${screenId}panVal_"][value="${panVal}"]`).prop("checked", true);
+    apz.app.CBcheck.togglePanView();
+    /* =========================================
     //   MOBILE
     ========================================= */
     // $('#' + screenId + 'primaryMobile').val(custWrapper.mobileNumber || "");
@@ -802,22 +810,54 @@ apz.app.CBcheck.paintDetails = function() {
     /* =========================================
     //   ADDRESS 
     ========================================= */
+    // if (addressWrapperRoot?.length) {
+    //     let wrappers = addressWrapperRoot?.[0]?.addressDetailsList || addressWrapperRoot;
+    //     let addressWrapper = wrappers.find(w => w.addressType === "Personal" && w.custDtlId == custWrapper.custDtlId);
+    //     if (!apz.isNull(addressWrapper) && !apz.isNull(addressWrapper.payload)) {
+    //         let addrList = addressWrapper.payload?.addressList;
+    //         if (!addrList?.length) return;
+    //         // Find Present address specifically (AadhaarDetails pattern)
+    //         let present = addrList.find(a => a.addressType === "Present");
+    //         if (present) {
+    //             $('#' + screenId + 'addressLine1').val(present.addressLine1 || "");
+    //             $('#' + screenId + 'addressLine2').val(present.addressLine2 || "");
+    //             $('#' + screenId + 'addressLine3').val(present.addressLine3 || "");
+    //             $('#' + screenId + 'addPreCity').val(present.city || "");
+    //             $('#' + screenId + 'addPreDistrict').val(present.district || "");
+    //             $('#' + screenId + 'addPreState').val(present.state || "");
+    //             $('#' + screenId + 'pincode').val(present.pinCode || "");
+    //         }
+    //     }
+    // }
+    /* =========================================
+   ADDRESS 
+========================================= */
     if (addressWrapperRoot?.length) {
         let wrappers = addressWrapperRoot?.[0]?.addressDetailsList || addressWrapperRoot;
-        let addressWrapper = wrappers.find(w => w.addressType === "Personal" && w.custDtlId == custWrapper.custDtlId);
+        let addressWrapper = wrappers.find(w => w.addressType === "Personal" && String(w.custDtlId) === String(custWrapper.custDtlId));
         if (!apz.isNull(addressWrapper) && !apz.isNull(addressWrapper.payload)) {
-            let addrList = addressWrapper.payload?.addressList;
-            if (!addrList?.length) return;
-            // Find Present address specifically (AadhaarDetails pattern)
-            let present = addrList.find(a => a.addressType === "Present");
-            if (present) {
-                $('#' + screenId + 'addressLine1').val(present.addressLine1 || "");
-                $('#' + screenId + 'addressLine2').val(present.addressLine2 || "");
-                $('#' + screenId + 'addressLine3').val(present.addressLine3 || "");
-                $('#' + screenId + 'addPreCity').val(present.city || "");
-                $('#' + screenId + 'addPreDistrict').val(present.district || "");
-                $('#' + screenId + 'addPreState').val(present.state || "");
-                $('#' + screenId + 'pincode').val(present.pinCode || "");
+            let addrList = addressWrapper.payload?.addressList || [];
+            if (addrList.length > 0) {
+                let present = addrList.find(a => a.addressType === "Present");
+                let voter = addrList.find(a => a.addressType === "Voter");
+                let addressToPaint;
+                //  Intelligent selection
+                if (window.CB_ADDRESS_OVERRIDE_TYPE === "Voter") {
+                    addressToPaint = voter || present;
+                    console.log("Painting Voter address (return from documentCapture)");
+                } else {
+                    addressToPaint = present || voter;
+                    console.log("Painting Present address (default flow)");
+                }
+                if (addressToPaint) {
+                    $('#' + screenId + 'addressLine1').val(addressToPaint.addressLine1 || "");
+                    $('#' + screenId + 'addressLine2').val(addressToPaint.addressLine2 || "");
+                    $('#' + screenId + 'addressLine3').val(addressToPaint.addressLine3 || "");
+                    $('#' + screenId + 'addPreCity').val(addressToPaint.city || "");
+                    $('#' + screenId + 'addPreDistrict').val(addressToPaint.district || "");
+                    $('#' + screenId + 'addPreState').val(addressToPaint.state || "");
+                    $('#' + screenId + 'pincode').val(addressToPaint.pinCode || "");
+                }
             }
         }
     }
@@ -867,8 +907,6 @@ apz.app.CBcheck.paintFreshCaseDetails = function() {
             $('#' + screenId + 'pincode').val(cstDtls.presPincode || "");
         }
         // Additional fields from selLeadDtls
-        $('#' + screenId + 'fatherName').val(cstDtls.fathersName || "");
-        $('#' + screenId + 'spouseName').val(cstDtls.spouseName || "");
         $('#' + screenId + 'relationShipWithApplicant').val(cstDtls.relationship || PleaseSelect);
     }
     // UI State Restore
@@ -887,6 +925,8 @@ apz.app.CBcheck.clearForm = function() {
         $('#' + screenId + 'coDob').val("");
         $('#' + screenId + 'coAge').val("");
         $('#' + screenId + 'relationShipWithApplicant').val(PleaseSelect);
+        $('#' + screenId + 'coGender').val(PleaseSelect);
+        $('#' + screenId + 'CoDob').val(PleaseSelect);
     }
     $('#' + screenId + 'primaryMobile').val("");
     $('#' + screenId + 'sec_mobile').val("");
@@ -903,7 +943,10 @@ apz.app.CBcheck.clearForm = function() {
     $('#' + screenId + 'addPreDistrict').val("");
     $('#' + screenId + 'addPreState').val("");
     $('#' + screenId + 'pincode').val("");
-    $('input[name="' + screenId + 'panVal_"][value="Y"]').prop('checked', true);
+    $(`input[name="${screenId}panVal_"]`).prop("checked", false);
+    $(`input[name="${screenId}panVal_"][value="Y"]`).prop("checked", true);
+    $('#' + screenId + 'panNum').val("");
+    $('#' + screenId + 'panName').val("");
     apz.app.CBcheck.togglePanView();
 };
 apz.app.CBcheck.resetApplicantStates = function() {
@@ -964,6 +1007,10 @@ apz.app.onShown_CBcheck = function() {
     // $('.cb-otp-protected').addClass('sno');
     apz.app.CBcheck.restoreCibilFromSession(); //
     apz.app.CBcheck.toggleInitiateRow();
+    window.CB_ADDRESS_OVERRIDE_TYPE = null;
+    $(`input[name="${screenId}panVal_"]`).on("change", function() {
+        apz.app.CBcheck.togglePanView();
+    });
 };
 apz.app.CBcheck.disableEditFields = function() {
     // Disable loan amount
@@ -1092,7 +1139,7 @@ apz.app.CBcheck.createRequest = function() {
         gender: isApplicant ? $(`#${screenId}gender`).val() : $(`#${screenId}coGender`).val(),
         // PAN
         panNumberValue: panNumberValue,
-        panNumber: panNumberValue === "Y" ? ($(`#${screenId}panNumber`).val() || "") : "",
+        panNumber: panNumberValue === "Y" ? ($(`#${screenId}panNum`).val() || "") : "",
         panName: panNumberValue === "Y" ? ($(`#${screenId}panName`).val() || "") : "",
         // Co-applicant specific
         relationShipWithApplicant: isApplicant ? "" : ($(`#${screenId}relationShipWithApplicant`).val() || "")
@@ -1141,12 +1188,12 @@ apz.app.CBcheck.createRequest = function() {
                 addressLine2: $(`#${docScrId}ocrAddr2`).val() || "",
                 addressLine3: $(`#${docScrId}ocrAddr3`).val() || "",
                 pinCode: pin
-            // city: $(`#${docScrId}addPreCity`).val() || "",
-         // district: $(`#${docScrId}addPreDistrict`).val() || "",
-         // state: $(`#${docScrId}addPreState`).val() || "",
-         // country: $(`#${docScrId}country`).val() || "INDIA",
-         // area: $(`#${docScrId}area`).val() || "",
-         // landMark: $(`#${docScrId}landmark`).val() || ""
+                // city: $(`#${docScrId}addPreCity`).val() || "",
+                // district: $(`#${docScrId}addPreDistrict`).val() || "",
+                // state: $(`#${docScrId}addPreState`).val() || "",
+                // country: $(`#${docScrId}country`).val() || "INDIA",
+                // area: $(`#${docScrId}area`).val() || "",
+                // landMark: $(`#${docScrId}landmark`).val() || ""
             };
         }
     }
@@ -1448,10 +1495,10 @@ apz.app.CBcheck.createCBCheckCB = function(params) {
                         let coAppTab = tabs.eq(1);
                         apz.app.CBcheck.handletabSwitch(coAppTab, 'CoApplicant');
                     } else {
-                        ApzCOB.LaunchConfiguredScreens();
+                        ApzCOB.launchSubScreen("AadhaarDetails", "KmSourc__Kmbase__KMLaunchCol", "");
                     }
                 } else {
-                    ApzCOB.LaunchConfiguredScreens();
+                    ApzCOB.launchSubScreen("AadhaarDetails", "KmSourc__Kmbase__KMLaunchCol", "");
                 }
             }
             //             apz.startLoader();
@@ -2007,19 +2054,19 @@ apz.app.CBcheck.paintCibilDetails = function() {
     /* =========================================
        DECISION UI
     ========================================= */
-    if (isApproved) {
-        $('#' + screenId + 'retryRow').addClass('sno');
-        $('#' + screenId + 'rejectReasonRow').addClass('sno');
-    } else {
-        $('#' + screenId + 'rejectReasonRow').removeClass('sno');
-        $('#' + screenId + 'rejectReasonText').text(cleanVal(cibilDtls.rejectionReason) || '-');
-        let retryAttempts = parseInt(cibilDtls.retryAttempts ?? 0);
-        if (retryAttempts > 0) {
-            $('#' + screenId + 'retryRow').removeClass('sno');
-        } else {
-            $('#' + screenId + 'retryRow').addClass('sno');
-        }
-    }
+    // if (isApproved) {
+    //     $('#' + screenId + 'retryRow').addClass('sno');
+    //     $('#' + screenId + 'rejectReasonRow').addClass('sno');
+    // } else {
+    //     $('#' + screenId + 'rejectReasonRow').removeClass('sno');
+    //     $('#' + screenId + 'rejectReasonText').text(cleanVal(cibilDtls.rejectionReason) || '-');
+    //     let retryAttempts = parseInt(cibilDtls.retryAttempts ?? 0);
+    //     if (retryAttempts > 0) {
+    //         $('#' + screenId + 'retryRow').removeClass('sno');
+    //     } else {
+    //         $('#' + screenId + 'retryRow').addClass('sno');
+    //     }
+    // }
     /* =========================================
        BUREAU SPECIFIC UI
     ========================================= */
@@ -2069,9 +2116,9 @@ apz.app.CBcheck.restoreCibilFromSession = function() {
         apz.app.CBcheck.clearCbUI();
         return;
     }
-    // ✅ Restore payload
+    // Restore payload
     cibilDtls = JSON.parse(JSON.stringify(existing.cibilDetails.payload));
-    // ✅ Mark form validated
+    // Mark form validated
     if (isApplicant) {
         CB_FORM_STATE.applicant.validated = true;
         CB_API_TRIGGERED.applicant = true;
