@@ -11,6 +11,7 @@ window.KMScrIdMapping = {
     "OtherInformation": 4,
     "KMReviewConfirm": 5
 };
+window.isVerified = "Y";
 apz.data.scrdata.KmSourc__IPaintLoanDetails_Res = [];
 window.KM_NEWTAGES = {
     CBcheck: {
@@ -51,7 +52,6 @@ apz.app.onShown_Kmbase = function() {
     $(`#${kmbaseScr}CBcheck_hyp`).addClass("active");
     $('body').addClass('unati crdas LoginBase');
     $('#APZCBO__BaseScreens__STAGE3').removeClass('stageDiv');
-    //$(document).ready(updateStageIcons);
     let LoginDtls = LoggedInUserDetails.loginResponse.userDet;
     $(`#${kmbaseScr}KMloggedInUserName_txtcnt`).text(`${LoginDtls.name} (${LoginDtls.id})`);
     $(`#${kmbaseScr}KMloggedInRole_txtcnt`).text(LoggedInUserDetails.loginResponse.addInfo1);
@@ -65,6 +65,116 @@ apz.app.onShown_Kmbase = function() {
         apz.app.Kmbase.storeWindowData();
     }
     ApzCOB.launchSubScreen("CBcheck", `${kmbaseScr}KMLaunchCol`);
+};
+apz.app.Kmbase.back = function() {
+    if (apz.childScr === "AadhaarDetails") {
+        apz.app.Kmbase.confirmNavigate(function() {
+            window.AADHAAR_BACK_NAV = true;
+            apz.app.AadhaarDetails.saveAadhaarDetails(true);
+        });
+        return;
+    }
+    // DOCUMENT CAPTURE
+    if (apz.childScr === 'documentCapture') {
+        if (apz.app.docType === 'Aadhaar') {
+            let capturedFrom = window.CAPTURE_FROM_APPLICANT;
+            window.AADHAAR_TAB_SWITCH_TARGET = (capturedFrom === 2) ? 'CoApplicant' : 'Applicant';
+            window.CAPTURE_FROM_APPLICANT = null;
+            ApzCOB.launchSubScreen("AadhaarDetails", "KmSourc__Kmbase__KMLaunchCol", "");
+            $(`#${kmbaseScr}sidebarForm a`).removeClass('active');
+            $(`#${kmbaseScr}AadhaarDetails_hyp`).addClass('active');
+        } else if (apz.app.docType === 'Voter ID' || apz.app.docType === 'PAN card') {
+            ApzCOB.launchSubScreen("CBcheck", "KmSourc__Kmbase__KMLaunchCol", "");
+        }
+        $('.btn-saveDraft, .btn-reject, .btn-back, .btn-next').show();
+        return;
+    }
+    // CB CHECK
+    if (apz.childScr === "CBcheck") {
+        if (gApzCOB.currentApplicant === 2) {
+            let tabs = $('.cbcheckSubMenu');
+            let applicantTab = tabs.eq(0);
+            apz.app.AadhaarDetails.handletabSwitch(applicantTab, 'Applicant');
+            return;
+        }
+    }
+    if (apz.childScr === "KMReviewConfirm") {
+        ApzCOB.launchSubScreen("OtherInformation", "KmSourc__Kmbase__KMLaunchCol", "");
+        return;
+    }
+};
+apz.app.Kmbase.next = function() {
+    window.isVerified = "Y";
+    // AADHAAR DETAILS
+    if (apz.childScr === "AadhaarDetails") {
+        if (!apz.app.AadhaarDetails.validateForm()) return;
+        apz.app.Kmbase.confirmNavigate(function() {
+            try {
+                apz.app.AadhaarDetails.rebuildAddressTable && apz.app.AadhaarDetails.rebuildAddressTable();
+            } catch (e) {
+                console.warn("Address table rebuild skipped:", e.message);
+            }
+            apz.app.AadhaarDetails.saveAadhaarDetails();
+        });
+        return;
+    }
+    // DOCUMENT CAPTURE
+    if (apz.childScr === 'documentCapture') {
+        if (apz.app.docType === 'Aadhaar') {
+            let capturedFrom = window.CAPTURE_FROM_APPLICANT;
+            window.AADHAAR_TAB_SWITCH_TARGET = (capturedFrom === 2) ? 'CoApplicant' : 'Applicant';
+            window.CAPTURE_FROM_APPLICANT = null;
+            ApzCOB.launchSubScreen("AadhaarDetails", "KmSourc__Kmbase__KMLaunchCol", "");
+            $(`#${kmbaseScr}sidebarForm a`).removeClass('active');
+            $(`#${kmbaseScr}AadhaarDetails_hyp`).addClass('active');
+        } else if (apz.app.docType === 'Voter ID') {
+            window.CB_ADDRESS_OVERRIDE_TYPE = "Voter";
+            ApzCOB.launchSubScreen("CBcheck", "KmSourc__Kmbase__KMLaunchCol", "");
+            $(`#${kmbaseScr}sidebarForm a`).removeClass('active');
+            $(`#${kmbaseScr}CBcheck_hyp`).addClass('active');
+            setTimeout(function() {
+                let tabs = $('.cbcheckSubMenu');
+                if (window.CAPTURE_FROM_APPLICANT === 2 && tabs.length > 1) {
+                    apz.app.CBcheck.handletabSwitch(tabs.eq(1), 'CoApplicant');
+                } else {
+                    apz.app.CBcheck.handletabSwitch(tabs.eq(0), 'Applicant');
+                }
+            }, 100);
+        } else if (apz.app.docType === 'PAN card') {
+            ApzCOB.launchSubScreen("CBcheck", "KmSourc__Kmbase__KMLaunchCol", "");
+            $(`#${kmbaseScr}sidebarForm a`).removeClass('active');
+            $(`#${kmbaseScr}CBcheck_hyp`).addClass('active');
+            setTimeout(function() {
+                let tabs = $('.cbcheckSubMenu');
+                if (window.CAPTURE_FROM_APPLICANT === 2 && tabs.length > 1) {
+                    apz.app.CBcheck.handletabSwitch(tabs.eq(1), 'CoApplicant');
+                } else {
+                    apz.app.CBcheck.handletabSwitch(tabs.eq(0), 'Applicant');
+                }
+            }, 100);
+        }
+        $('.btn-saveDraft, .btn-reject, .btn-back, .btn-next').show();
+        return;
+    }
+     if (apz.childScr === "CBcheck") {
+        if (!apz.app.CBcheck.validateForm()) {
+            return;
+        }
+        apz.app.CBcheck.createCBCheck();
+        return;
+    }
+};
+apz.app.Kmbase.saveDraft = function() {
+    window.isVerified = "N";
+    if (apz.childScr === "AadhaarDetails") {
+        window.AADHAAR_SAVE_DRAFT = true;
+        apz.app.AadhaarDetails.saveAadhaarDetails(true);
+        return;
+    }
+    if (apz.childScr === "CBcheck") {
+        apz.app.CBcheck.createCBCheck();
+        return;
+    }
 };
 apz.app.Kmbase.setMinMaxLength = function() {
     const fieldMap = {
@@ -88,18 +198,9 @@ apz.app.Kmbase.storeWindowData = function() {
     window.applicationMaster = inSessionStore.applicationMaster;
     window.KMleadetails = inSessionStore.leadDetails;
     window.KMrenewalLeadDetails = inSessionStore.renewalLeadDetails;
-}
+};
 apz.app.Kmbase.toggleSidebar = function() {
     $("#KmSourc__Kmbase__sidebar_col").toggleClass("sideon");
-};
-apz.app.Kmbase.NavigateSidebar = function(pstageId, pthis) {
-    $(`#${kmbaseScr}sidebarForm a`).removeClass('active');
-    $(pthis).addClass('active');
-    scrName = Object.keys(window.KM_NEWTAGES).find(key => window.KM_NEWTAGES[key].id === parseInt(pstageId));
-    if (!apz.isNull(scrName)) {
-        apz.app.Kmbase.toggleSidebar();
-        ApzCOB.launchSubScreen(scrName, `${kmbaseScr}KMLaunchCol`);
-    }
 };
 apz.app.Kmbase.addInprogressStatus = function(hypId) {
     apz.app.Kmbase.clearIcons(hypId);
@@ -205,6 +306,13 @@ apz.app.Kmbase.next = function() {
         //     return;
         // }
     }
+apz.app.Kmbase.captureDocumentClick = function(docType) {
+    window.CAPTURE_FROM_APPLICANT = gApzCOB.currentApplicant;
+    apz.app.Kmbase.saveDraft();
+    $('.btn-saveDraft, .btn-reject').hide();
+    $('.btn-back, .btn-next').show();
+    apz.app.docType = docType;
+    ApzCOB.launchSubScreen("documentCapture", "KmSourc__Kmbase__KMLaunchCol", "");
 };
 apz.app.Kmbase.gotoHome = function() {
     apz.app.Login.OnClickMakerChecker("");
@@ -224,10 +332,10 @@ apz.app.Kmbase.paintLoanDetails = function() {
                         let exObj = {};
                         exObj.loanType = JSON.parse(existLoan.payload).productType;
                         exObj.loanId = existLoan.existingLoanId;
-                        exObj.loanAmt = "-"
+                        exObj.loanAmt = "-";
                         exObj.outstandingAmt = JSON.parse(existLoan.payload).outstandingAmount;
                         existingLoansList.push(exObj);
-                    })
+                    });
                 }
             }
         }
@@ -248,7 +356,7 @@ apz.app.Kmbase.paintLoanDetails = function() {
         apz.data.scrdata.KmSourc__IPaintLoanDetails_Res = existingLoanDtls;
         apz.data.loadData('IPaintLoanDetails', 'KmSourc');
     }
-}
+};
 apz.app.Kmbase.validateMaxDocs = function(parentSelector, childClass, pthis, docType) {
     const docTypeMap = {
         "Aadhaar": {
@@ -271,7 +379,6 @@ apz.app.Kmbase.validateMaxDocs = function(parentSelector, childClass, pthis, doc
     let custDtlId = gApzCOB.currentApplicant === 1 ? gApzCOB.userDetails.custDtlId : gApzCOB.userDetails.CoApplicantCustomerId;
     let docs = (inSessionStore?.applicationDocumentsWrapperList?.[0]?.applicationDocumentsList || []).filter(d => d.payload.documentType ===
         `${currentDocType} Doc` && parseInt(d.custDtlId) === parseInt(custDtlId));
-    // Aadhaar front/back handling
     if (currentDocType === "SECONDARY_KYC") {
         let level = childClass === "backimg" ? "2" : "1";
         docs = docs.filter(d => d.payload.docLevel == level);
@@ -380,7 +487,7 @@ apz.app.Kmbase.saveDocument = function(fileName, base64) {
                             "uploadedBy": "KM",
                             "latitude": window.currentGeoCords?.latitude,
                             "longitude": window.currentGeoCords?.longitude,
-                            "uploadedTs": new Date().toISOString(),
+                            "uploadedTs": new Date().toISOString()
                         }
                     }]
                 }]
@@ -490,7 +597,6 @@ apz.app.Kmbase.paintDocumentName = function(docType) {
         });
     }
 };
-// Paint all existing documents on load / tab switch
 apz.app.Kmbase.paintAllDocuments = function() {
     const docTypes = ["CUSTOMER_PHOTOGRAPH Doc", "RESIDENCE_PREMISE_PHOTO Doc", "ADDRESS_PROOF Doc", "RELATIONSHIP_PROOF Doc",
         "SECONDARY_KYC Doc"];
@@ -499,7 +605,6 @@ apz.app.Kmbase.paintAllDocuments = function() {
     });
 };
 apz.app.Kmbase.viewDocument = function(pthis) {
-    console.log("view");
     let $uploadDiv = $(pthis).closest('.uploadimg');
     let documentId = $uploadDiv.attr('data-id');
     if (!documentId) {
@@ -556,8 +661,8 @@ apz.app.Kmbase.deleteDocument = function(pthis) {
 };
 apz.app.Kmbase.deleteDocumentCnfm = function(docId) {
     let callBackFn = apz.app.Kmbase.deleteDocumentCnfmCB;
-    ApzCOB.deleteDocument('', '', '', docId, callBackFn)
-}
+    ApzCOB.deleteDocument('', '', '', docId, callBackFn);
+};
 apz.app.Kmbase.deleteDocumentCnfmCB = function(params) {
     apz.stopLoader();
     try {
@@ -580,7 +685,6 @@ apz.app.Kmbase.deleteDocumentCnfmCB = function(params) {
             }
         }
         apz.app.Kmbase.paintDocumentName(docDeleteType);
-        // Re-evaluate capture button visibility after delete
         let rawDocType = docDeleteType.replace(' Doc', '');
         apz.app.Kmbase.toggleCaptureSection(rawDocType, apz.app.Kmbase.getCaptureConfig(rawDocType));
         ApzCOB.showRpcModals(modalOptions, isSuccess ? "Success" : "Error");
@@ -596,13 +700,13 @@ apz.app.Kmbase.deleteDocumentCnfmCB = function(params) {
 };
 apz.app.Kmbase.closeDeleteCnfmModal = function() {
     ApzCOB.toggleModal(`${kmbaseScr}conFormation_mdl`);
-}
+};
 apz.app.Kmbase.closeDeleteSuccModal = function() {
     ApzCOB.toggleModal(`${kmbaseScr}Succ_modal`);
-}
+};
 apz.app.Kmbase.closeDeleteErrModal = function() {
     ApzCOB.toggleModal(`${kmbaseScr}AA_Error_modal`);
-}
+};
 apz.app.Kmbase.onchangepincode = function(pthis, addressType) {
     let pincode_temp = $(pthis).val();
     if (pincode_temp.length > 5) {
@@ -611,25 +715,26 @@ apz.app.Kmbase.onchangepincode = function(pthis, addressType) {
     }
 };
 apz.app.Kmbase.paint_pincode = function(params, addressType) {
-    scrId = `KmSourc__${apz.childScr}__`;
-    $(`#${scrId}${addressType}City`).val(params.city).blur();
-    $(`#${scrId}${addressType}District`).val(params.district).blur();
-    $(`#${scrId}${addressType}State`).val(params.state).blur();
-    $(`#${scrId}${addressType}Country`).val(params.country).blur();
-    $(`#${scrId}${addressType}Area`).val(params.area).blur();
-    $(`#${scrId}${addressType}Landmark`).val(params.landMark).blur();
+    let resolvedAddressType = addressType || window.pincodeAddresstype || "";
+    let scrId = apz.childScr === "documentCapture" ? kmbaseScr : `KmSourc__${apz.childScr}__`;
+    $(`#${scrId}${resolvedAddressType}City`).val(params.city).trigger("change");
+    $(`#${scrId}${resolvedAddressType}District`).val(params.district).trigger("change");
+    $(`#${scrId}${resolvedAddressType}State`).val(params.state).trigger("change");
+    $(`#${scrId}${resolvedAddressType}Country`).val(params.country).trigger("change");
+    $(`#${scrId}${resolvedAddressType}Area`).val(params.area).trigger("change");
+    $(`#${scrId}${resolvedAddressType}Landmark`).val(params.landMark).trigger("change");
 };
 apz.app.otpMoveForward = function(current, nextId) {
     if (current.value && current.value.length === 1) {
         if (nextId) {
-            document.getElementById(`${kmbaseScr+nextId}`)?.focus();
+            document.getElementById(`${kmbaseScr + nextId}`)?.focus();
         }
     }
 };
 apz.app.otpMoveBackward = function(event, current, prevId) {
     if (event.key === 'Backspace' && current.value === '') {
         if (prevId) {
-            document.getElementById(`${kmbaseScr+prevId}`)?.focus();
+            document.getElementById(`${kmbaseScr + prevId}`)?.focus();
         }
     }
 };
@@ -644,7 +749,7 @@ apz.app.Kmbase.captureAadhaarClick = function(docType) {
 };
 apz.app.Kmbase.populateDropdown = function(allOptions, Id) {
     let TempArr = [];
-    for (i = 0; i < allOptions.length; i++) {
+    for (var i = 0; i < allOptions.length; i++) {
         let obj = {
             "desc": allOptions[i],
             "val": allOptions[i]
@@ -666,9 +771,7 @@ apz.app.Kmbase.getDocLimits = function(docType) {
     };
 };
 apz.app.Kmbase.toggleCaptureSection = function(docType, containerIds) {
-    // Docs that should hide capture after max upload
     const STRICT_DOC_TYPES = ["SECONDARY_KYC", "CUSTOMER_PHOTOGRAPH"];
-    // If NOT strict → always show capture
     if (!STRICT_DOC_TYPES.includes(docType)) {
         containerIds.forEach(({
             captureBtn
@@ -688,10 +791,8 @@ apz.app.Kmbase.toggleCaptureSection = function(docType, containerIds) {
         side
     }) => {
         let relevantDocs = docs;
-        // Aadhaar front/back split
         if (docType === "SECONDARY_KYC" && side) {
             relevantDocs = docs.filter(d => d.payload.docLevel == (side === "Front" ? "1" : "2"));
-            // Aadhaar max = 1 per side
             max = 1;
         }
         if (relevantDocs.length >= max) {
@@ -737,34 +838,63 @@ function paintClonedDoc(newId, baseName, index, doc, docType) {
     $row.attr('data-doc-type', docType);
     $row.removeClass('sno');
 }
-apz.app.Kmbase.saveToSessionOnly = function() {
-    try {
-        if (apz.childScr === "AadhaarDetails") {
-            apz.app.AadhaarDetails.createRequest();
-        } else if (apz.childScr === "CBcheck") {
-            apz.app.CBcheck.createRequest();
+apz.app.Kmbase.NavigateSidebar = function(pstageId, pthis) {
+    let stage = parseInt(pstageId);
+
+    function doNavigate() {
+        $(`#${kmbaseScr}sidebarForm a`).removeClass('active');
+        $(pthis).addClass('active');
+        if (stage === 21 || stage === 22) {
+            $(`#${kmbaseScr}sidebarForm a`).removeClass('active');
+            $(`[id*='AadhaarDetails_hyp']`).addClass('active');
+            $(pthis).addClass('active');
+            window.AADHAAR_TAB_SWITCH_TARGET = (stage === 21) ? 'Applicant' : 'CoApplicant';
+            apz.app.Kmbase.toggleSidebar();
+            if (apz.childScr !== "AadhaarDetails") {
+                ApzCOB.launchSubScreen("AadhaarDetails", `${kmbaseScr}KMLaunchCol`);
+            } else {
+                if (apz.app.AadhaarDetails && typeof apz.app.AadhaarDetails.saveAadhaarDetails === "function") {
+                    apz.app.AadhaarDetails.saveAadhaarDetails(true);
+                }
+            }
+            return;
         }
-    } catch (e) {
-        console.warn("saveToSessionOnly: could not persist draft ", e.message);
+        let scrName = Object.keys(window.KM_NEWTAGES || {}).find(key => window.KM_NEWTAGES[key].id === stage);
+        if (!apz.isNull(scrName)) {
+            apz.app.Kmbase.toggleSidebar();
+            if (scrName === "AadhaarDetails") {
+                gApzCOB.currentApplicant = 1;
+                window.AADHAAR_TAB_SWITCH_TARGET = 'Applicant';
+            }
+            ApzCOB.launchSubScreen(scrName, `${kmbaseScr}KMLaunchCol`);
+        }
     }
-};
-apz.app.Kmbase.captureVoterClick = function(docType) {
-    window.CAPTURE_FROM_APPLICANT = gApzCOB.currentApplicant;
-    apz.app.Kmbase.saveToSessionOnly();
-    $('.btn-saveDraft, .btn-reject').hide();
-    $('.btn-back, .btn-next').show();
-    apz.app.docType = docType;
-    ApzCOB.launchSubScreen("documentCapture", "KmSourc__Kmbase__KMLaunchCol", "");
-};
-apz.app.Kmbase.saveDraft = function() {
-    window.isVerified = "N";
     if (apz.childScr === "AadhaarDetails") {
-        window.AADHAAR_SAVE_DRAFT = true;
-        apz.app.AadhaarDetails.saveAadhaarDetails(true);
-        return;
+        apz.app.Kmbase.confirmNavigate(doNavigate);
+    } else {
+        doNavigate();
     }
-    if (apz.childScr === "CBcheck") {
-        apz.app.CBcheck.createCBCheck();
-        return;
+};
+apz.app.Kmbase.confirmNavigate = function(onYes) {
+    window._CONFIRM_NAV_CALLBACK = onYes;
+    // Set text and button handlers directly
+    $(`#${kmbaseScr}confirmationText_txtcnt`).html("Are you sure you want to move to a different section?");
+    $(`#${kmbaseScr}confrmBtn1_txtcnt`).html("Yes");
+    $(`#${kmbaseScr}confrmBtn2_txtcnt`).html("No");
+    $(`#${kmbaseScr}confrmBtn1`).attr("onclick", "apz.app.Kmbase._confirmNavYes()");
+    $(`#${kmbaseScr}confrmBtn2`).attr("onclick", "apz.app.Kmbase._confirmNavNo()");
+    $(`#${kmbaseScr}conFormation_mdl .suc-btns`).removeClass('sno');
+    ApzCOB.toggleModal(`${kmbaseScr}conFormation_mdl`);
+};
+apz.app.Kmbase._confirmNavYes = function() {
+    ApzCOB.toggleModal(`${kmbaseScr}conFormation_mdl`);
+    if (typeof window._CONFIRM_NAV_CALLBACK === "function") {
+        let fn = window._CONFIRM_NAV_CALLBACK;
+        window._CONFIRM_NAV_CALLBACK = null;
+        fn();
     }
+};
+apz.app.Kmbase._confirmNavNo = function() {
+    ApzCOB.toggleModal(`${kmbaseScr}conFormation_mdl`);
+    window._CONFIRM_NAV_CALLBACK = null;
 };
