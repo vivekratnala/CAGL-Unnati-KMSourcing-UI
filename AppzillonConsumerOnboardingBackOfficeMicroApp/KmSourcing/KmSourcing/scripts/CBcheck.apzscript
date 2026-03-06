@@ -220,11 +220,11 @@ apz.app.onLoad_CBcheck = function() {
         if (state.mobile !== newMobile) {
             state.verified = false;
             state.mobile = null;
-            if (isApplicant) {
-                CB_OTP_UI_UNLOCK.applicant = false;
-            } else {
-                CB_OTP_UI_UNLOCK.coapplicant = false;
-            }
+            // if (isApplicant) {
+            //     CB_OTP_UI_UNLOCK.applicant = false;
+            // } else {
+            //     CB_OTP_UI_UNLOCK.coapplicant = false;
+            // }
             $('#' + screenId + 'otpSuccessRow').addClass('sno');
             $('#' + screenId + 'sendOtpBtn').removeClass('sno');
             $('#' + screenId + 'sameMobileInfoDiv').addClass('sno');
@@ -677,6 +677,14 @@ function clearAllTabErrors() {
     $(".error-inline").removeClass("error-inline");
     // Remove all error message divs
     $(".cb-error-msg").remove();
+    document.querySelectorAll("ul").forEach(u => {
+        const errBox = u.nextElementSibling;
+        if (errBox && errBox.classList.contains("err-msg")) errBox.classList.add("sno");
+    });
+    document.querySelectorAll(".error-inline").forEach(e => e.classList.remove("error-inline"));
+    document.querySelectorAll(".err").forEach(e => e.classList.remove("err"));
+    document.querySelectorAll(".cb-error-msg").forEach(e => e.remove());
+    window.gIsMinMaxErr = false;
 }
 apz.app.CBcheck.toggleOtpProtectedSections = function() {
     let isApplicant = gApzCOB.currentApplicant <= 1;
@@ -924,7 +932,7 @@ apz.app.CBcheck.clearForm = function() {
         $('#' + screenId + 'coAge').val("");
         $('#' + screenId + 'relationShipWithApplicant').val(PleaseSelect);
         $('#' + screenId + 'coGender').val(PleaseSelect);
-        $('#' + screenId + 'coDob').val(PleaseSelect);
+        // $('#' + screenId + 'coDob').val(PleaseSelect);
     }
     $('#' + screenId + 'primaryMobile').val("");
     $('#' + screenId + 'sec_mobile').val("");
@@ -1141,10 +1149,12 @@ apz.app.CBcheck.createRequest = function(skipValidation = false) {
         primaryKycId: $(`#${screenId}voterId`).val() || "",
         alternateVoterId: $(`#${screenId}alternateVoterId`).val() || "",
         namePerKyc: $(`#${screenId}nameAsPerVoter`).val() || "",
-        kycStatus: isApplicant ? (PRIMARY_KYC_VERIFICATION ? "Verified" : "Pending") : (CO_APPLICANT_PRIMARY_KYC_VERIFICATION ? "Verified" :
-            "Pending"),
-        primaryKycIdValStatus: isApplicant ? (PRIMARY_KYC_VERIFICATION ? "Verified" : "Pending") : (CO_APPLICANT_PRIMARY_KYC_VERIFICATION ?
-            "Verified" : "Pending"),
+        kycStatus: "Verified",
+        primaryKycIdValStatus: "Verified",
+        // kycStatus: isApplicant ? (PRIMARY_KYC_VERIFICATION ? "Verified" : "Pending") : (CO_APPLICANT_PRIMARY_KYC_VERIFICATION ? "Verified" :
+        //     "Pending"),
+        // primaryKycIdValStatus: isApplicant ? (PRIMARY_KYC_VERIFICATION ? "Verified" : "Pending") : (CO_APPLICANT_PRIMARY_KYC_VERIFICATION ?
+        //     "Verified" : "Pending"),
         ckyc: $(`#${screenId}ckycNumber`).val() || "",
         dob: isApplicant ? $(`#${screenId}dob`).val() : $(`#${screenId}coDob`).val(),
         age: isApplicant ? $(`#${screenId}age`).val() : $(`#${screenId}coAge`).val(),
@@ -1199,13 +1209,13 @@ apz.app.CBcheck.createRequest = function(skipValidation = false) {
                 addressLine1: addr1,
                 addressLine2: $(`#${docScrId}ocrAddr2`).val() || "",
                 addressLine3: $(`#${docScrId}ocrAddr3`).val() || "",
-                pinCode: pin
-                // city: $(`#${docScrId}addPreCity`).val() || "",
-                // district: $(`#${docScrId}addPreDistrict`).val() || "",
-                // state: $(`#${docScrId}addPreState`).val() || "",
-                // country: $(`#${docScrId}country`).val() || "INDIA",
-                // area: $(`#${docScrId}area`).val() || "",
-                // landMark: $(`#${docScrId}landmark`).val() || ""
+                pinCode: pin,
+                city: $(`#${docScrId}ocrCity`).val() || "",
+                district: $(`#${docScrId}ocrDistrict`).val() || "",
+                state: $(`#${docScrId}ocrState`).val() || "",
+                country: $(`#${docScrId}ocrCountry`).val() || "INDIA",
+                area: $(`#${docScrId}ocrArea`).val() || "",
+                landMark: $(`#${docScrId}ocrLandmark`).val() || ""
             };
         }
     }
