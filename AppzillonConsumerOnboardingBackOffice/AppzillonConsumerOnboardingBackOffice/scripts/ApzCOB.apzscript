@@ -9224,13 +9224,8 @@ ApzCOB = {
                 let GrameenLoan = loanDtls.filter(function (e) {
                     return (e.loanType.toUpperCase() === "GRAMEEN UNNATI LOAN" || e.loanType.toUpperCase() === "GL.GRM.UNNATI.LN");
                 });
-                //Sourcing changes
-                if (apz.currAppId === "KmSourc") {
-                    apz.app.Kmbase.paintLoanDetails();
-                    ApzCOB.hideLoader();
-                }
                 //Renewal changes
-                else if (GrameenLoan.length > 0) {
+                if (GrameenLoan.length > 0) {
                     if (ApplicationType === "NEW") {
                         ApzCOB.fnDisplayMsg(ApzCOB.getDescfromLitCode("LIT_COMM_GRAMEEN_LOAN_EXIST_ERR") + gApzCOB.selLeadDtls.customerId,
                             "E");

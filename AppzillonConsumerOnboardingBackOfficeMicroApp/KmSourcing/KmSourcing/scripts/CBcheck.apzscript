@@ -1301,6 +1301,31 @@ apz.app.CBcheck.createRequest = function(skipValidation = false) {
         window.inSessionStore.loanDetails = loanDetails;
     }
     /* -------------------------------------------------------
+       BUILD EXISTING LOAN DETAILS
+    ------------------------------------------------------- */
+    let existingLoanObj = {
+            "existingLoansDetailList": []
+        };
+        if (apz.data.scrdata.KmSourc__IPaintLoanDetails_Res.length > 0) {
+            existingLoanObj = apz.app.CBcheck.existingLoanObject();
+        } else {
+            var obj = {
+                "hasExistingLoans": 'N',
+                "existingLoanId": '',
+                "loanDtlsId": '',
+                "payload": {
+                    "productType": '',
+                    "subProductType": '',
+                    "loanAmount": '',
+                    "accountNumber": '',
+                    "outstandingAmount": '',
+                    "expectedClosureDate": ''
+                }
+            }
+        }
+    
+    
+    /* -------------------------------------------------------
     //   BUILD REQUEST-LEVEL LISTS 
     ------------------------------------------------------- */
     let customerDetailsList = [{
@@ -1338,6 +1363,9 @@ if (addrIndex >= 0) {
     }
     if (!apz.isNull(window.inSessionStore.cibilDetailsWrapperList)) {
         result.cibilDetailsWrapperList = window.inSessionStore.cibilDetailsWrapperList;
+    }
+    if (existingLoanObj) {
+        result.existingLoanDetailsWrapperList = existingLoanObj;
     }
     return result;
 };
@@ -1417,7 +1445,7 @@ apz.app.CBcheck.createCBCheck = function() {
         /* ----- Core lists from createRequest ----- */
         customerDetailsList: requestBody.customerDetailsList,
         addressDetailsWrapperList: requestBody.addressDetailsWrapperList,
-        existingLoanDetailsWrapperList: [],
+        existingLoanDetailsWrapperList: [requestBody.existingLoanDetailsWrapperList],
         /* ----- Application master  ----- */
         applicationMaster: {
             applicationType: "online",
@@ -2263,4 +2291,41 @@ apz.app.CBcheck.restoreCibilFromSession = function() {
     //Hide initiate row
     apz.app.CBcheck.toggleInitiateRow();
     $('.cb-result-section').removeClass('sno');
+};
+apz.app.CBcheck.existingLoanObject = function() {
+    var existingLoanObj = {
+        "existingLoansDetailList": []
+    };
+    for (var i = 0; i < apz.data.scrdata.KmSourc__IPaintLoanDetails_Res.length; i++) {
+        var obj = {
+            "hasExistingLoans": '',
+            "payload": {
+                "productType": '',
+                "subProductType": '',
+                "loanAmount": '',
+                "accountNumber": '',
+                "outstandingAmount": '',
+                "expectedClosureDate": ''
+            }
+        };
+        obj.hasExistingLoans = 'Y';
+        if (!apz.isNull(gApzCOB.userDetails.existisingLoanDtlId) && gApzCOB.userDetails.existisingLoanDtlId.length > 0) {
+            obj.existingLoanId = gApzCOB.userDetails.existisingLoanDtlId[i];
+        } else {
+            obj.existingLoanId = "";
+        }
+        if (!apz.isNull(gApzCOB.userDetails.existingLoanId) && gApzCOB.userDetails.existingLoanId.length > 0) {
+            obj.loanDtlsId = gApzCOB.userDetails.existingLoanId[i];
+        } else {
+            obj.loanDtlsId = "";
+        }
+        obj.payload.productType = apz.data.scrdata.KmSourc__IPaintLoanDetails_Res[i].loanType;
+        obj.payload.subProductType = "";
+        obj.payload.loanAmount = "";
+        obj.payload.accountNumber = "";
+        obj.payload.outstandingAmount = apz.data.scrdata.KmSourc__IPaintLoanDetails_Res[i].outstandingAmt;
+        obj.payload.expectedClosureDate = "";
+        existingLoanObj.existingLoansDetailList.push(obj);
+    }
+    return existingLoanObj;
 };

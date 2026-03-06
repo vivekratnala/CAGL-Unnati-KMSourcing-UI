@@ -65,6 +65,7 @@ apz.app.onShown_Kmbase = function() {
         apz.app.Kmbase.storeWindowData();
     }
     ApzCOB.launchSubScreen("CBcheck", `${kmbaseScr}KMLaunchCol`);
+    apz.app.Kmbase.paintLoanDetails();
 };
 apz.app.Kmbase.back = function() {
     if (apz.childScr === "AadhaarDetails") {
