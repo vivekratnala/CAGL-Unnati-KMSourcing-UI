@@ -3,6 +3,10 @@ window.CBcheckScr = 'KmSourc__CBcheck__';
 var screenId = 'KmSourc__CBcheck__';
 var otpScreenId = 'KmSourc__Kmbase__';
 window.CB_LOAN_ID = null;
+window.CB_UI_LOCKED = {
+    applicant: false,
+    coapplicant: false
+};
 //  IS_MOBILE_DEDUPE_REQ = true;
 //  OTP GLOBAL STATE
 window.CB_OTP_TIMER = null;
@@ -124,7 +128,7 @@ apz.app.onLoad_CBcheck = function() {
     apz.app.CBcheck.togglePanView();
     var applicantBtn = document.querySelector('.cbcheckSubMenu');
     if (applicantBtn) {
-        apz.app.CBcheck.handletabSwitch(applicantBtn, 'Applicant');
+        apz.app.CBcheck.handletabSwitch(applicantBtn, 'Applicant', true);
     }
     apz.populateDropdown(document.getElementById(`${CBcheckScr}relationShipWithApplicant`), ApzCOB.formatDropDownforArray(ApzCOB.filterRelns(
         relations)));
@@ -249,6 +253,7 @@ apz.app.onLoad_CBcheck = function() {
             CBCALLTYPEFLAG = cbCallType.CB_TYPE;
         }
     }
+    apz.app.CBcheck.toggleNextButton();
 };
 //Save Draft and switch tab
 apz.app.CBcheck.saveAndSwitch = function(pthis, CustType) {
@@ -256,7 +261,16 @@ apz.app.CBcheck.saveAndSwitch = function(pthis, CustType) {
     apz.app.CBcheck.handletabSwitch(pthis, CustType);
 }
 //   TAB SWITCH
-apz.app.CBcheck.handletabSwitch = function(pthis, CustType) {
+apz.app.CBcheck.handletabSwitch = function(pthis, CustType, skipCheck = false) {
+    let currentIsApplicant = gApzCOB.currentApplicant <= 1;
+    if (!skipCheck && currentIsApplicant && !CB_API_TRIGGERED.applicant) {
+        // ApzCOB.fnDisplayMsg("Please complete Credit Check for Applicant before switching tab.", "E");
+        return;
+    }
+    // if (!currentIsApplicant && !CB_API_TRIGGERED.coapplicant) {
+    //     ApzCOB.fnDisplayMsg("Please complete Credit Check for Co-Applicant before switching tab.", "E");
+    //     return;
+    // }
     clearAllTabErrors();
     $('.cbcheckSubMenu').removeClass('active');
     $(pthis).addClass('active');
@@ -267,15 +281,15 @@ apz.app.CBcheck.handletabSwitch = function(pthis, CustType) {
     ========================================= */
     if (CustType === 'Applicant') {
         gApzCOB.currentApplicant = 1;
-        $('.src-coapp').hide();
-        $('.src-app').show();
+        $('.src-coapp').addClass('sno');
+        $('.src-app').removeClass('sno');
         $(`#${kmbaseScr}sidebarForm a`).removeClass('active');
         $(`#${kmbaseScr}CBcheck_hyp`).addClass('active');
         $(`#${kmbaseScr}AppCBcheck_hyp`).addClass('active');
     } else {
         gApzCOB.currentApplicant = 2;
-        $('.src-app').hide();
-        $('.src-coapp').show();
+        $('.src-app').addClass('sno');
+        $('.src-coapp').removeClass('sno');
         $(`#${kmbaseScr}sidebarForm a`).removeClass('active');
         $(`#${kmbaseScr}CBcheck_hyp`).addClass('active');
         $(`#${kmbaseScr}CoAppCBcheck_hyp`).addClass('active');
@@ -290,6 +304,8 @@ apz.app.CBcheck.handletabSwitch = function(pthis, CustType) {
     apz.app.CBcheck.toggleOtpProtectedSections();
     apz.app.CBcheck.restoreCibilFromSession();
     apz.app.CBcheck.toggleInitiateRow();
+    /* APPLY READ ONLY STATE BASED ON TAB */
+    apz.app.CBcheck.applyReadOnlyState();
     let isApplicant = gApzCOB.currentApplicant <= 1;
     let isOtpUnlocked = isApplicant ? CB_OTP_UI_UNLOCK.applicant : CB_OTP_UI_UNLOCK.coapplicant;
     if (isOtpUnlocked) {
@@ -1051,6 +1067,7 @@ apz.app.onShown_CBcheck = function() {
     }
     // Reset address override flag
     window.CB_ADDRESS_OVERRIDE_TYPE = null;
+    apz.app.CBcheck.toggleNextButton();
 };
 apz.app.CBcheck.disableEditFields = function() {
     // Disable loan amount
@@ -1128,7 +1145,7 @@ apz.app.CBcheck.createRequest = function(skipValidation = false) {
     // if (isVerified !== "N" && !apz.app.CBcheck.validateForm()) {
     //     return {};
     // }
-        if (!skipValidation) {
+    if (!skipValidation) {
         if (isVerified !== "N" && !apz.app.CBcheck.validateForm()) {
             return {};
         }
@@ -1284,28 +1301,19 @@ apz.app.CBcheck.createRequest = function(skipValidation = false) {
     //     addrDetailsList[addrIndex].payload.addressList = addressList;
     // }
     if (addrIndex >= 0) {
-
-    let existingList = addrDetailsList[addrIndex].payload.addressList || [];
-
-    addressList.forEach(newAddr => {
-
-        let existingIndex = existingList.findIndex(
-            a => a.addressType === newAddr.addressType
-        );
-
-        if (existingIndex >= 0) {
-            // Update existing address type
-            existingList[existingIndex] = newAddr;
-        } else {
-            // Add new address type
-            existingList.push(newAddr);
-        }
-
-    });
-
-    addrDetailsList[addrIndex].payload.addressList = existingList;
-}
-    else {
+        let existingList = addrDetailsList[addrIndex].payload.addressList || [];
+        addressList.forEach(newAddr => {
+            let existingIndex = existingList.findIndex(a => a.addressType === newAddr.addressType);
+            if (existingIndex >= 0) {
+                // Update existing address type
+                existingList[existingIndex] = newAddr;
+            } else {
+                // Add new address type
+                existingList.push(newAddr);
+            }
+        });
+        addrDetailsList[addrIndex].payload.addressList = existingList;
+    } else {
         addrDetailsList.push({
             addressDtlsId: addressDtlsId || "",
             custDtlId: parseInt(custDtlId),
@@ -1339,27 +1347,25 @@ apz.app.CBcheck.createRequest = function(skipValidation = false) {
        BUILD EXISTING LOAN DETAILS
     ------------------------------------------------------- */
     let existingLoanObj = {
-            "existingLoansDetailList": []
-        };
-        if (apz.data.scrdata.KmSourc__IPaintLoanDetails_Res.length > 0) {
-            existingLoanObj = apz.app.CBcheck.existingLoanObject();
-        } else {
-            var obj = {
-                "hasExistingLoans": 'N',
-                "existingLoanId": '',
-                "loanDtlsId": '',
-                "payload": {
-                    "productType": '',
-                    "subProductType": '',
-                    "loanAmount": '',
-                    "accountNumber": '',
-                    "outstandingAmount": '',
-                    "expectedClosureDate": ''
-                }
+        "existingLoansDetailList": []
+    };
+    if (apz.data.scrdata.KmSourc__IPaintLoanDetails_Res.length > 0) {
+        existingLoanObj = apz.app.CBcheck.existingLoanObject();
+    } else {
+        var obj = {
+            "hasExistingLoans": 'N',
+            "existingLoanId": '',
+            "loanDtlsId": '',
+            "payload": {
+                "productType": '',
+                "subProductType": '',
+                "loanAmount": '',
+                "accountNumber": '',
+                "outstandingAmount": '',
+                "expectedClosureDate": ''
             }
         }
-    
-    
+    }
     /* -------------------------------------------------------
     //   BUILD REQUEST-LEVEL LISTS 
     ------------------------------------------------------- */
@@ -1372,16 +1378,15 @@ apz.app.CBcheck.createRequest = function(skipValidation = false) {
         payload: mergedPayload
     }];
     let finalAddressList = addressList;
-
-if (addrIndex >= 0) {
-    finalAddressList = addrDetailsList[addrIndex].payload.addressList;
-}
+    if (addrIndex >= 0) {
+        finalAddressList = addrDetailsList[addrIndex].payload.addressList;
+    }
     let addressDetailsWrapperList = [{
         addressDetailsList: [{
             addressDtlsId: addressDtlsId || "",
             custDtlId: parseInt(custDtlId),
             addressType: "Personal",
-                        // payload: {
+            // payload: {
             //     "addressList": addressList
             // }
             payload: {
@@ -1997,6 +2002,11 @@ apz.app.CBcheck.BRECbServiceCB = function(params) {
                 gApzCOB.userDetails.coApplicantCbDtlsId = parseInt(responseObj.responseObj.cbDtlId);
                 window.CO_APPLICANT_CIBIL_STATUS = isApproved;
             }
+            if (gApzCOB.currentApplicant <= 1) {
+                CB_UI_LOCKED.applicant = true;
+            } else {
+                CB_UI_LOCKED.coapplicant = true;
+            }
             // ---- Persist to session ----
             let custId = isApplicant ? gApzCOB.userDetails.custDtlId : gApzCOB.userDetails.CoApplicantCustomerId;
             let sessionCbObj = {
@@ -2020,6 +2030,10 @@ apz.app.CBcheck.BRECbServiceCB = function(params) {
             }
             // ---- Paint results ----
             apz.app.CBcheck.paintCibilDetails();
+            /* ENABLE NEXT BUTTON AFTER BRE */
+            apz.app.CBcheck.toggleNextButton();
+            /* APPLY READ ONLY UI */
+            apz.app.CBcheck.applyReadOnlyState();
         } else {
             apz.app.CBcheck.clearCbUI();
             $('#' + screenId + 'retryRow').removeClass('sno');
@@ -2285,9 +2299,14 @@ apz.app.CBcheck.deriveOtpStateFromSession = function() {
     // Reset runtime state first
     let state = isApplicant ? CB_OTP_STATE.applicant : CB_OTP_STATE.coapplicant;
     let unlockState = isApplicant ? 'applicant' : 'coapplicant';
-    state.verified = false;
-    state.mobile = null;
-    CB_OTP_UI_UNLOCK[unlockState] = false;
+    if (state.mobile !== currentMobile) {
+        state.verified = false;
+        state.mobile = null;
+        CB_OTP_UI_UNLOCK[unlockState] = false;
+    }
+    // state.verified = false;
+    // state.mobile = null;
+    // CB_OTP_UI_UNLOCK[unlockState] = false;
     if (!sessionCust || !sessionCust.payload) return;
     let payloadMobile = sessionCust.mobileNumber || "";
     let isVerifiedInSession = sessionCust.payload.isMobVerified === "Y";
@@ -2321,6 +2340,8 @@ apz.app.CBcheck.restoreCibilFromSession = function() {
     }
     // Paint
     apz.app.CBcheck.paintCibilDetails();
+    /* APPLY READ ONLY STATE */
+    apz.app.CBcheck.applyReadOnlyState();
     // Show post sections
     apz.app.CBcheck.togglePostValidationSections();
     //Hide initiate row
@@ -2363,4 +2384,37 @@ apz.app.CBcheck.existingLoanObject = function() {
         existingLoanObj.existingLoansDetailList.push(obj);
     }
     return existingLoanObj;
+};
+apz.app.CBcheck.toggleNextButton = function() {
+    let isApplicant = gApzCOB.currentApplicant <= 1;
+    let breDone = isApplicant ? CB_API_TRIGGERED.applicant : CB_API_TRIGGERED.coapplicant;
+    if (breDone) {
+        $('#' + kmbaseScr + 'nxtBtn').prop('disabled', false);
+    } else {
+        $('#' + kmbaseScr + 'nxtBtn').prop('disabled', true);
+    }
+};
+apz.app.CBcheck.applyReadOnlyState = function() {
+    let isApplicant = gApzCOB.currentApplicant <= 1;
+    let isLocked = isApplicant ? CB_UI_LOCKED.applicant : CB_UI_LOCKED.coapplicant;
+    let fields = ['primaryMobile', 'sec_mobile', 'ckycNumber', 'nameAsPerVoter', 'voterId', 'alternateVoterId', 'panNum', 'panName',
+        'addressLine1', 'addressLine2', 'addressLine3', 'pincode', 'addPreCity', 'addPreDistrict', 'addPreState','loanAmount'
+    ];
+    fields.forEach(field => {
+        $('#' + screenId + field).prop('readonly', isLocked);
+    });
+        /* DATE PICKER (DOB) */
+    $('#' + screenId + 'dob').prop('disabled', isLocked);
+        /* RADIO BUTTONS */
+    $('#' + screenId + 'panVal input').prop('disabled', isLocked);
+
+    /* SLIDER */
+    $('#' + screenId + 'loanSlider').prop('disabled', isLocked);
+    let dropdowns = ['loanPurpose', 'subLoanPurpose', 'frequencyOfRepayment', 'coGender', 'relationShipWithApplicant'];
+    dropdowns.forEach(field => {
+        $('#' + screenId + field).prop('disabled', isLocked);
+    });
+    /* Disable action buttons */
+    $('#' + screenId + 'sendOtpBtn').prop('disabled', isLocked);
+    $('#' + screenId + 'initiateCreditBtn').prop('disabled', isLocked);
 };
