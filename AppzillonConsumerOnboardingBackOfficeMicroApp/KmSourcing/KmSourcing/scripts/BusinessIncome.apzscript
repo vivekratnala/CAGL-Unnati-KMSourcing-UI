@@ -1677,8 +1677,204 @@ apz.app.BusinessIncome.paintNetIncome = function() {
     $(`#${kmScrId}income_ass_date`).text(formattedDate);
 };
 apz.app.BusinessIncome.paintAddressOptions = function(pIndex) {
-    $(`#${kmScrId+pIndex}_AppVoterAddr_txtcnt`).text("");
-    $(`#${kmScrId+pIndex}_coAppVoterAddr_txtcnt`).text("");
-    $(`#${kmScrId+pIndex}_AppAadhaarAddr_txtcnt`).text("");
-    $(`#${kmScrId+pIndex}_coAppAadhaarAddr_txtcnt`).text("");
+    //addressSameAs - ApplicantVoter Co-AppVoter ApplicantSecondaryKyc Co-AppSecondaryKyc Other
+    //Addresstype - Voter , SecondaryKyc
+    let noAddrText = 'Data not available, please update the address details';
+    let addrMap = [
+        { id: 'AppVoterAddr_txtcnt', type: 'Present', cust: 'Applicant' },
+        { id: 'coAppVoterAddr_txtcnt', type: 'Present', cust: 'Co-App' },
+        { id: 'AppAadhaarAddr_txtcnt', type: 'Permanent', cust: 'Applicant' },
+        { id: 'coAppAadhaarAddr_txtcnt', type: 'Permanent', cust: 'Co-App' }
+    ];
+    addrMap.forEach(item => {
+        let addr = apz.app.BusinessIncome.getAddressStr(item.type, item.cust);
+        let elem = $(`#${kmScrId+pIndex}_${item.id}`);
+        elem.text(addr ? addr : noAddrText);
+        if (addr === false) {
+            elem.parent().addClass('aadhaar-fallback-text');
+        }
+    });
+};
+apz.app.BusinessIncome.getAddressStr = function(addrType, custType) {
+    let custDetailID = ApzCOB.getCustDetailID(custType);
+    let addrList = inSessionStore.addressDetailsWrapperList[0]?.addressDetailsList?.find(el => el.custDtlId === custDetailID && el.addressType === 'Personal')?.payload?.addressList || [];
+    if (addrList.length === 0) return false;
+    let Addr = addrList.find(a => a.addressType === addrType);
+    if (Addr && Addr.addressLine1) {
+        return [Addr.addressLine1, Addr.addressLine2, Addr.addressLine3, Addr.district, Addr.city, Addr.pinCode, Addr.state, Addr.country        ].filter(Boolean).join(", ");
+    }
+}
+apz.app.BusinessIncome.PaintData = function() {
+    var data;
+    if (!apz.isNull(inSessionStore?.bcmpiIncomeDetails)) {
+        data = JSON.parse(inSessionStore?.bcmpiIncomeDetails?.payload);
+        Object.keys(data).forEach(category => {
+            switch (category) {
+                case "business":
+                    apz.app.BusinessIncome.BusinessData();
+                    break;
+                case "agriculture":
+                    apz.app.BusinessIncome.AgriData();
+                    break;
+                case "salary":
+                    apz.app.BusinessIncome.SalaryData();
+                    break;
+                case "wage":
+                    apz.app.BusinessIncome.WageData();
+                    break;
+                case "pension":
+                    apz.app.BusinessIncome.PaintPensionData();
+                    break;
+                case "rentalIncome":
+                    apz.app.BusinessIncome.RentalIncomeData()
+                    break;
+                /*case "homeMaker":
+                    apz.app.BusinessIncome.PaintHomeMakerData();
+                    break;*/
+                default:
+                    // ("Unknown Category:", category);
+            }
+        });
+    }
+};
+apz.app.BusinessIncome.BusinessData = function () {
+    if (!inSessionStore?.bcmpiIncomeDetails) return;
+    const payload = JSON.parse(inSessionStore.bcmpiIncomeDetails.payload);
+    const businessData = payload?.business;
+    if (!businessData) return;
+    let id = 0;
+    const config = {
+        dairy: {
+            type: "Dairy",
+            ownedKey: "DairyType",
+            lbl: "Total No of Cows / Buffalo",
+            val1: "totalCowsAndBuffalos",
+            val2: "IncomeAssessmentChecknetBusinessIncome",
+            doc: "Dairy Doc"
+        },
+        Kirana: {
+            type: "Kirana",
+            ownedKey: "kiranaType",
+            lbl: "Type of Shop",
+            val1: "kiranaShopType",
+            val2: "finalNetIncome",
+            doc: "Kirana Doc"
+        },
+        Other: {
+            type: "Other",
+            ownedKey: "otherType",
+            lbl: "Other line of business",
+            val1: "lineOfOtherBusiness",
+            val2: "netBusinessIncome",
+            doc: "Other Doc"
+        },
+        Tailoring: {
+            type: "Tailoring",
+            ownedKey: "tailoringType",
+            lbl: "Revenue per Month",
+            val1: "totalMonthlyIncome",
+            val2: "netBusinessIncome",
+            doc: "Tailoring Doc"
+        }
+    };
+    const hasBusiness = businessData?.dairy?.length || businessData?.Kirana?.length || businessData?.Tailoring?.length || businessData?.Other?.length;
+    if (hasBusiness) {
+        $(`#${kmScrId}businessTypeOption`).prop("checked", true);
+    }
+    Object.keys(config).forEach(key => {
+        const entries = businessData[key];
+        if (!entries?.length) return;
+        const cfg = config[key];
+        entries.forEach(entry => {
+            id++;
+            const obj = {
+                TypeChecked: true,
+                sectionName: "Business",
+                id: String(id)
+            };
+            apz.app.BusinessIncome.launchBusinessSection("", obj);
+            const base = `${kmScrId}${id}`;
+            $(`#${base}_businessOwnedByOption_option_${entry[cfg.ownedKey]}`).prop("checked", true);
+            $(`#${base}_businessTypeOption_option_${cfg.type}`).prop("checked", true);
+            $(`#${base}_businessOwnedByOption input[type="radio"]`).prop("disabled", true);
+            $(`#${base}_businessTypeOption input[type="radio"]`).prop("disabled", true);
+            $(`#${base}_businessTypeSec, #${base}_businessImgSec`).removeClass("sno");
+            $(`#${base}_addBusinessDetails_ul`).addClass("sno");
+            $(`#${base}_BusinessNoTxt`).text(`Business ${id}`);
+            $(`#${base}_businessLbl1_grp_lbl`).text(cfg.lbl);
+            $(`#${base}_businessLbl1`).val(entry[cfg.val1]);
+            $(`#${base}_businessLbl2`).val(entry[cfg.val2]);
+            $(`#${base}_viewBusinessDetails_ul`).addClass("sno");
+            $(`#${base}_DeleteIcon_ul`).removeClass("sno");
+            $(`#${base}_addBusiness`).attr("disabled", false);
+            $(`#${base}_NetBusinessIncome`).val(entry[cfg.val2]);
+            custTypeIncomeDtls = entry[cfg.ownedKey];
+            TempImageObject = {
+                index: id,
+                Type: cfg.type
+            };
+            apz.app.BusinessIncome.paintDocumentName(cfg.doc);
+            apz.app.BusinessIncome.paintAddressOptions(id);
+            $(`#${base}_otherLineofBussRow, #${base}_streetVendorRow, #${base}_K-TypeofshopRow`).addClass('sno');
+            if (cfg.type === "Other") {
+                $(`#${base}_otherLineofBussRow`).removeClass('sno');
+                let caOtherBusinessData = ["Please Select"];
+                let subpurposeData = [];
+                let matchedItem = gLovs.find(item => item.lovName === "BUSINESS_PURPOSE");
+                if (matchedItem) {
+                    let businessPurposeData = JSON.parse(matchedItem.lovDtls)?.BUSINESS_PURPOSE;
+                    caOtherBusinessDataArr = businessPurposeData.filter(item => item.CAType == "Other");
+                    subpurposeData = caOtherBusinessDataArr.map(item => item.subPurpose);
+                }
+                caOtherBusinessData = [...caOtherBusinessData, ...subpurposeData]
+                apz.app.Kmbase.populateDropdown(caOtherBusinessData, `${base}_O_OthLineOfBus_drop`);
+                //paint selected business option
+            } else if (cfg.type === "Kirana") {
+                $(`#${base}_streetVendorRow, #${base}_K-TypeofshopRow`).removeClass('sno');
+                apz.app.Kmbase.populateDropdown(KTypeOfShops, `${base}_K-Typeofshop`);
+                //paint selected kirana option
+                //paint street vendor option
+            }
+        });
+    });
+    apz.app.BusinessIncome.disableDeleteButtons();
+    apz.app.BusinessIncome.getSelectedBusinessTypes();
+    if (!FinalvaluesArr) return;
+    Object.keys(config).forEach(key => {
+        if (payload?.business?.[key]?.length > 0 && FinalvaluesArr?.[key]?.length === 0) {
+            FinalvaluesArr[key] = payload.business[key];
+        }
+    });
+};
+apz.app.BusinessIncome.AgriData = function () {
+    if (!inSessionStore?.bcmpiIncomeDetails) return;
+    const payload = JSON.parse(inSessionStore.bcmpiIncomeDetails.payload);
+    const agriData = payload?.agriculture;
+    if (!agriData || Object.keys(agriData).length === 0) return;
+    apz.app.BusinessIncome.Agriculture();
+    $(`#${kmScrId}AgricultureTypeOption`).prop("checked", true);
+    $(`#${kmScrId}Agriculture`).removeClass("sno");
+    const hasApplicant = !!agriData.applicant;
+    const hasCoApplicant = !!agriData.coApplicant;
+    const paintDoc = (role) => {
+        TempImageObject = { index: role, Type: "Agriculture" };
+        apz.app.BusinessIncome.paintDocumentName("Agriculture Doc");
+    };
+    if (hasApplicant && hasCoApplicant) {
+        $(`#${kmScrId}Agri_Owned_option_Both`).prop("checked", true);
+        $(`#${kmScrId}Agriculture #${kmScrId}Applicant, #${kmScrId}Agriculture #${kmScrId}Co-Applicant`).removeClass("sno");
+        $(`#${kmScrId}Agri_DeclaredIncome`).val(agriData.applicant?.declaredIncome);
+        $(`#${kmScrId}Co_Agri_DeclaredIncome`).val(agriData.coApplicant?.declaredIncome);
+        ["Applicant", "Co-Applicant"].forEach(paintDoc);
+    } else if (hasApplicant) {
+        $(`#${kmScrId}Agri_Owned_option_Applicant`).prop("checked", true);
+        $(`#${kmScrId}Agriculture #${kmScrId}Applicant`).removeClass("sno");
+        $(`#${kmScrId}Agri_DeclaredIncome`).val(agriData.applicant?.declaredIncome);
+        paintDoc("Applicant");
+    } else if (hasCoApplicant) {
+        $(`#${kmScrId}Agri_Owned_option_Co-Applicant`).prop("checked", true);
+        $(`#${kmScrId}Agriculture #${kmScrId}Co-Applicant`).removeClass("sno");
+        $(`#${kmScrId}Co_Agri_DeclaredIncome`).val(agriData.coApplicant?.declaredIncome);
+        paintDoc("Co-Applicant");
+    }
 };

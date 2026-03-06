@@ -231,6 +231,16 @@ apz.app.onLoad_CBcheck = function() {
             apz.app.CBcheck.toggleOtpProtectedSections();
         }
     });
+    if (window.CBCHECK_TAB_SWITCH_TARGET) {
+        let target = window.CBCHECK_TAB_SWITCH_TARGET;
+        window.CBCHECK_TAB_SWITCH_TARGET = null;
+        let tabs = $('.cbcheckSubMenu');
+        if (target === 'CoApplicant' && tabs.length > 1) {
+            apz.app.CBcheck.handletabSwitch(tabs.eq(1), 'CoApplicant');
+        } else {
+            apz.app.CBcheck.handletabSwitch(tabs.eq(0), 'Applicant');
+        }
+    }
     apz.app.CBcheck.toggleOtpProtectedSections();
     if (!apz.isNull(cbCallType)) {
         if (cbCallType.CB_TYPE === 'BOTH') {
@@ -259,10 +269,16 @@ apz.app.CBcheck.handletabSwitch = function(pthis, CustType) {
         gApzCOB.currentApplicant = 1;
         $('.src-coapp').hide();
         $('.src-app').show();
+        $(`#${kmbaseScr}sidebarForm a`).removeClass('active');
+        $(`#${kmbaseScr}CBcheck_hyp`).addClass('active');
+        $(`#${kmbaseScr}AppCBcheck_hyp`).addClass('active');
     } else {
         gApzCOB.currentApplicant = 2;
         $('.src-app').hide();
         $('.src-coapp').show();
+        $(`#${kmbaseScr}sidebarForm a`).removeClass('active');
+        $(`#${kmbaseScr}CBcheck_hyp`).addClass('active');
+        $(`#${kmbaseScr}CoAppCBcheck_hyp`).addClass('active');
     }
     //   CLEAR FORM BEFORE PAINT
     apz.app.CBcheck.clearForm();
@@ -1005,6 +1021,15 @@ apz.app.CBcheck.paintLoanDetails = function() {
     }
 };
 apz.app.onShown_CBcheck = function() {
+    // SIDEBAR ACTIVE STATE — parent always active
+    $(`#${kmbaseScr}sidebarForm a`).removeClass('active');
+    $(`#${kmbaseScr}CBcheck_hyp`).addClass('active');
+    // Child active based on current applicant or pending target
+    if (window.CBCHECK_TAB_SWITCH_TARGET === 'CoApplicant') {
+        $(`#${kmbaseScr}CoAppCBcheck_hyp`).addClass('active');
+    } else {
+        $(`#${kmbaseScr}AppCBcheck_hyp`).addClass('active');
+    }
     // Restore loan + customer details from session
     apz.app.CBcheck.paintLoanDetails();
     apz.app.CBcheck.paintDetails();

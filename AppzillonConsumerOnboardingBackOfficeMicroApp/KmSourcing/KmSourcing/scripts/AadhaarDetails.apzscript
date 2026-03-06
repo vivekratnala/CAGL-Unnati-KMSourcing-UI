@@ -393,6 +393,20 @@ apz.app.handleOtherAddressSelection = function(pthis) {
 };
 apz.app.AadhaarDetails.handletabSwitch = function(pthis, CustType) {
     if (!pthis) return;
+    if (window.AADHAAR_INIT_DONE && !window.AADHAAR_TAB_SWITCH_SAVING) {
+        window.AADHAAR_TAB_SWITCH_SAVING = true;
+        window.AADHAAR_TAB_SWITCH_TARGET = (CustType === 'Applicant') ? 'Applicant' : 'CoApplicant';
+        window.AADHAAR_SAVE_DRAFT = true;
+        window._AFTER_DRAFT_SAVE = function() {
+            window.AADHAAR_TAB_SWITCH_SAVING = false;
+            apz.app.AadhaarDetails._doTabSwitch(pthis, CustType);
+        };
+        apz.app.AadhaarDetails.saveAadhaarDetails(true);
+        return;
+    }
+    apz.app.AadhaarDetails._doTabSwitch(pthis, CustType);
+};
+apz.app.AadhaarDetails._doTabSwitch = function(pthis, CustType) {
     resetAllMinMaxErrors();
     var $btn = $(pthis);
     $('.aadhaarSubMenu').removeClass('active');
@@ -401,7 +415,6 @@ apz.app.AadhaarDetails.handletabSwitch = function(pthis, CustType) {
         gApzCOB.currentApplicant = 1;
         $('.src-coapp').addClass('sno');
         $('.src-app').removeClass('sno');
-        // Sidebar active state — parent + child
         $(`#${kmbaseScr}sidebarForm a`).removeClass('active');
         $(`#${kmbaseScr}AadhaarDetails_hyp`).addClass('active');
         $(`#${kmbaseScr}AppAadhaarDetails_hyp`).addClass('active');
@@ -409,7 +422,6 @@ apz.app.AadhaarDetails.handletabSwitch = function(pthis, CustType) {
         gApzCOB.currentApplicant = 2;
         $('.src-app').addClass('sno');
         $('.src-coapp').removeClass('sno');
-        // Sidebar active state — parent + child
         $(`#${kmbaseScr}sidebarForm a`).removeClass('active');
         $(`#${kmbaseScr}AadhaarDetails_hyp`).addClass('active');
         $(`#${kmbaseScr}CoAppAadhaarDetails_hyp`).addClass('active');
@@ -708,8 +720,6 @@ apz.app.AadhaarDetails.toggleAddressRadios = function() {
         });
     });
 };
-// Resets all form fields on the screen before repainting from inSessionStore.
-// Called on tab switch. No cache needed — inSessionStore is the source of truth.
 apz.app.AadhaarDetails.clearScreenFields = function() {
     let $screen = $("#scr__" + AadhaarScrId + "main");
     if (!$screen.length) return;
@@ -729,7 +739,11 @@ apz.app.AadhaarDetails.clearScreenFields = function() {
         }
         this.value = "";
     });
-    // Reset other-address section visibility
+    // ── RE-APPLY DEFAULTS after clear ──
+    let p = AadhaarScrId;
+    document.querySelectorAll(`[name="${p}typeHouse_"]`).forEach(r => {
+        r.checked = (r.value === "HouType2");
+    });
     apz.app.otherAddressState.present = false;
     apz.app.otherAddressState.permanent = false;
     const presentSection = document.querySelector('.other-present-details');
@@ -762,6 +776,14 @@ apz.app.AadhaarDetails.address = function() {
     let presentSameAs = apz.app.AadhaarDetails.getAddressSameAs("present");
     let residentialOwnershipCheck = $(`input[name="${p}residentialStatus_"]:checked`).val();
     let permanentSameAs = residentialOwnershipCheck === "Own" ? "ApplicantVoter" : apz.app.AadhaarDetails.getAddressSameAs("permanent");
+    // Read radio value (HouType1/2/3) and convert to display value for saving
+    let houseTypeRawCode = $(`input[name="${p}typeHouse_"]:checked`).val() || "HouType2";
+    const codeToDisplay = {
+        "HouType1": "Kuccha",
+        "HouType2": "Pucca",
+        "HouType3": "Semi Pucca"
+    };
+    let houseTypeValue = codeToDisplay[houseTypeRawCode] || "Pucca";
     let presentAddress = {
         "addressType": "Present",
         "addressSameAs": presentSameAs,
@@ -778,7 +800,7 @@ apz.app.AadhaarDetails.address = function() {
         "residenceOwnership": residentialOwnership || "",
         "residenceCitySince": $(`#${p}A_residence_stabilit_present_city`).val(),
         "residenceAddressSince": $(`#${p}A_residence_stability`).val(),
-        "houseType": $(`input[name="${p}typeHouse_"]:checked`).val() || "",
+        "houseType": houseTypeValue,
         "currentAddressProof": $(`#${p}addressProof`).val()
     };
     addressArr.push(presentAddress);
@@ -1199,9 +1221,15 @@ apz.app.AadhaarDetails.paintFromFresh = function(p, custWrapper, addrList) {
             $("#" + p + "fathersName").val(fatherName);
         }
     }
+    let defaultHouseType = "HouType2";
     document.querySelectorAll(`[name="${p}typeHouse_"]`).forEach(r => {
-        r.checked = (r.value === "Pucca");
-    })
+        r.checked = (r.value === defaultHouseType);
+        if (r.checked) {
+            r.dispatchEvent(new Event('change', {
+                bubbles: true
+            }));
+        }
+    });
     if (!isApplicant) {
         let coAppCust = inSessionStore?.customerDetailsList?.find(c => c.customerType === "Co-App");
         let relation = coAppCust?.payload?.relationShipWithApplicant || lead?.relationShipWithApplicant || "";
@@ -1348,7 +1376,7 @@ apz.app.AadhaarDetails.paintFromSession = function(custWrapper, addrList, p) {
     let permanent = addrList.find(a => a.addressType === "Permanent");
     let secondaryKyc = addrList.find(a => a.addressType === "SecondaryKyc");
     let communication = addrList.find(a => a.addressType === "Communication");
-    //PRESENT ADDRESS 
+    // PRESENT ADDRESS 
     if (present) {
         // Always restore residence stability, proof, ownership & house type
         if (present.residenceCitySince) {
@@ -1377,29 +1405,32 @@ apz.app.AadhaarDetails.paintFromSession = function(custWrapper, addrList, p) {
             let ownRadio = document.querySelector(`[name="${p}residentialStatus_"][value="Own"]`);
             if (ownRadio) ownRadio.checked = true;
         }
-        // In paintFromSession, fix the default block:
+        // Restore houseType
         if (present.houseType) {
-            const houseTypeMap = {
-                "HouType1": "Kuccha",
-                "HouType2": "Pucca",
-                "HouType3": "Semi Pucca",
-                // also handle if already stored as display values
-                "Kuccha": "Kuccha",
-                "Pucca": "Pucca",
-                "Semi Pucca": "Semi Pucca"
+            const displayToCode = {
+                "Kuccha": "HouType1",
+                "Pucca": "HouType2",
+                "Semi Pucca": "HouType3",
+                "HouType1": "HouType1",
+                "HouType2": "HouType2",
+                "HouType3": "HouType3"
             };
-            let uiVal = houseTypeMap[present.houseType] || "Pucca";
+            let radioCode = displayToCode[present.houseType] || "HouType2";
             document.querySelectorAll(`[name="${p}typeHouse_"]`).forEach(r => {
-                r.checked = (r.value === uiVal);
+                r.checked = (r.value === radioCode);
+                if (r.checked) r.dispatchEvent(new Event('change', {
+                    bubbles: true
+                }));
             });
         } else {
-            // DEFAULT — Pucca
             document.querySelectorAll(`[name="${p}typeHouse_"]`).forEach(r => {
-                r.checked = (r.value === "Pucca");
+                r.checked = (r.value === "HouType2");
+                if (r.checked) r.dispatchEvent(new Event('change', {
+                    bubbles: true
+                }));
             });
         }
         if (present.addressSameAs === "Other") {
-            //  Other: show section + pre-fill fields + select row 5
             $(`#${p}presentAddrLine1`).val(present.addressLine1 || "");
             $(`#${p}presentAddrLine2`).val(present.addressLine2 || "");
             $(`#${p}presentAddrLine3`).val(present.addressLine3 || "");
@@ -1415,7 +1446,6 @@ apz.app.AadhaarDetails.paintFromSession = function(custWrapper, addrList, p) {
             if (presentSection) presentSection.style.display = '';
             checkRowRadio(5, 1);
         } else {
-            // ── Non-Other (Voter/SecondaryKyc row): clear fields + hide section
             $(`#${p}presentAddrLine1`).val("");
             $(`#${p}presentAddrLine2`).val("");
             $(`#${p}presentAddrLine3`).val("");
@@ -1429,7 +1459,6 @@ apz.app.AadhaarDetails.paintFromSession = function(custWrapper, addrList, p) {
             apz.app.otherAddressState.present = false;
             const presentSection = document.querySelector('.other-present-details');
             if (presentSection) presentSection.style.display = 'none';
-            // Select the correct row based on addressSameAs
             const sameAsToRow = {
                 "ApplicantVoter": 1,
                 "Co-AppVoter": 2,
@@ -1441,12 +1470,10 @@ apz.app.AadhaarDetails.paintFromSession = function(custWrapper, addrList, p) {
     }
     // PERMANENT ADDRESS 
     if (permanent) {
-        // Always restore proof dropdown
         if (permanent.currentAddressProof) {
             $(`#${p}permanentAddressProof`).val(permanent.currentAddressProof).trigger("change");
         }
         if (permanent.addressSameAs === "Other") {
-            //  Other: show section + pre-fill fields + select row 5 
             $(`#${p}permanentAddrLine1`).val(permanent.addressLine1 || "");
             $(`#${p}permanentAddrLine2`).val(permanent.addressLine2 || "");
             $(`#${p}permanentAddrLine3`).val(permanent.addressLine3 || "");
@@ -1462,7 +1489,6 @@ apz.app.AadhaarDetails.paintFromSession = function(custWrapper, addrList, p) {
             if (permanentSection) permanentSection.style.display = '';
             checkRowRadio(5, 2);
         } else {
-            //  Non-Other (Voter/SecondaryKyc row): clear fields + hide section
             $(`#${p}permanentAddrLine1`).val("");
             $(`#${p}permanentAddrLine2`).val("");
             $(`#${p}permanentAddrLine3`).val("");
@@ -1476,7 +1502,6 @@ apz.app.AadhaarDetails.paintFromSession = function(custWrapper, addrList, p) {
             apz.app.otherAddressState.permanent = false;
             const permanentSection = document.querySelector('.other-permanent-details');
             if (permanentSection) permanentSection.style.display = 'none';
-            // Select the correct row based on addressSameAs
             const sameAsToRow = {
                 "ApplicantVoter": 1,
                 "Co-AppVoter": 2,
@@ -1485,6 +1510,10 @@ apz.app.AadhaarDetails.paintFromSession = function(custWrapper, addrList, p) {
             };
             checkRowRadio(sameAsToRow[permanent.addressSameAs] || 1, 2);
         }
+    } else {
+        // ✅ FIX 1: No permanent address saved (came from "Own" fresh case)
+        // Default permanent radio to Applicant Voter so it's ready when Rented is selected
+        checkRowRadio(1, 2);
     }
     // SECONDARY KYC ADDRESS
     if (secondaryKyc && secondaryKyc.addressLine1) {
@@ -1498,7 +1527,6 @@ apz.app.AadhaarDetails.paintFromSession = function(custWrapper, addrList, p) {
         $("#" + p + "aadCountry").val(secondaryKyc.country || "").trigger("change");
         $("#" + p + "aadArea").val(secondaryKyc.area || "");
         $("#" + p + "aadLandmark").val(secondaryKyc.landMark || "");
-        // ── FIX: reveal Aadhaar details section since data exists ──
         $("#" + p + "aadharDetails").removeClass('sno');
         $("#" + p + "captureAadhaar").removeClass('btm-seperator');
     }
@@ -1513,7 +1541,7 @@ apz.app.AadhaarDetails.paintFromSession = function(custWrapper, addrList, p) {
             $("#" + p + "relationshipProof").val(docName).trigger("change");
         }
     }
-    //BASED ON VOTER AND PRESENT RADIO SELECTION
+    // BASED ON VOTER AND PRESENT RADIO SELECTION
     if (custWrapper && addrList?.length) {
         let custDtlId = custWrapper.custDtlId;
         let voterAddr = apz.app.AadhaarDetails.getVoterAddrFromSession(custDtlId);
@@ -1525,17 +1553,23 @@ apz.app.AadhaarDetails.paintFromSession = function(custWrapper, addrList, p) {
     }
     let checkedResidential = document.querySelector(`[name="${p}residentialStatus_"]:checked`);
     if (checkedResidential && checkedResidential.value !== "Own") {
-        // Only call for Rented — shows permanent column
         apz.app.handleAddressType(checkedResidential);
     } else if (checkedResidential && checkedResidential.value === "Own") {
-        // For Own — just hide permanent column visually, don't clear radios
+        // ✅ FIX 2: Set permanent default BEFORE hiding so value is preserved
+        let anyPermanentChecked = Array.from(document.querySelectorAll('.addr-body-row')).some(row => {
+            let radio = row.children[2]?.querySelector("input[type='radio']");
+            return radio && radio.checked;
+        });
+        if (!anyPermanentChecked) {
+            checkRowRadio(1, 2); // Default to Applicant Voter
+        }
+        // For Own — hide permanent column visually
         document.querySelectorAll('.addr-header-row, .addr-body-row').forEach(row => {
             const cells = row.children;
             if (cells && cells.length >= 3) {
                 cells[2].style.display = 'none';
             }
         });
-        // Lock communication to Present
         const addressRow = document.querySelector('.address-selection');
         if (addressRow) addressRow.classList.add('disabled');
         document.querySelectorAll(`input[name="${p}communicationAddress_"]`).forEach(r => {
@@ -1564,7 +1598,6 @@ apz.app.AadhaarDetails.paintFromSession = function(custWrapper, addrList, p) {
         }
         window.selectedCommunicationAddress = sameAs.includes("present") ? "Present" : sameAs.includes("permanent") ? "Permanent" : "";
     } else {
-        //DEFAULT
         let checkedRes = document.querySelector(`[name="${p}residentialStatus_"]:checked`);
         if (!checkedRes || checkedRes.value === "Own") {
             document.querySelectorAll(`input[name="${p}communicationAddress_"]`).forEach(r => {

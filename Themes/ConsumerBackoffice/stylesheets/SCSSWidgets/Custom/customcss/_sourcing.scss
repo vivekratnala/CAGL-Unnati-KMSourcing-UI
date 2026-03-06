@@ -6,7 +6,7 @@
     max-width: 174px;
     min-width: 240px;
     position: fixed;
-    bottom: 0px;
+    bottom: 0px; 
     left: 0;
     padding: 8px 32px 24px 32px;
     padding-top: 8px;
@@ -23,6 +23,14 @@
     justify-content: space-between;
     padding-top: 5px;
 }
+.srb.pri.aprrej.mb16 {
+    display: flex;
+    gap: 16px;
+    flex-direction: row;
+    justify-content: space-between;
+    padding-top: 5px;
+    align-items: anchor-center;
+} 
 
 .btm-seperator-kmsourcing {
     width: 100% !important;
@@ -315,6 +323,12 @@
     background: #fff;
     border-radius: 10px;
 }
+
+.bussheaders.err-highlgt {
+    border: dashed;
+    border-color: indianred;
+}
+
 .bsaddress-table {
     border: 1px solid #d1d5db;
     border-radius: 8px;
@@ -323,7 +337,7 @@
 }
 .bsaddr-header-row {
     display: flex;
-    background: #f8fafc;
+    background: #F5F5F5;
     border-bottom: 1px solid #d1d5db;
     font-weight: 600;
 }
@@ -341,6 +355,10 @@
 
 .bsaddr-body-row:last-child {
     border-bottom: none;
+}
+
+.bsaddr-cell.pri.scb-col80 {
+    text-align: -webkit-left;
 }
 
 .bsaddr-body-row .bsaddr-cell {
@@ -558,3 +576,126 @@ span#KmSourc__AadhaarDetails__communicationAddress {
 .modal-cnt > .pst-simp.rcblk {
     padding: 24px;
 }
+
+.kmcb-details {
+    width: 100%;
+    flex-basis: 100%;
+    margin-top: 15px;
+}
+
+.insrhdr .srb.wrapped, .insrhdr .srb.eoc.wrapped {
+    width: auto;
+    line-height: 12px;
+}
+
+.insrhdr .srb.wrapped.sbld.edt { 
+    float: right;
+    cursor: pointer;
+}
+
+.insurbadge span.scb-col100 {
+    background: #CFD8DC;
+    border-radius: 48px;
+    padding: 4px 16px;
+    width: auto;
+}
+
+.insurbadge .srb.eoc {
+    width: auto;
+    display: inline-flex;
+}
+
+.crt-form.ver.pri .insurbadge .scb-col100  ul:first-child {margin-right: 4px !important;}
+.crt-form.ver.pri .insurbadge .scb-col100  ul:last-child {margin-left: 4px !important;}
+.crt-form.ver.pri .insurbadge .scb-col100  ul .ett-labl{color:#231f20;opacity: 1;}
+.crt-form.ver.pri .insurbadge .scb-col100  ul .ett-para{color:231f20;font-weight:600;opacity:1;}
+
+.otp-note {
+   display: flex;
+   flex-direction: column;
+   width: 526px;     
+   height: 38px;     
+   gap: 4px;     
+   font-family: 'Open Sans', sans-serif;     
+   font-weight: 600;    
+   font-size: 24px;     
+   line-height: 24px;     
+   letter-spacing: 0px;
+}
+
+.addr-note {
+   display: flex;
+   flex-direction: column;
+   width: 526px;     
+   height: 50px;     
+   gap: 4px;     
+   font-family: 'Open Sans', sans-serif;     
+   font-weight: 600;    
+   font-size: 24px;     
+   line-height: 24px;     
+   letter-spacing: 0px;
+}
+
+.cb-dtls-inpt.srb {
+    display: flex;
+    gap: 16px;
+    margin-top: 8px;
+}
+
+.cb-dtls-inpt .insurbadge > span.scb-col100 {
+    display: flex;
+    align-items: center;
+}
+
+.shwdtl .cb-dtls-inpt .insurbadge > span.scb-col100 .eoc .flb, 
+.shwdtl .cb-dtls-inpt .insurbadge > span.scb-col100 .eoc .ett-para {
+    color: #231F20;
+    font-weight: 600;
+}
+
+.shwdtl > span.scb-col100 > .srb.wd-100 {
+    width: 100%;
+}
+
+/*.pre-view .ett-bttn.sec > .ett-icon{
+    width:18px;
+    height:18px;
+    fill:#004886;
+    margin-right: 8px;
+}
+
+.pre-view.delbtn .ett-bttn.sec > .ett-icon{
+    min-width:18px;
+    width: 18px;
+    height: 18px;
+    fill:#004886;
+}
+
+.pre-view.delbtn .ett-bttn{
+    padding:7px 12px
+}
+
+.delbtn.pre-view {
+    width: auto;
+}
+
+.delbtn.pre-view .ett-bttn.btn-icon svg {
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    fill:#D92D20;
+    margin:0px;
+}*/
+
+.delbtn svg use {
+    fill: #e53935;
+}
+
+.delbtn.pre-view .ett-bttn.btn-icon {
+    padding: 0;
+    background: transparent;
+    border: none;
+}
+
