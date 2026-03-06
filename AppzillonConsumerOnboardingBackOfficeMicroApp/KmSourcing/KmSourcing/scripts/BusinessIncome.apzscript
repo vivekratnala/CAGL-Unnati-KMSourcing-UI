@@ -901,7 +901,7 @@ apz.app.BusinessIncome.DeleteBusiness = function(pthis, type) {
             deletedBusinessIndexes[DeleteCount] = typeKey;
             $("#KmSourc__BusinessIncome__CloneRow_" + DeleteCount).addClass("sno");
             $("#KmSourc__BusinessIncome__CloneRow_" + DeleteCount).find("#KmSourc__BusinessIncome__" + DeleteCount + "_Business_ParentBusRow").find(
-                ".uploadimg.businessimg`).addClass("sno");
+                ".uploadimg.businessimg").addClass("sno");
             if ($("#KmSourc__BusinessIncome__CloneRow_" + (DeleteCount - 1)).length > 0) {
                 $("#KmSourc__BusinessIncome__" + (DeleteCount - 1) + "_addBusiness_ul").removeClass("sno");
             }

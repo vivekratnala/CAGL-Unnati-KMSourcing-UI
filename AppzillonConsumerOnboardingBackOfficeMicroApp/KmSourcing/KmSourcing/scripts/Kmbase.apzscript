@@ -112,7 +112,7 @@ apz.app.Kmbase.back = function() {
     }
     // REVIEW CONFIRM
     if (apz.childScr === "KMReviewConfirm") {
-        //ApzCOB.launchSubScreen("OtherInformation", "KmSourc__Kmbase__KMLaunchCol", "");
+        // ApzCOB.launchSubScreen("OtherInformation", "KmSourc__Kmbase__KMLaunchCol", "");
         apz.app.Kmbase.NavigateSidebar(4, this)
         return;
     }
@@ -705,11 +705,11 @@ apz.app.Kmbase.closeDeleteSuccModal = function() {
 apz.app.Kmbase.closeDeleteErrModal = function() {
     ApzCOB.toggleModal(`${kmbaseScr}AA_Error_modal`);
 };
-apz.app.Kmbase.onchangepincode = function(pthis, addressType) {
+apz.app.Kmbase.onchangepincode = function(pthis, addressType, callbackFn) {
     let pincode_temp = $(pthis).val();
     if (pincode_temp.length > 5) {
         window.pincodeAddresstype = addressType;
-        ApzCOB.fetchpincodeDtls(pincode_temp, addressType);
+        ApzCOB.fetchpincodeDtls(pincode_temp, addressType, callbackFn);
     }
 };
 apz.app.Kmbase.paint_pincode = function(params, addressType) {
